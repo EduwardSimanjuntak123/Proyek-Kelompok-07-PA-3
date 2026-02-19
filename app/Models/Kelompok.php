@@ -46,6 +46,10 @@ class Kelompok extends Model
     public function KelompokMahasiswa() {
         return $this->hasMany(KelompokMahasiswa::class);
     }
+public function tahunAjaran()
+{
+    return $this->belongsTo(tahunAjaran::class);
+}
 
     public function pengajuanSeminar()
     {

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('prodi_id')->constrained('prodi')->onDelete('cascade'); // foreign key
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade'); // foreign key
             $table->foreignId('TM_id')->constrained('tahun_masuk')->onDelete('cascade'); // foreign key
-            $table->string('Tahun_Ajaran');
             $table->enum('status',['Aktif','Tidak-Aktif']);
             // Indexing
             $table->index(['user_id', 'role_id', 'prodi_id', 'KPA_id', 'TM_id','status']);
