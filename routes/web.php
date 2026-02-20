@@ -27,6 +27,7 @@ use App\Http\Controllers\TahunMasuk_Controller;
 use App\Http\Controllers\JadwalStaffController;
 use App\Http\Controllers\JadwalPengujiController;
 use App\Http\Controllers\JadwalPembimbingController;
+use App\Http\Controllers\MahasiswaController;
 use Google\Client;
 use App\Models\Nilai_kelompok;
 use App\Models\Pengumuman;
@@ -269,6 +270,11 @@ Route::prefix('TahunMasuk')->group(function(){
 
     Route::prefix('DaftarDosen')->group(function(){
         Route::get('/',[DosenController::class,'index'])->name('listDosen.index');
+
+    });
+
+    Route::prefix('DaftarMahasiswa')->group(function(){
+        Route::get('/',[MahasiswaController::class,'index'])->name('listMahasiswa.index');
 
     });
 
