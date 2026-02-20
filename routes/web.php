@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BimbinganController;
 use App\Http\Controllers\dashboard_Controller;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\Kelompok_Controller;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\ManajemenroleController;
@@ -264,6 +265,11 @@ Route::prefix('TahunMasuk')->group(function(){
         Route::get('/edit/{id}', [TahunMasuk_Controller::class, 'edit'])->name('TahunMasuk.edit');
         Route::put('/{id}', [TahunMasuk_Controller::class, 'update'])->name('TahunMasuk.update');
         Route::delete('/{id}',[TahunMasuk_Controller::class, 'destroy'])->name('TahunMasuk.destroy');
+    });
+
+    Route::prefix('DaftarDosen')->group(function(){
+        Route::get('/',[DosenController::class,'index'])->name('listDosen.index');
+
     });
 
 //Route untuk BAAK =>tahun Ajaran

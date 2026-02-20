@@ -31,6 +31,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {{-- @dd($dosenroles) --}}
                                     @foreach($dosenroles as $item)
                                         <tr>
                                             <td>{{ $item->id }}</td>
@@ -38,7 +39,7 @@
                                             <td>{{ $item->prodi->nama_prodi ?? 'N/A'}}</td>                                           
                                             <td>{{ $item->kategoripa->kategori_pa ?? 'N/A' }}</td>
                                             <td>{{ $item->role->role_name ?? 'N/A' }}</td>
-                                            <td>{{ $item->Tahun_Ajaran }}</td>
+                                            <td>{{ $item->tahunAjaran->tahun_mulai }}/{{ $item->tahunAjaran->tahun_selesai }}</td>
                                             <td>{{ $item->tahunMasuk->Tahun_Masuk ?? 'N/A' }}</td>    
                                             <td>{{ $item->status }}</td>
                                             <td>

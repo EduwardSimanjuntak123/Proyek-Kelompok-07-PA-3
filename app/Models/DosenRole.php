@@ -27,7 +27,10 @@ public function kategoriPA()
 public function pembimbing(){
     return $this->belongsTo(pembimbing::class, 'pembimbing_id');
 }
-
+public function tahunAjaran()
+{
+    return $this->belongsTo(TahunAjaran::class);
+}
     use HasFactory;
     protected $fillable = [
         'user_id',
@@ -35,7 +38,7 @@ public function pembimbing(){
         'prodi_id',
         'KPA_id',
         'TM_id',
-        'Tahun_Ajaran',
+        'tahun_ajaran_id',
         'status',
     ];
     

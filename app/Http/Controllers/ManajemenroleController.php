@@ -25,8 +25,8 @@ class ManajemenroleController extends Controller
         $token = session('token');
         
         // Ambil data dosen_roles dengan relasi prodi, role, tahun ajaran
-        $dosenroles = DosenRole::with(['prodi', 'role', 'tahunMasuk','kategoripa'])->get();
-        
+        $dosenroles = DosenRole::with(['prodi', 'role', 'tahunMasuk','kategoripa','tahunAjaran'])->get();
+        // dd($dosenroles);
         // Ambil data dosen dari API eksternal
         $responseDosen = Http::withHeaders([
             'Authorization' => "Bearer $token"
@@ -68,14 +68,16 @@ class ManajemenroleController extends Controller
     
         // Ambil data dari tabel menggunakan Eloquent
         $prodi = Prodi::all();
+        $tahun_ajaran = TahunAjaran::all();
         $role = Role::all();
         $tahun_masuk = TahunMasuk::where('Status','Aktif')->get();
         $kategoripa =kategoriPA::all();
     
-        return view('pages.BAAK.Kordinator.create', compact('dosen', 'prodi', 'role', 'tahun_masuk','kategoripa'));
+        return view('pages.BAAK.Kordinator.create', compact('dosen', 'prodi', 'role', 'tahun_masuk','tahun_ajaran','kategoripa'));
     }
     public function store(Request $request)
     {
+        // dd($request);
         // Validasi input umum
         $validated = $request->validate([
             'user_id'   => 'required|numeric',
@@ -83,8 +85,8 @@ class ManajemenroleController extends Controller
             'prodi_id'  => 'required|exists:prodi,id',
             'KPA_id'  => 'required|exists:kategori_pa,id',
             'TM_id'     => 'required|exists:tahun_masuk,id',
-            'status'    => 'required|in:Aktif,Tidak-Aktif',
-            'Tahun_Ajaran' =>'required',
+            'tahun_ajaran_id'     => 'required',
+            'status'    => 'required|in:Aktif,Tidak-Aktif'
               // Pastikan status benar
         ]);
     
@@ -101,6 +103,7 @@ class ManajemenroleController extends Controller
                 ->where('prodi_id', $validated['prodi_id'])
                 ->where('KPA_id', $validated['KPA_id'])
                 ->where('TM_id', $validated['TM_id'])
+                ->where('tahun_ajaran_id', $validated['tahun_ajaran_id'])
                 ->where('status','Aktif')
                 ->exists();
                 if ($existingDosen) {
@@ -132,6 +135,8 @@ class ManajemenroleController extends Controller
                 ->where('prodi_id', $validated['prodi_id'])
                 ->where('KPA_id', $validated['KPA_id'])
                 ->where('TM_id', $validated['TM_id'])
+                ->where('tahun_ajaran_id', $validated['tahun_ajaran_id'])
+
                 ->where('role_id', $validated['role_id'])
                 ->first();
         
@@ -145,6 +150,8 @@ class ManajemenroleController extends Controller
             if ($validated['status'] === 'Aktif') {
                 $existingGlobal = DosenRole::where('role_id', $validated['role_id'])
                     ->where('TM_id', $validated['TM_id'])
+                    ->where('tahun_ajaran_id', $validated['tahun_ajaran_id'])
+
                     ->where('prodi_id', $validated['prodi_id'])
                     ->where('KPA_id', $validated['KPA_id'])
                     ->where('status', 'Aktif')
@@ -165,8 +172,9 @@ class ManajemenroleController extends Controller
             'role_id'   => $validated['role_id'],
             'prodi_id'  => $validated['prodi_id'],
             'KPA_id'  => $validated['KPA_id'],
+            'KPA_id'  => $validated['KPA_id'],
             'TM_id'     => $validated['TM_id'],
-            'Tahun_Ajaran'=>$validated['Tahun_Ajaran'],
+            'tahun_ajaran_id'=>$validated['tahun_ajaran_id'],
             'status'    => $status,  // Pastikan status dikirimkan dengan benar
         ]);
     

@@ -20,6 +20,7 @@ class tahunAjaran extends Model
         'tahun_mulai'     => 'integer',
         'tahun_selesai'   => 'integer',
     ];
+    
     public function dosenRoles()
     {
         return $this->hasMany(DosenRole::class);

@@ -158,7 +158,7 @@
                     <li><a class="nav-link" href="{{ route('mahasiswa.jadwal.index') }}"><i
                                 class="fas fa-calendar"></i> <span>Jadwal</span></a></li>
 
-                    {{-- Untuk Staff --}}
+                    {{-- Untuk Staff BAAK --}}
                 @elseif (session('role') == 'Staff')
                     <li class="menu-header">Staff</li>
                     <li><a class="nav-link" href="{{ route('dashboard.BAAK') }}"><i class="fas fa-columns"></i>
@@ -173,6 +173,10 @@
                                 class="fas fa-graduation-cap"></i> <span>Tahun Masuk</span></a></li>
                     <li><a class="nav-link" href="{{ route('TahunAjaran.index') }}"><i
                                 class="fas fa-graduation-cap"></i> <span>Tahun Ajaran</span></a></li>
+                    <li><a class="nav-link" href="{{ route('listDosen.index') }}"><i
+                                class="fas fa-graduation-cap"></i> <span>Daftar dosen</span></a></li>
+                    <li><a class="nav-link" href="#"><i
+                                class="fas fa-graduation-cap"></i> <span>Daftar Mahasiswa</span></a></li>
                 @endif
             </ul>
         @endif
