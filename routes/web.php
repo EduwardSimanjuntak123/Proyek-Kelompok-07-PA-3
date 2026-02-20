@@ -30,6 +30,8 @@ use Google\Client;
 use App\Models\Nilai_kelompok;
 use App\Models\Pengumuman;
 use App\Http\Controllers\PengajuanSeminarController;
+use App\Http\Controllers\TahunAJaran_Controller;
+
 //untuk login
 Route::get('/', fn () => redirect()->route('login.form'));
 
@@ -254,7 +256,7 @@ Route::prefix('baak')->group(function () {
     Route::delete('/pengumuman/{id}', [PengumumanController::class, 'destroypengumuman'])->name('pengumuman.BAAK.destroy');
     Route::get('/pengumuman/{id}', [PengumumanController::class, 'showPengumumanBAAK'])->name('pengumuman.BAAK.show');
 });
-//Route untuk BAAK =>tahun ajaran
+//Route untuk BAAK =>tahun Masuk
 Route::prefix('TahunMasuk')->group(function(){
         Route::get('/',[TahunMasuk_Controller::class,'index'])->name('TahunMasuk.index');
         Route::get('/create',[TahunMasuk_Controller::class,'create'])->name('TahunMasuk.create');
@@ -262,6 +264,16 @@ Route::prefix('TahunMasuk')->group(function(){
         Route::get('/edit/{id}', [TahunMasuk_Controller::class, 'edit'])->name('TahunMasuk.edit');
         Route::put('/{id}', [TahunMasuk_Controller::class, 'update'])->name('TahunMasuk.update');
         Route::delete('/{id}',[TahunMasuk_Controller::class, 'destroy'])->name('TahunMasuk.destroy');
+    });
+
+//Route untuk BAAK =>tahun Ajaran
+Route::prefix('TahunAjaran')->group(function(){
+        Route::get('/',[TahunAJaran_Controller::class,'index'])->name('TahunAjaran.index');
+        Route::get('/create',[TahunAJaran_Controller::class,'create'])->name('TahunAjaran.create');
+        Route::post('/',[TahunAJaran_Controller::class, 'store'])->name('TahunAjaran.store');
+        Route::get('/edit/{id}', [TahunAJaran_Controller::class, 'edit'])->name('TahunAjaran.edit');
+        Route::put('/{id}', [TahunAJaran_Controller::class, 'update'])->name('TahunAjaran.update');
+        Route::delete('/{id}',[TahunAJaran_Controller::class, 'destroy'])->name('TahunAjaran.destroy');
     });
 Route::prefix('NilaiBimbingan')->group(function(){
        //untuk pembimbing 1
