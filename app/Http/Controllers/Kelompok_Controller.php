@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Crypt;
 use App\Models\kategoriPA;
 use App\Models\Prodi;
 use Exception;
-use App\Models\TahunAjaran;
 use App\Models\TahunMasuk;
+use App\Models\TahunAjaran;
 
 class Kelompok_Controller extends Controller
 {
@@ -37,77 +37,63 @@ class Kelompok_Controller extends Controller
     
     
     public function create()
-    {
-        try {
-            // Ambil data session, jika belum ada ambil dari database
-            if (!session()->has('prodi_id') || !session()->has('KPA_id') || !session()->has('TM_id') || !session()->has('role_id')) {
-                $user_id = session('user_id');
-        
-                // Ambil data role dosen yang aktif berdasarkan user_id
-                $dosenRole = DosenRole::where('user_id', $user_id)
-                                       ->where('status', 'Aktif')
-                                       ->first();
-                if ($dosenRole) {
-                    // Simpan ke session
-                    // session([
-                    //     'prodi_id' => $dosenRole->prodi_id,
-                    //     'KPA_id' => $dosenRole->KPA_id,
-                    //     'TA_id' => $dosenRole->TA_id,
-                    //     'role_id' => $dosenRole->role_id,
-                    // ]);
-                } else {
-                    return redirect()->back()->with('error', 'Anda tidak memiliki data role yang aktif.');
-                }
-            }
-            
-            // Ambil data berdasarkan session
-            $prodi = Prodi::find(session('prodi_id'));
-            $kategoripa = KategoriPa::find(session('KPA_id'));
-            $tahun_masuk = TahunMasuk::find(session('TM_id'));
-    
-            // Cek jika data terkait tidak ditemukan
-            if (!$prodi || !$kategoripa || !$tahun_masuk) {
-                return redirect()->back()->with('error', 'Data terkait tidak ditemukan.');
-            }
-        
-            // Kirim data ke view
-            return view('pages.Koordinator.kelompok.create', compact('prodi', 'kategoripa', 'tahun_masuk'));
-    
-        } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+{
+    try {
+        if (!session()->has('prodi_id') || !session()->has('KPA_id') || !session()->has('TM_id')) {
+            return redirect()->back()->with('error', 'Session tidak lengkap.');
         }
+
+        $prodi = Prodi::find(session('prodi_id'));
+        $kategoripa = KategoriPa::find(session('KPA_id'));
+        $tahun_masuk = TahunMasuk::find(session('TM_id'));
+
+        // 🔥 Ambil Tahun Ajaran Aktif
+        $tahunAjaran = TahunAjaran::where('status', 'Aktif')->first();
+
+        if (!$prodi || !$kategoripa || !$tahun_masuk || !$tahunAjaran) {
+            return redirect()->back()->with('error', 'Data terkait tidak ditemukan.');
+        }
+
+        return view(
+            'pages.Koordinator.kelompok.create',
+            compact('prodi', 'kategoripa', 'tahun_masuk', 'tahunAjaran')
+        );
+
+    } catch (Exception $e) {
+        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
+}
     
     
     public function store(Request $request)
-    {
-        // Validasi dasar
-        $validated = $request->validate([
-            'nomor_kelompok' => 'required|numeric',
-            'prodi_id'       => 'required|exists:prodi,id',
-            'KPA_id'         => 'required|exists:kategori_pa,id',
-            'TM_id'          => 'required|exists:tahun_masuk,id',
-            'status'         => 'required|in:Aktif,Tidak-Aktif',
-        ]);
-    
-        // Validasi kombinasi unik dengan Eloquent langsung
-        $exists = Kelompok::where('nomor_kelompok', $validated['nomor_kelompok'])
-            ->where('prodi_id', $validated['prodi_id'])
-            ->where('KPA_id', $validated['KPA_id'])
-            ->where('TM_id', $validated['TM_id'])
-            ->exists();
-    
-        if ($exists) {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['nomor_kelompok' => 'Nomor kelompok sudah digunakan untuk kombinasi Prodi, KPA, dan Tahun Ajaran ini.']);
-        }
-    
-        // Simpan data jika tidak ada duplikat
-        Kelompok::create($validated);
-    
-        return redirect()->route('kelompok.index')->with('success', 'Data berhasil disimpan.');
+{
+    $validated = $request->validate([
+        'nomor_kelompok' => 'required|numeric',
+        'prodi_id'       => 'required|exists:prodi,id',
+        'KPA_id'         => 'required|exists:kategori_pa,id',
+        'TM_id'          => 'required|exists:tahun_masuk,id',
+        'status'         => 'required|in:Aktif,Tidak-Aktif',
+        'tahun_ajaran_id'=> 'required|exists:tahun_ajaran,id',
+    ]);
+
+    $exists = Kelompok::where('nomor_kelompok', $validated['nomor_kelompok'])
+        ->where('prodi_id', $validated['prodi_id'])
+        ->where('KPA_id', $validated['KPA_id'])
+        ->where('TM_id', $validated['TM_id'])
+        ->where('tahun_ajaran_id', $validated['tahun_ajaran_id'])
+        ->exists();
+
+    if ($exists) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['nomor_kelompok' => 'Nomor kelompok sudah digunakan untuk kombinasi ini.']);
     }
+
+    Kelompok::create($validated);
+
+    return redirect()->route('kelompok.index')
+        ->with('success', 'Data berhasil disimpan.');
+}
     public function edit($encryptedId)
 {
     try {

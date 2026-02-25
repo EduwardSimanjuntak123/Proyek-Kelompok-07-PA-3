@@ -56,10 +56,11 @@ public function tahunAjaran()
         return $this->hasMany(PengajuanSeminar::class);
     }
     protected $fillable = [
-        'nomor_kelompok',
-        'KPA_id',
-        'prodi_id',
-        'TM_id',
-        'status',
-    ];
+    'nomor_kelompok',
+    'KPA_id',
+    'prodi_id',
+    'TM_id',
+    'tahun_ajaran_id', // 🔥 TAMBAHKAN INI
+    'status',
+];
 }
