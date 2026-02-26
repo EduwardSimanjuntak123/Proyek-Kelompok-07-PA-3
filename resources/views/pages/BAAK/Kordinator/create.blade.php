@@ -99,22 +99,14 @@
                                 </div>
                                 {{-- Tahun Ajaran --}}
                                 <div class="form-group">
-                                <label for="tahun_ajaran_id">Tahun Ajaran</label>
-                                    <select name="tahun_ajaran_id" id="tahun_ajaran_id" class="select2 form-control" required>
+                                    <label>Tahun Ajaran</label>
 
-                                    <option value="">-- Pilih Tahun Ajaran Saat ini --</option>
-                                    @foreach ($tahun_ajaran as $th)
-                                    <option 
-                                        value="{{ $th->id }}" 
-                                        {{ old('tahun_ajaran_id') == $th->id ? 'selected' : '' }}
-                                    >
-                                        {{ $th->tahun_mulai
-                                         }}/{{ $th->tahun_selesai
-                                         }}
-                                    </option>
-                                @endforeach
-                                </select>
-                            </div>
+                                    <input type="text" class="form-control"
+                                        value="{{ $tahunAjaranAktif->tahun_mulai }} / {{ $tahunAjaranAktif->tahun_selesai }}"
+                                        readonly>
+
+                                    <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranAktif->id }}">
+                                </div>
                                 {{-- Status --}}
                                 <div class="form-group">
                                     <label for="status">Status</label>

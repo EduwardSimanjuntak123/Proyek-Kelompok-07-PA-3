@@ -171,8 +171,6 @@
                             <span>Pengumuman</span></a></li>
                     <li><a class="nav-link" href="{{ route('TahunMasuk.index') }}"><i
                                 class="fas fa-graduation-cap"></i> <span>Tahun Masuk</span></a></li>
-                    <li><a class="nav-link" href="{{ route('TahunAjaran.index') }}"><i
-                                class="fas fa-graduation-cap"></i> <span>Tahun Ajaran</span></a></li>
                     <li><a class="nav-link" href="{{ route('listDosen.index') }}"><i
                                 class="fas fa-graduation-cap"></i> <span>Daftar dosen</span></a></li>
                     <li><a class="nav-link" href="{{ route('listMahasiswa.index') }}"><i

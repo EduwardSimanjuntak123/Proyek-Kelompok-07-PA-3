@@ -15,6 +15,8 @@ use App\Models\Role;
 use App\Models\TahunAjaran;
 use App\Models\TahunMasuk;
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
+use App\Http\Controllers\TahunAJaran_Controller;
 
 class ManajemenroleController extends Controller
 {
@@ -55,26 +57,35 @@ class ManajemenroleController extends Controller
         return view('pages.BAAK.Kordinator.index', compact('dosenroles'));
     }
     
-    public function create()
-    {
-        $token = session('token');
+
+public function create()
+{
+    $token = session('token');
+
+    $responseDosen = Http::withHeaders([
+        'Authorization' => "Bearer $token"
+    ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
+
+    $dosen = $responseDosen->successful()
+        ? $responseDosen->json()['data']['dosen'] ?? []
+        : [];
+
+    $prodi = Prodi::all();
+    $role = Role::all();
+    $tahun_masuk = TahunMasuk::where('Status','Aktif')->get();
+    $kategoripa = kategoriPA::all();
+
+    $tahunAjaranAktif = TahunAJaran_Controller::getTahunAjaranAktif();
+    return view('pages.BAAK.Kordinator.create', compact(
+        'dosen',
+        'prodi',
+        'role',
+        'tahun_masuk',
+        'kategoripa',
+        'tahunAjaranAktif'
+    ));
     
-        // Ambil data dosen dari API eksternal
-        $responseDosen = Http::withHeaders([
-            'Authorization' => "Bearer $token"
-        ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
-    
-        $dosen = $responseDosen->successful() ? $responseDosen->json()['data']['dosen'] ?? [] : [];
-    
-        // Ambil data dari tabel menggunakan Eloquent
-        $prodi = Prodi::all();
-        $tahun_ajaran = TahunAjaran::all();
-        $role = Role::all();
-        $tahun_masuk = TahunMasuk::where('Status','Aktif')->get();
-        $kategoripa =kategoriPA::all();
-    
-        return view('pages.BAAK.Kordinator.create', compact('dosen', 'prodi', 'role', 'tahun_masuk','tahun_ajaran','kategoripa'));
-    }
+}
     public function store(Request $request)
     {
         // dd($request);
@@ -181,122 +192,128 @@ class ManajemenroleController extends Controller
         return redirect()->route('manajemen-role.index')->with('success', 'Data berhasil disimpan.');
     }    
     
-    public function edit($id)
-    {
-        $token = session('token');
-        $id = Crypt::decrypt($id);
-    
-        $dosenRole = DosenRole::findOrFail($id);
-    
-        // Ambil data dosen dari API eksternal
-        $responseDosen = Http::withHeaders([
-            'Authorization' => "Bearer $token"
-        ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
-    
-        $dosen = $responseDosen->successful() ? $responseDosen->json()['data']['dosen'] ?? [] : [];
-    
-        $prodi = Prodi::all();
-        $role = Role::all();
-        $tahun_masuk = TahunMasuk::all();
-        $kategoripa =kategoriPA::all();
-    
-    
-        return view('pages.BAAK.Kordinator.edit', compact('dosenRole', 'dosen', 'prodi', 'role', 'tahun_masuk','kategoripa'));
-    }
-    public function update(Request $request, $id)
+   public function edit($id)
+{
+    $token = session('token');
+    $id = Crypt::decrypt($id);
+
+    $dosenRole = DosenRole::findOrFail($id);
+
+    $responseDosen = Http::withHeaders([
+        'Authorization' => "Bearer $token"
+    ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
+
+    $dosen = $responseDosen->successful()
+        ? $responseDosen->json()['data']['dosen'] ?? []
+        : [];
+
+    $prodi = Prodi::all();
+    $role = Role::all();
+    $tahun_masuk = TahunMasuk::all();
+    $kategoripa = kategoriPA::all();
+
+    return view('pages.BAAK.Kordinator.edit', compact(
+        'dosenRole',
+        'dosen',
+        'prodi',
+        'role',
+        'tahun_masuk',
+        'kategoripa'
+    ));
+}
+   public function update(Request $request, $id)
 {
     $id = Crypt::decrypt($id);
-    
-    // Validasi input umum
+
     $validated = $request->validate([
         'user_id'   => 'required|numeric',
         'role_id'   => 'required|exists:roles,id',
         'prodi_id'  => 'required|exists:prodi,id',
-        'KPA_id'  => 'required|exists:kategori_pa,id',
+        'KPA_id'    => 'required|exists:kategori_pa,id',
         'TM_id'     => 'required|exists:tahun_masuk,id',
         'status'    => 'required|in:Aktif,Tidak-Aktif',
-        'Tahun_Ajaran' => 'required'
     ]);
-    
-    // Ambil data dosen_role berdasarkan id yang didekripsi
+
     $dosenRole = DosenRole::findOrFail($id);
-    
-    // Ambil role berdasarkan role_id
     $role = Role::find($validated['role_id']);
-    $rolesToCheck = ['penguji 1', 'pembimbing 1', 'penguji 2', 'pembimbing 2']; 
+
+    $rolesToCheck = ['penguji 1', 'pembimbing 1', 'penguji 2', 'pembimbing 2'];
+
     if (in_array(strtolower($role->role_name), $rolesToCheck)) {
-        if($validated['status'] === 'Aktif'){
+
+        if ($validated['status'] === 'Aktif') {
+
             $existingDosen = DosenRole::where('user_id', $validated['user_id'])
-            ->where('role_id',$validated['role_id'])
-            ->where('prodi_id', $validated['prodi_id'])
-            ->where('KPA_id', $validated['KPA_id'])
-            ->where('TM_id', $validated['TM_id'])
-            ->where('status','Aktif')
-            ->exists();
+                ->where('role_id', $validated['role_id'])
+                ->where('prodi_id', $validated['prodi_id'])
+                ->where('KPA_id', $validated['KPA_id'])
+                ->where('TM_id', $validated['TM_id'])
+                ->where('status', 'Aktif')
+                ->where('id', '<>', $dosenRole->id)
+                ->exists();
+
             if ($existingDosen) {
                 return back()->withErrors([
-                    'user_id' => 'Dosen ini sudah terdaftar sebagai ' . $role->role_name . ' untuk kombinasi Prodi, PA, dan Tahun Ajaran ini.',
+                    'user_id' => 'Dosen ini sudah terdaftar sebagai ' . $role->role_name . ' untuk kombinasi Prodi, PA, dan Tahun Masuk ini.',
                 ])->withInput();
             }
         }
-    
     }
-    // Jika role adalah Koordinator, lakukan validasi
+
+    // VALIDASI KHUSUS KOORDINATOR
     if (strtolower($role->role_name) === 'koordinator') {
 
-    // Jika status ingin diubah menjadi "Aktif", baru lakukan semua validasi
-    if ($validated['status'] === 'Aktif') {
+        if ($validated['status'] === 'Aktif') {
 
-        // Validasi: dosen tidak boleh punya entri koordinator untuk kombinasi ini
-        $existingPerDosen = DosenRole::where('user_id', $validated['user_id'])
-            ->where('prodi_id', $validated['prodi_id'])
-            ->where('KPA_id', $validated['KPA_id'])
-            ->where('TM_id', $validated['TM_id'])
-            ->where('role_id', $validated['role_id'])
-            ->where('id', '<>', $dosenRole->id) // Hindari konflik dengan data yang sedang diedit
-            ->first();
+            // Cek per dosen
+            $existingPerDosen = DosenRole::where('user_id', $validated['user_id'])
+                ->where('prodi_id', $validated['prodi_id'])
+                ->where('KPA_id', $validated['KPA_id'])
+                ->where('TM_id', $validated['TM_id'])
+                ->where('role_id', $validated['role_id'])
+                ->where('id', '<>', $dosenRole->id)
+                ->first();
 
-        if ($existingPerDosen) {
-            return back()->withErrors([
-                'user_id' => 'Dosen ini sudah menjadi Koordinator di Prodi, PA, dan Tahun Ajaran tersebut.',
-            ])->withInput();
-        }
+            if ($existingPerDosen) {
+                return back()->withErrors([
+                    'user_id' => 'Dosen ini sudah menjadi Koordinator pada kombinasi tersebut.',
+                ])->withInput();
+            }
 
-        // Validasi: hanya satu koordinator Aktif untuk kombinasi PA dan TM_id
-        $existingGlobal = DosenRole::where('KPA_id', $validated['KPA_id'])
-            ->where('TM_id', $validated['TM_id'])
-            ->where('prodi_id', $validated['prodi_id'])
-            ->where('role_id', $validated['role_id'])
-            ->where('status', 'Aktif')
-            ->where('id', '<>', $dosenRole->id) // hindari data yang sedang diedit
-            ->exists();
+            // Cek global (hanya satu aktif)
+            $existingGlobal = DosenRole::where('KPA_id', $validated['KPA_id'])
+                ->where('TM_id', $validated['TM_id'])
+                ->where('prodi_id', $validated['prodi_id'])
+                ->where('role_id', $validated['role_id'])
+                ->where('status', 'Aktif')
+                ->where('id', '<>', $dosenRole->id)
+                ->exists();
 
-        if ($existingGlobal) {
-            return back()->withErrors([
-                'KPA_id' => 'Sudah ada Koordinator Aktif untuk PA ' . $validated['KPA_id'] . ' pada Tahun Ajaran ini.',
-            ])->withInput();
-        }
+            if ($existingGlobal) {
+                return back()->withErrors([
+                    'KPA_id' => 'Sudah ada Koordinator Aktif untuk kombinasi ini.',
+                ])->withInput();
+            }
 
-        // Validasi: dosen tidak boleh pernah menjadi koordinator AKTIF sebelumnya (selain entri ini)
-        $pernahKoordinatorAktif = DosenRole::where('user_id', $validated['user_id'])
-            ->where('role_id', $validated['role_id'])
-            ->where('status', 'Aktif')
-            ->where('id', '<>', $dosenRole->id)
-            ->exists();
+            // Cek pernah aktif sebelumnya
+            $pernahKoordinatorAktif = DosenRole::where('user_id', $validated['user_id'])
+                ->where('role_id', $validated['role_id'])
+                ->where('status', 'Aktif')
+                ->where('id', '<>', $dosenRole->id)
+                ->exists();
 
-        if ($pernahKoordinatorAktif) {
-            return back()->withErrors([
-                'user_id' => 'Dosen ini sudah menjadi Koordinator Aktif dan tidak bisa menjadi Koordinator lagi.',
-            ])->withInput();
+            if ($pernahKoordinatorAktif) {
+                return back()->withErrors([
+                    'user_id' => 'Dosen ini sudah menjadi Koordinator Aktif dan tidak bisa menjadi Koordinator lagi.',
+                ])->withInput();
+            }
         }
     }
-}
 
-
-    // Lakukan pembaruan data dosenRole
     $dosenRole->update($validated);
-    
-    return redirect()->route('manajemen-role.index')->with('success', 'Data berhasil diperbarui.');
+
+    return redirect()->route('manajemen-role.index')
+        ->with('success', 'Data berhasil diperbarui.');
 }
 
 public function destroy($id)

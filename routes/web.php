@@ -278,15 +278,6 @@ Route::prefix('TahunMasuk')->group(function(){
 
     });
 
-//Route untuk BAAK =>tahun Ajaran
-Route::prefix('TahunAjaran')->group(function(){
-        Route::get('/',[TahunAJaran_Controller::class,'index'])->name('TahunAjaran.index');
-        Route::get('/create',[TahunAJaran_Controller::class,'create'])->name('TahunAjaran.create');
-        Route::post('/',[TahunAJaran_Controller::class, 'store'])->name('TahunAjaran.store');
-        Route::get('/edit/{id}', [TahunAJaran_Controller::class, 'edit'])->name('TahunAjaran.edit');
-        Route::put('/{id}', [TahunAJaran_Controller::class, 'update'])->name('TahunAjaran.update');
-        Route::delete('/{id}',[TahunAJaran_Controller::class, 'destroy'])->name('TahunAjaran.destroy');
-    });
 Route::prefix('NilaiBimbingan')->group(function(){
        //untuk pembimbing 1
        Route::get('/pembimbing-1',[NilaiBimbingan_Controller::class,'indexpembimbing1'])->name('pembimbing1.NilaiBimbingan.index');

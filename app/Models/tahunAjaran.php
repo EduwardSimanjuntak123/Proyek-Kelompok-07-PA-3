@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class tahunAjaran extends Model
 {
@@ -32,5 +33,16 @@ class tahunAjaran extends Model
     public function jadwal() {
         return $this->hasMany(Jadwal::class, 'TM_id');
     }
+
+    public function getStatusOtomatisAttribute()
+{
+    $tahunSekarang = Carbon::now()->year;
+
+    if ($tahunSekarang > $this->tahun_selesai) {
+        return 'Nonaktif';
+    }
+
+    return 'Aktif';
+}
 
 }
