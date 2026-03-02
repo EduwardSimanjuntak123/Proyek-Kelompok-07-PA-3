@@ -157,6 +157,8 @@
                                 class="fas fa-bell"></i> <span>Pengumuman</span></a></li>
                     <li><a class="nav-link" href="{{ route('mahasiswa.jadwal.index') }}"><i
                                 class="fas fa-calendar"></i> <span>Jadwal</span></a></li>
+                    <li><a class="nav-link" href=""><i class="fas fa-history"></i> <span>Histori</span></a>
+                    </li>
 
                     {{-- Untuk Staff BAAK --}}
                 @elseif (session('role') == 'Staff')
