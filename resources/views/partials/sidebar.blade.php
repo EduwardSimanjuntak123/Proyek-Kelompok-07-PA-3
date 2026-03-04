@@ -157,7 +157,8 @@
                                 class="fas fa-bell"></i> <span>Pengumuman</span></a></li>
                     <li><a class="nav-link" href="{{ route('mahasiswa.jadwal.index') }}"><i
                                 class="fas fa-calendar"></i> <span>Jadwal</span></a></li>
-                    <li><a class="nav-link" href=""><i class="fas fa-history"></i> <span>Histori</span></a>
+                    <li><a class="nav-link" href="{{ route('Histori.index') }}"><i class="fas fa-history"></i>
+                            <span>Histori</span></a>
                     </li>
 
                     {{-- Untuk Staff BAAK --}}
@@ -174,9 +175,10 @@
                     <li><a class="nav-link" href="{{ route('TahunMasuk.index') }}"><i
                                 class="fas fa-graduation-cap"></i> <span>Tahun Masuk</span></a></li>
                     <li><a class="nav-link" href="{{ route('listDosen.index') }}"><i
-                                class="fas fa-graduation-cap"></i> <span>Daftar dosen</span></a></li>
-                    <li><a class="nav-link" href="{{ route('listMahasiswa.index') }}"><i
-                                class="fas fa-graduation-cap"></i> <span>Daftar Mahasiswa</span></a></li>
+                                class="fas fa-chalkboard-teacher"></i>
+                            <span>Daftar dosen</span></a></li>
+                    <li><a class="nav-link" href="{{ route('listMahasiswa.index') }}"><i class="fas fa-users"></i>
+                            <span>Daftar Mahasiswa</span></a></li>
                 @endif
             </ul>
         @endif

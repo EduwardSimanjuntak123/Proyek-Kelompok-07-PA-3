@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\tahunAjaran;
+use App\Models\Prodi;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -49,10 +50,10 @@ class TahunAJaran_Controller extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
+   public function index()
+{
     
-    }
+}
     /**
      * Show the form for creating a new resource.
      */

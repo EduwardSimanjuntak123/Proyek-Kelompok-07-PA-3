@@ -48,7 +48,7 @@ class Kelompok extends Model
     }
 public function tahunAjaran()
 {
-    return $this->belongsTo(tahunAjaran::class);
+    return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
 }
 
     public function pengajuanSeminar()
@@ -60,7 +60,7 @@ public function tahunAjaran()
     'KPA_id',
     'prodi_id',
     'TM_id',
-    'tahun_ajaran_id', // 🔥 TAMBAHKAN INI
+    'tahun_ajaran_id', // 
     'status',
 ];
 }
