@@ -7,6 +7,7 @@ use App\Http\Controllers\BimbinganController;
 use App\Http\Controllers\dashboard_Controller;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\DosenController;
+use App\Http\Controllers\Histori_Controller;
 use App\Http\Controllers\Kelompok_Controller;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\ManajemenroleController;
@@ -470,3 +471,8 @@ Route::prefix('/Mahasiswa/Tugas')->group(function(){
     Route::get('/edit/{id}',[Artefak_Controller::class, 'Mahasiswaedit'])->name('Mahasiswa.tugas.edit');
     Route::put('/{id}',[Artefak_Controller::class, 'Mahasiswaupdate'])->name('Mahasiswa.tugas.update');
 });
+
+Route::prefix('Histori')->group(function(){
+        Route::get('/histori', [Histori_Controller::class, 'index'])->name('Histori.index');
+Route::get('/histori/{id}', [Histori_Controller::class, 'detail'])->name('Histori.detail');
+    });
