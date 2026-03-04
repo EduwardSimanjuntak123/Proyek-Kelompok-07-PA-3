@@ -18,22 +18,71 @@ use App\Models\TahunAjaran;
 class Kelompok_Controller extends Controller
 {
     
-    public function index(Request $request)
-    {
-          // Ambil data dari session
-          $prodi_id = session('prodi_id');
-          $KPA_id = session('KPA_id');
-          $TM_id = session('TM_id');
+   public function index(Request $request)
+{
+    // =========================
+    // SESSION
+    // =========================
+    $prodi_id = session('prodi_id');
+    $KPA_id   = session('KPA_id');
+    $TM_id    = session('TM_id');
+    $token    = session('token');
 
-        // Filter berdasarkan session
-        $kelompok = Kelompok::with(['prodi', 'tahunMasuk', 'kategoripa'])
-            ->where('prodi_id', $prodi_id)
-            ->where('KPA_id', $KPA_id)
-            ->where('TM_id', $TM_id)
-            ->get();
-    
-        return view('pages.Koordinator.kelompok.index', compact('kelompok'));
-    }
+    // =========================
+    // DATA KELOMPOK
+    // =========================
+    $kelompok = Kelompok::with(['prodi', 'tahunMasuk', 'kategoripa'])
+        ->where('prodi_id', $prodi_id)
+        ->where('KPA_id', $KPA_id)
+        ->where('TM_id', $TM_id)
+        ->get();
+
+    // =========================
+    // AMBIL TAHUN MASUK
+    // =========================
+    $TahunMasuk = TahunMasuk::where('id', $TM_id)->value('Tahun_Masuk');
+
+    // =========================
+    // AMBIL MAHASISWA DARI API
+    // =========================
+    $responseMahasiswa = Http::withHeaders([
+        'Authorization' => "Bearer $token"
+    ])->get(env('API_URL') . "library-api/mahasiswa", [
+        "angkatan" => $TahunMasuk,
+        "prodi"    => $prodi_id,
+        "limit"    => 200
+    ]);
+    // dd($responseMahasiswa);
+
+    $mahasiswa = $responseMahasiswa->successful()
+        ? collect($responseMahasiswa->json()['data']['mahasiswa'] ?? [])
+        : collect();
+
+    // =========================
+    // AMBIL USER YANG SUDAH PUNYA KELOMPOK
+    // =========================
+    $userSudahPunyaKelompok = DB::table('kelompok_mahasiswa as km')
+        ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+        ->where('k.KPA_id', $KPA_id)
+        ->pluck('km.user_id')
+        ->toArray();
+
+    // =========================
+    // FILTER MAHASISWA BELUM MASUK KELOMPOK
+    // =========================
+    $mahasiswaBelumMasuk = $mahasiswa
+        ->filter(fn ($mhs) => !in_array($mhs['user_id'], $userSudahPunyaKelompok))
+        ->sortBy('nim')
+        ->values();
+
+    // =========================
+    // RETURN VIEW
+    // =========================
+    return view('pages.Koordinator.kelompok.index', [
+        'kelompok'  => $kelompok,
+        'mahasiswa' => $mahasiswaBelumMasuk
+    ]);
+}
     
     
     public function create()

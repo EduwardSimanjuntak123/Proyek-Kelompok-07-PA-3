@@ -12,6 +12,13 @@
                             <a href="{{ route('kelompok.create') }}" class="btn btn-primary">
                                 <i class="nav-icon fas fa-folder-plus"></i>&nbsp; Tambah Kelompok
                             </a>
+                            {{-- @dd($mahasiswaBelumMasuk) --}}
+                            <p>Jumlah mahasiswa (Blade): {{ count($mahasiswa) }}</p>
+                            <button id="agentBtn" class="btn btn-success">
+                                🤖 Agent Beraksi
+                            </button>
+                            <div id="aiResult" class="mt-4"></div>
+                            {{-- @dd($mahasiswa)     --}}
                         </div>
                         <div class="card-body">
                             @include('partials.alert')
@@ -76,7 +83,76 @@
         </div>
     </section>
 @endsection
+@push('script')
+    <script>
+        document.getElementById('agentBtn').addEventListener('click', function() {
 
+            const mahasiswa = @json($mahasiswa);
+
+            console.log("DATA MAHASISWA:", mahasiswa);
+
+            fetch("{{ route('agent.generate') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        mahasiswa: mahasiswa,
+                        group_size: 6
+                    })
+                })
+                .then(res => res.json()) // ✅ HANYA SEKALI
+                .then(data => {
+
+                    console.log("HASIL AI:", data);
+
+                    const resultContainer = document.getElementById("aiResult");
+                    resultContainer.innerHTML = "";
+
+                    if (!data.groups) {
+                        resultContainer.innerHTML =
+                            "<div class='alert alert-danger'>Struktur data AI tidak valid</div>";
+                        return;
+                    }
+
+                   const groups = data.groups;
+
+                    groups.forEach((group, index) => {
+
+                        let card = document.createElement("div");
+                        card.className = "card mb-3";
+
+                        let header = document.createElement("div");
+                        header.className = "card-header";
+                        header.innerHTML = "<strong>Kelompok " + (index + 1) + "</strong>";
+
+                        let body = document.createElement("div");
+                        body.className = "card-body";
+
+                        let ul = document.createElement("ul");
+
+                        group.forEach(name => {
+                            let li = document.createElement("li");
+                            li.textContent = name;
+                            ul.appendChild(li);
+                        });
+
+                        body.appendChild(ul);
+                        card.appendChild(header);
+                        card.appendChild(body);
+
+                        resultContainer.appendChild(card);
+                    });
+
+                })
+                .catch(err => {
+                    console.error("ERROR:", err);
+                });
+
+        });
+    </script>
+@endpush
 @push('script')
     <script type="text/javascript">
         $('.show_confirm').click(function(event) {

@@ -13,7 +13,9 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-
+    'mahasiswa_api' => [
+        'url' => env('API_URL') . 'library-api/mahasiswa',
+    ],
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

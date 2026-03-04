@@ -14,19 +14,24 @@ class MahasiswaController extends Controller
     {
         $token = session('token');
 
-        // Request ke API eksternal
         $response = Http::withHeaders([
             'Authorization' => "Bearer $token"
         ])->get(env('API_URL') . "library-api/mahasiswa", [
-            'limit' => 100
-        ]);
+                    'limit' => 100
+                ]);
 
         $mahasiswa = collect();
 
         if ($response->successful()) {
             $data = $response->json();
             $mahasiswa = collect($data['data']['mahasiswa'] ?? []);
+
+            // contoh prodi_id yang diizinkan
+            $allowedProdiId = [3, 4, 1];
+
+            $mahasiswa = $mahasiswa->whereIn('prodi_id', $allowedProdiId);
         }
+       
 
         return view('pages.BAAK.listMahasiswa.index', compact('mahasiswa'));
     }

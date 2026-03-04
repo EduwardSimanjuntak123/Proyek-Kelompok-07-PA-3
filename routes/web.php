@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BimbinganController;
 use App\Http\Controllers\dashboard_Controller;
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\Kelompok_Controller;
 use App\Http\Controllers\TugasController;
@@ -33,6 +34,15 @@ use App\Models\Nilai_kelompok;
 use App\Models\Pengumuman;
 use App\Http\Controllers\PengajuanSeminarController;
 use App\Http\Controllers\TahunAJaran_Controller;
+use App\Http\Controllers\AIController;
+use App\Http\Controllers\MahasiswaSyncController;
+
+Route::post('/sync-mahasiswa', [MahasiswaSyncController::class, 'sync']);
+
+Route::post(
+    '/agent/generate-groups',
+    [AIController::class, 'generateGroups']
+)->name('agent.generate');
 
 //untuk login
 Route::get('/', fn () => redirect()->route('login.form'));

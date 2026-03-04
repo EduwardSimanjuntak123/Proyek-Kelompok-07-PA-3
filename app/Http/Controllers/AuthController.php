@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use GuzzleHttp\Exception\RequestException;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DosenRole;
 use App\Models\Kelompok;
@@ -28,10 +29,10 @@ class AuthController extends Controller
             'username.required' => 'Username wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ]);
-    
+
         $client = new Client();
         $url = env('API_URL') . "jwt-api/do-auth";
-    
+
         try {
             // Melakukan request ke API untuk otentikasi
             $response = $client->post($url, [
@@ -42,19 +43,19 @@ class AuthController extends Controller
                 'headers' => ['Accept' => 'application/json'],
                 'timeout' => 30,
             ]);
-    
+
             // Decode response body
             $body = json_decode($response->getBody(), true);
-    
+
             if (!$body['result']) {
                 return redirect()->back()->withErrors(['login' => 'Username dan password tidak sesuai.'])->withInput();
             }
-    
+
             // Ambil data user dan detail user
             $userTemp = $body['user'];
             $detailUserResponse = $this->getUserDetail($userTemp['user_id'], $userTemp['role'], $body['token']);
             $responseDetailUser = json_decode($detailUserResponse->getContent());
-    
+
             if ($responseDetailUser->success === 'User valid!') {
                 // Simpan data user di session
                 $userData = [
@@ -65,15 +66,15 @@ class AuthController extends Controller
                     'email' => $responseDetailUser->details[0]->email ?? '',
                     'isLoggin' => true,
                 ];
-                session::put($userData); 
-    
+                session::put($userData);
+
                 // Check if the role is 'Dosen' (Lecturer)
                 if ($userTemp['role'] == 'Dosen') {
                     // Fetch the active DosenRole
                     $dosenRole = DosenRole::where('user_id', $userTemp['user_id'])
-                                          ->where('status', 'Aktif')
-                                          ->first();
-    
+                        ->where('status', 'Aktif')
+                        ->first();
+
                     if ($dosenRole) {
                         // Simpan ke session
                         session([
@@ -82,11 +83,11 @@ class AuthController extends Controller
                             'TM_id' => $dosenRole->TM_id,
                             'role_id' => $dosenRole->role_id,
                         ]);
-    
+
                         // Dosen roles logic for redirection
                         $dosenRoles = DosenRole::where('user_id', $userTemp['user_id'])->pluck('role_id')->toArray();
                         session(['dosen_roles' => $dosenRoles]);
-    
+
                         if (in_array('1', $dosenRoles)) {
                             return redirect()->route('dashboard.koordinator');
                         } elseif (in_array('2', $dosenRoles) || in_array('4', $dosenRoles)) {
@@ -100,31 +101,44 @@ class AuthController extends Controller
                         return redirect()->route('login.form')->withErrors(['login' => 'Role Dosen tidak ditemukan atau tidak aktif.']);
                     }
                 }
-    
+                // ===== TAMBAHKAN INI =====
+                $user = User::firstOrCreate(
+                    ['email' => $userData['email']],
+                    [
+                        'name' => $userData['name'] ?: $request->username,
+                        'password' => bcrypt(str()->random(16)), // dummy
+                    ]
+                );
+
+                // LOGIN KE LARAVEL (INI KUNCI UTAMA)
+                Auth::login($user);
+                // ========================
+
                 // Redirect berdasarkan role pengguna
                 if ($userTemp['role'] == 'Mahasiswa') {
-                    $kelompokMahasiswa = KelompokMahasiswa ::where('user_id',$userTemp['user_id'])
-                    ->join('kelompok', 'kelompok_mahasiswa.kelompok_id', '=', 'kelompok.id')
-                    ->where('status','Aktif')
-                    ->select('kelompok_mahasiswa.*', 'kelompok.KPA_id', 'kelompok.prodi_id', 'kelompok.TM_id')
-                    ->first();
+                    $kelompokMahasiswa = KelompokMahasiswa::where('user_id', $userTemp['user_id'])
+                        ->join('kelompok', 'kelompok_mahasiswa.kelompok_id', '=', 'kelompok.id')
+                        ->where('status', 'Aktif')
+                        ->select('kelompok_mahasiswa.*', 'kelompok.KPA_id', 'kelompok.prodi_id', 'kelompok.TM_id')
+                        ->first();
                     if (!$kelompokMahasiswa) {
-                        return redirect()->route('login.form')->withErrors(['Login' => 'Anda belum tergabung dalam kelompok aktif.'])->withInput();;
+                        return redirect()->route('login.form')->withErrors(['Login' => 'Anda belum tergabung dalam kelompok aktif.'])->withInput();
+                        ;
                     }
-                    
-                        session([
-                            'kelompok_id' => $kelompokMahasiswa->kelompok_id,
-                            'prodi_id' => $kelompokMahasiswa->prodi_id,
-                            'KPA_id' => $kelompokMahasiswa->KPA_id,
-                            'TM_id' => $kelompokMahasiswa->TM_id,
-                        ]);
-                    
+
+                    session([
+                        'kelompok_id' => $kelompokMahasiswa->kelompok_id,
+                        'prodi_id' => $kelompokMahasiswa->prodi_id,
+                        'KPA_id' => $kelompokMahasiswa->KPA_id,
+                        'TM_id' => $kelompokMahasiswa->TM_id,
+                    ]);
+
                     $kelompok = KelompokMahasiswa::where('user_id', $userTemp['user_id'])
-                    ->pluck('kelompok_id')
-                    ->toArray();
-    
+                        ->pluck('kelompok_id')
+                        ->toArray();
+
                     return redirect()->route('dashboard.mahasiswa');
-                    
+
                 } elseif ($userTemp['role'] == 'Staff') {
                     return redirect()->route('dashboard.BAAK');
                 } else {
@@ -148,7 +162,7 @@ class AuthController extends Controller
         $client = new Client();
 
         try {
-     
+
             // Melakukan request ke API untuk mengambil detail user
             $response = $client->request('GET', $url, [
                 'headers' => ['Authorization' => 'Bearer ' . $token],
@@ -179,18 +193,19 @@ class AuthController extends Controller
     {
         // Hapus semua session pengguna
         $request->session()->flush();
-    
+
         // Redirect ke halaman login dengan pesan sukses
         return redirect()->route('login.form')->with('success', 'Anda telah logout.');
     }
 
 
-    public function profile($user_id, $role, $token){
-         $url = env('API_URL') . ($role == 'Mahasiswa' ? "library-api/mahasiswa?userid=" : "library-api/pegawai?userid=") . $user_id;
+    public function profile($user_id, $role, $token)
+    {
+        $url = env('API_URL') . ($role == 'Mahasiswa' ? "library-api/mahasiswa?userid=" : "library-api/pegawai?userid=") . $user_id;
         $client = new Client();
 
         try {
-     
+
             // Melakukan request ke API untuk mengambil detail user
             $response = $client->request('GET', $url, [
                 'headers' => ['Authorization' => 'Bearer ' . $token],
@@ -208,7 +223,7 @@ class AuthController extends Controller
             //     'success' => 'User valid!',
             //     'details' => $detailUser
             // ], 200);
-             return view('pages.profile',compact('detailUser','role'));
+            return view('pages.profile', compact('detailUser', 'role'));
         } catch (RequestException $e) {
             Log::error('RequestException: ' . $e->getMessage());
             return response()->json(['error' => 'Gagal mendapatkan data user.'], $e->getResponse()->getStatusCode() ?? 500);
@@ -216,6 +231,6 @@ class AuthController extends Controller
             Log::error('Exception: ' . $e->getMessage());
             return response()->json(['error' => 'Terjadi kesalahan internal.'], 500);
         }
-       
+
     }
 }
