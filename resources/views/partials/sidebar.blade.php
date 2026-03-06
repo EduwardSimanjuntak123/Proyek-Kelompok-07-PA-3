@@ -25,9 +25,6 @@
 
                     {{--  untuk Koordinator --}}
                     @if (in_array(1, $dosenRoles))
-                        <li><a class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
-                                    class="fas fa-columns"></i>
-                                <span>Dashboard</span></a></li>
                         <li class="menu-header">Kordinator</li>
                         <li><a class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
                                     class="fas fa-columns"></i>
