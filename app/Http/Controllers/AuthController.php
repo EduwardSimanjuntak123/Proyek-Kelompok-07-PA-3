@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use App\Jobs\SyncDosenJob;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -67,7 +68,10 @@ class AuthController extends Controller
                     'isLoggin' => true,
                 ];
                 session::put($userData);
-
+                //    SyncDosenJob::dispatch($body['token']);
+                // SYNC DATA DOSEN DARI CIS
+                // app(\App\Services\DosenSyncService::class)
+                //     ->syncWithSession($body['token']);
                 // Check if the role is 'Dosen' (Lecturer)
                 if ($userTemp['role'] == 'Dosen') {
                     // Fetch the active DosenRole
@@ -113,7 +117,8 @@ class AuthController extends Controller
                 // LOGIN KE LARAVEL (INI KUNCI UTAMA)
                 Auth::login($user);
                 // ========================
-
+                // sync dosen di background
+                SyncDosenJob::dispatch($body['token']);
                 // Redirect berdasarkan role pengguna
                 if ($userTemp['role'] == 'Mahasiswa') {
                     $kelompokMahasiswa = KelompokMahasiswa::where('user_id', $userTemp['user_id'])

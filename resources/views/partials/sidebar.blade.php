@@ -11,13 +11,16 @@
 
         </div>
         @if (session('isLoggin'))
+
             <ul class="sidebar-menu">
+                
                 @if (session('role') == 'Dosen')
                     @php $dosenRoles = session('dosen_roles'); @endphp
 
                     {{--  untuk Koordinator --}}
                     @if (in_array(1, $dosenRoles))
-                        <li><a class="nav-link" href="{{ route('dashboard.koordinator') }}"><i class="fas fa-columns"></i>
+                        <li><a class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
+                                    class="fas fa-columns"></i>
                                 <span>Dashboard</span></a></li>
                         <li class="menu-header">Kordinator</li>
                         <li><a class="nav-link" href="{{ route('koordinator.tugas.index') }}"><i
