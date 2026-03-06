@@ -476,3 +476,14 @@ Route::prefix('Histori')->group(function () {
     Route::get('/histori/{id}', [Histori_Controller::class, 'detail'])->name('Histori.detail');
 });
 
+Route::prefix('ai-agent')->group(function () {
+
+    // halaman chat
+    Route::get('/', [AIController::class, 'index'])
+        ->name('ai.chat');
+
+    // kirim pesan ke AI
+    Route::post('/send', [AIController::class, 'send'])
+        ->name('ai.send');
+
+});

@@ -13,7 +13,13 @@
         @if (session('isLoggin'))
 
             <ul class="sidebar-menu">
-                
+                <li class="menu-header">AI Assistant</li>
+                <li>
+                    <a class="nav-link" href="{{ route('ai.chat') }}">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Agent</span>
+                    </a>
+                </li>
                 @if (session('role') == 'Dosen')
                     @php $dosenRoles = session('dosen_roles'); @endphp
 
