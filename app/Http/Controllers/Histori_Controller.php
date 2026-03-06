@@ -7,6 +7,7 @@ use App\Models\Kelompok;
 use App\Models\TahunMasuk;
 use App\Models\tahunAjaran;
 use App\Models\Prodi;
+use App\Models\DosenRole;
 use Illuminate\Support\Facades\Http;
 
 
@@ -87,7 +88,16 @@ class Histori_Controller extends Controller
             $u->dosen = $dosenList->firstWhere('user_id', $u->user_id);
         }
     }
-    
+
+    // Ambil user_id koordinator
+$koordinatorId = DosenRole::where('KPA_id', $kelompok->KPA_id)
+    ->where('TM_id', $kelompok->TM_id)
+    ->where('role_id', 1)
+    ->where('status', 'Aktif')
+    ->value('user_id');
+
+$kelompok->koordinator = $dosenList->firstWhere('user_id', $koordinatorId);
+   
     $responseMahasiswa = Http::withHeaders([
     'Authorization' => "Bearer {$token}"
 ])->get(env('API_URL') . 'library-api/mahasiswa');

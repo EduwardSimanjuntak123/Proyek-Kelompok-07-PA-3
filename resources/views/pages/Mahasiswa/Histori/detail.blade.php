@@ -15,6 +15,12 @@
                     <h5 class="mb-3">Informasi Dosen</h5>
                     <table class="table table-bordered">
                         <tr>
+                            <th>Koordinator</th>
+                            <td>
+                                {{ $kelompok->koordinator['nama'] ?? '-' }}
+                            </td>
+                        </tr>
+                        <tr>
                             <th>Pembimbing</th>
                             <td>
                                 @forelse ($kelompok->pembimbing as $p)

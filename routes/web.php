@@ -37,6 +37,7 @@ use App\Http\Controllers\PengajuanSeminarController;
 use App\Http\Controllers\TahunAJaran_Controller;
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\MahasiswaSyncController;
+use App\Http\Controllers\Agent_Controller;
 
 Route::post('/sync-mahasiswa', [MahasiswaSyncController::class, 'sync']);
 
@@ -173,6 +174,11 @@ Route::prefix('penguji2')->group(function(){
     Route::put('/{id}', [Penguji_Controller::class, 'updatepenguji2'])->name('penguji2.update');
     Route::delete('/{id}', [Penguji_Controller::class, 'destroypenguji2'])->name('penguji2.destroy');
     Route::get('/{id}/show', [Penguji_Controller::class, 'showpenguji2'])->name('penguji2.show');
+});
+
+// Agent
+Route::prefix('agent')->group(function(){
+        Route::get('/agent', [Agent_Controller::class, 'index'])->name('agent.index');
 });
 //CRUD Pengumuman
 Route::prefix('pengumuman')->group(function(){
