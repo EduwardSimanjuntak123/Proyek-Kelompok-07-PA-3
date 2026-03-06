@@ -16,6 +16,9 @@ return [
     'mahasiswa_api' => [
         'url' => env('API_URL') . 'library-api/mahasiswa',
     ],
+    'dosen_api' => [
+        'url' => env('API_URL') . 'library-api/dosen'
+    ],
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
