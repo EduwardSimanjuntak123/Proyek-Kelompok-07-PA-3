@@ -19,6 +19,7 @@ use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\JadwalMahasiswaController;
 use App\Http\Controllers\NilaiAdministrasi_Controller;
 use App\Http\Controllers\NilaiBimbingan_Controller;
+use App\Http\Controllers\NilaiMatkulMhsController;
 use App\Http\Controllers\NilaiIndividu_Controller;
 use App\Http\Controllers\NilaiKelompok_Controller;
 use App\Http\Controllers\NilaiMahasiswa_Controller;
@@ -309,8 +310,13 @@ Route::prefix('NilaiBimbingan')->group(function () {
     Route::get('/NilaiAKhir', [NilaiMahasiswa_Controller::class, 'index'])->name('NilaiAkhir.index');
     Route::get('/export-nilai-akhir/{prodi_id}/{KPA_id}/{TM_id}', [NilaiMahasiswa_Controller::class, 'export'])->name('nilai.akhir.export');
 
-});
+});  
+//Route untuk koordinator CRUD Nilai matakuliah
+  Route::get('nilai/koordinator', [NilaiMatkulMhsController::class, 'index'])->name('koordinator.NilaiMatkul.index');
+
 //Route untuk koordinator CRUD Nilai Administrasi
+
+
 Route::prefix('NilaiAdministrasi')->group(function () {
     //untuk penguji 1
     Route::get('/koordinator', [NilaiAdministrasi_Controller::class, 'index'])->name('koordinator.NilaiAdministrasi.index');

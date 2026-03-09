@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\DosenRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -10,7 +10,22 @@ class AIController extends Controller
 
     public function index()
     {
-        return view('pages.AI.index');
+        $userId = session('user_id');
+
+        $roles = DosenRole::with('role', 'kategoriPA')
+            ->where('user_id', $userId)
+            ->get()
+            ->map(function ($item) use ($userId) {
+                return [
+                    'user_id' => $item->user_id,
+                    'role' => $item->role->role_name,
+                    'kategori_pa' => $item->kategoriPA->kategori_pa
+                ];
+            });
+
+        // dd($roles);
+
+        return view('pages.AI.index', compact('roles'));
     }
 
     public function send(Request $request)

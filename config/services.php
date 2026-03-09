@@ -19,6 +19,11 @@ return [
     'dosen_api' => [
         'url' => env('API_URL') . 'library-api/dosen'
     ],
+    // API MATA KULIAH
+    'matkul_api' => [
+        'url' => env('API_URL') . 'library-api/matkul-by-prodi-sem-ta'
+    ],
+    
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

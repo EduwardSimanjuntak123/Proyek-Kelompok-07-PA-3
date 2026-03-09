@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use App\Jobs\SyncDosenJob;
+use App\Jobs\SyncMatkulJob;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use GuzzleHttp\Exception\RequestException;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DosenRole;
-use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
 class AuthController extends Controller
 {
@@ -67,7 +68,7 @@ class AuthController extends Controller
                     'email' => $responseDetailUser->details[0]->email ?? '',
                     'isLoggin' => true,
                 ];
-                session::put($userData);
+                Session::put($userData);
                 //    SyncDosenJob::dispatch($body['token']);
                 // SYNC DATA DOSEN DARI CIS
                 // app(\App\Services\DosenSyncService::class)
@@ -118,7 +119,10 @@ class AuthController extends Controller
                 Auth::login($user);
                 // ========================
                 // sync dosen di background
-                SyncDosenJob::dispatch($body['token']);
+                Bus::chain([
+                    new SyncDosenJob($body['token']),
+                    new SyncMatkulJob($body['token']),
+                ])->dispatch();
                 // Redirect berdasarkan role pengguna
                 if ($userTemp['role'] == 'Mahasiswa') {
                     $kelompokMahasiswa = KelompokMahasiswa::where('user_id', $userTemp['user_id'])

@@ -183,7 +183,7 @@ public function create()
             'role_id'   => $validated['role_id'],
             'prodi_id'  => $validated['prodi_id'],
             'KPA_id'  => $validated['KPA_id'],
-            'KPA_id'  => $validated['KPA_id'],
+            // 'KPA_id'  => $validated['KPA_id'],
             'TM_id'     => $validated['TM_id'],
             'tahun_ajaran_id'=>$validated['tahun_ajaran_id'],
             'status'    => $status,  // Pastikan status dikirimkan dengan benar
