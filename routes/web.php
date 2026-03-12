@@ -178,8 +178,8 @@ Route::prefix('penguji2')->group(function () {
 });
 
 // Agent
-Route::prefix('agent')->group(function(){
-        Route::get('/agent', [Agent_Controller::class, 'index'])->name('agent.index');
+Route::prefix('agent')->group(function () {
+    Route::get('/agent', [Agent_Controller::class, 'index'])->name('agent.index');
 });
 //CRUD Pengumuman
 Route::prefix('pengumuman')->group(function () {
@@ -310,9 +310,9 @@ Route::prefix('NilaiBimbingan')->group(function () {
     Route::get('/NilaiAKhir', [NilaiMahasiswa_Controller::class, 'index'])->name('NilaiAkhir.index');
     Route::get('/export-nilai-akhir/{prodi_id}/{KPA_id}/{TM_id}', [NilaiMahasiswa_Controller::class, 'export'])->name('nilai.akhir.export');
 
-});  
+});
 //Route untuk koordinator CRUD Nilai matakuliah
-  Route::get('nilai/koordinator', [NilaiMatkulMhsController::class, 'index'])->name('koordinator.NilaiMatkul.index');
+Route::get('nilai/koordinator', [NilaiMatkulMhsController::class, 'index'])->name('koordinator.NilaiMatkul.index');
 
 //Route untuk koordinator CRUD Nilai Administrasi
 
@@ -495,7 +495,9 @@ Route::prefix('ai-agent')->group(function () {
         ->name('ai.chat');
 
     // kirim pesan ke AI
-    Route::post('/send', [AIController::class, 'send'])
-        ->name('ai.send');
+    Route::post('/ai/cek-kelompok', [AIController::class, 'cekKelompok'])
+        ->name('ai.cekKelompok');
+
+    Route::post('/ai-kelompok/generate', [AIController::class, 'generate'])->name('ai.generate');
 
 });

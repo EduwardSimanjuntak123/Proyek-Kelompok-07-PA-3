@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
 
             // relasi ke mahasiswa
-            $table->unsignedBigInteger('mahasiswa_id');
+            $table->unsignedInteger('mahasiswa_id');
 
             // relasi ke mata kuliah pakai kode_mk
             $table->string('kode_mk');
@@ -27,17 +27,14 @@ return new class extends Migration {
 
             $table->timestamps();
 
-            // foreign key
-            $table->foreign('mahasiswa_id')
-                ->references('id')
-                ->on('mahasiswa')
-                ->onDelete('cascade');
-
             $table->foreign('kode_mk')
                 ->references('kode_mk')
                 ->on('mata_kuliah')
                 ->onDelete('cascade');
-
+            $table->foreign('mahasiswa_id')
+                ->references('user_id') // Pastikan ini 'user_id'
+                ->on('mahasiswa')
+                ->onDelete('cascade');
             // index untuk performa
             $table->index('mahasiswa_id');
             $table->index('kode_mk');

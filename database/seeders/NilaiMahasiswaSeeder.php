@@ -42,7 +42,7 @@ class NilaiMahasiswaSeeder extends Seeder
                 };
 
                 DB::table('nilai_matkul_mahasiswa')->insert([
-                    'mahasiswa_id' => $mhs->id,
+                    'mahasiswa_id' => $mhs->user_id,
                     'kode_mk' => $mk->kode_mk,
                     'nilai_angka' => $nilai,
                     'nilai_huruf' => $huruf,

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('kelompok_mahasiswa', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
+            $table->unsignedInteger('user_id');
             $table->foreignId('kelompok_id')->constrained('kelompok')->onDelete('cascade');
             $table->timestamps();
             $table->unique(['kelompok_id', 'user_id']);

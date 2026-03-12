@@ -1,10 +1,9 @@
 @extends('layouts.main')
-@section('title', 'Chat Bot Otomatisasi')
+@section('title', 'AI Agent Kelompok')
 
 @section('content')
 
     <style>
-        /* CHAT CONTAINER */
         .chat-wrapper {
             height: 500px;
             display: flex;
@@ -18,18 +17,15 @@
             background: #f4f6f9;
         }
 
-        /* MESSAGE ROW */
         .message {
             display: flex;
             margin-bottom: 15px;
-            animation: fadeIn .3s ease;
         }
 
         .message.user {
             justify-content: flex-end;
         }
 
-        /* AVATAR */
         .avatar {
             width: 40px;
             height: 40px;
@@ -37,7 +33,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
             margin-right: 10px;
         }
 
@@ -52,7 +47,6 @@
             margin-left: 10px;
         }
 
-        /* CHAT BUBBLE */
         .bubble {
             padding: 12px 16px;
             border-radius: 15px;
@@ -70,24 +64,18 @@
             color: white;
         }
 
-        /* INPUT AREA */
         .chat-input {
             border-top: 1px solid #ddd;
             padding: 15px;
             background: white;
         }
 
-        /* ANIMATION */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
+        .quick-action {
+            margin-top: 10px;
+        }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .quick-action button {
+            margin-right: 8px;
         }
     </style>
 
@@ -96,79 +84,64 @@
 
             <div class="card">
 
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4>AI Chat Bot</h4>
+                <div class="card-header">
+                    <h4>AI Agent Pembentukan Kelompok</h4>
                 </div>
 
                 <div class="card-body chat-wrapper">
 
-                    <!-- CHAT AREA -->
                     <div class="chat-box" id="chatBox">
 
-                        <!-- BOT MESSAGE -->
+                        <!-- BOT INTRO -->
                         <div class="message bot">
+
                             <div class="avatar bot-avatar">
                                 <i class="fas fa-robot"></i>
                             </div>
 
                             <div class="bubble">
-                                Halo 👋<br><br>
-                                Saya adalah <b>Vokasi Tera AI Assistant</b>.<br>
-                                Saya siap membantu Anda mengakses informasi akademik dengan lebih cepat.<br><br>
 
-                                Anda dapat mengetik pertanyaan seperti:
-                                <ul style="margin-top:8px; padding-left:18px;">
-                                    <li>Informasi kelompok</li>
-                                    <li>Data mahasiswa bimbingan</li>
-                                    <li>Jadwal seminar</li>
-                                    <li>Status pengajuan seminar</li>
-                                </ul>
+                                Halo 👋 <br><br>
 
-                                Silakan ketik pertanyaan Anda pada kolom chat di bawah.
-                            </div>
-                        </div>
+                                Saya adalah <b>AI Agent Pembentuk Kelompok Mahasiswa</b>.<br><br>
 
-                        <!-- USER MESSAGE -->
-                        <div class="message user">
+                                Saya dapat membantu membuat kelompok mahasiswa secara otomatis
+                                berdasarkan nilai akademik agar setiap kelompok seimbang.<br><br>
 
-                            <div class="bubble">
-                                Apa yang bisa Anda bantu?
-                            </div>
+                                Silakan gunakan tombol di bawah atau ketik instruksi.
 
-                            <div class="avatar user-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
+                                <div class="quick-action">
 
-                        </div>
-
-                        <!-- BOT MESSAGE -->
-                        <div class="message bot">
-                            <div class="avatar bot-avatar">
-                                <i class="fas fa-robot"></i>
-                            </div>
-
-                            <div class="bubble">
-                                Saya dapat membantu memberikan informasi terkait sistem akademik
-                                <b>Vokasi Tera</b>, seperti data kelompok, mahasiswa bimbingan,
-                                jadwal seminar, dan informasi lainnya.<br><br>
-
-                                Silakan ketik pertanyaan Anda, dan saya akan mencoba membantu.
-                            </div>
-                        </div>
-
-                        <!-- INPUT -->
-                        <div class="chat-input">
-                            <div class="input-group">
-
-                                <input type="text" id="messageInput" class="form-control" placeholder="Ketik pesan...">
-
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary" onclick="sendMessage()">
-                                        <i class="fas fa-paper-plane"></i>
+                                    <button class="btn btn-sm btn-primary" onclick="quickGenerate()">
+                                        Generate Kelompok
                                     </button>
+
                                 </div>
 
                             </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- INPUT -->
+                    <div class="chat-input">
+
+                        <div class="input-group">
+
+                            <input type="text" id="messageInput" class="form-control"
+                                placeholder="Contoh: Generate kelompok angkatan 2022 dengan 4 anggota">
+
+                            <div class="input-group-append">
+
+                                <button class="btn btn-primary" onclick="sendMessage()">
+
+                                    <i class="fas fa-paper-plane"></i>
+
+                                </button>
+
+                            </div>
+
                         </div>
 
                     </div>
@@ -176,28 +149,49 @@
                 </div>
 
             </div>
+
+        </div>
     </section>
 
     <script>
-        /* AUTO SCROLL */
         function scrollBottom() {
+
             let chatBox = document.getElementById("chatBox");
+
             chatBox.scrollTop = chatBox.scrollHeight;
+
         }
 
-        scrollBottom();
+        function addBotMessage(text) {
 
-        /* SEND MESSAGE UI */
+            let chatBox = document.getElementById("chatBox");
+
+            let message = `
+<div class="message bot">
+<div class="avatar bot-avatar">
+<i class="fas fa-robot"></i>
+</div>
+<div class="bubble">${text}</div>
+</div>
+`;
+
+            chatBox.innerHTML += message;
+
+            scrollBottom();
+
+        }
+
         function sendMessage() {
 
             let input = document.getElementById("messageInput");
+
             let text = input.value.trim();
 
             if (text === "") return;
 
             let chatBox = document.getElementById("chatBox");
 
-            let message = `
+            let userMessage = `
 <div class="message user">
 <div class="bubble">${text}</div>
 <div class="avatar user-avatar">
@@ -206,11 +200,29 @@
 </div>
 `;
 
-            chatBox.innerHTML += message;
+            chatBox.innerHTML += userMessage;
 
             input.value = "";
 
             scrollBottom();
+
+            /* RESPONSE SIMULATION */
+
+            addBotMessage("AI sedang menganalisis mahasiswa... ⏳");
+
+            setTimeout(() => {
+
+                addBotMessage("Kelompok berhasil dibuat dan disimpan ke database ✅");
+
+            }, 1500);
+
+        }
+
+        /* QUICK BUTTON */
+
+        function quickGenerate() {
+
+            addBotMessage("Silakan tentukan angkatan dan jumlah anggota per kelompok.");
 
         }
     </script>

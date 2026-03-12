@@ -1,266 +1,212 @@
 @extends('layouts.main')
-@section('title', 'CHAT AGENT')
+@section('title', 'AI Agent Kelompok')
 
 @section('content')
 
-    <style>
-        .chat-wrapper {
-            height: 75vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 25px;
-            background: #f7f9fc;
-            border-radius: 10px;
-        }
-
-        .message {
-            display: flex;
-            margin-bottom: 18px;
-        }
-
-        .message.bot {
-            justify-content: flex-start;
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .bubble {
-            padding: 12px 18px;
-            border-radius: 14px;
-            max-width: 65%;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .user .bubble {
-            background: #5865f2;
-            color: white;
-        }
-
-        .bot .bubble {
-            background: white;
-            border: 1px solid #eee;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input input:focus {
-            outline: none;
-            border-color: #5865f2;
-        }
-
-        .chat-input button {
-            background: #5865f2;
-            color: white;
-            border: none;
-            padding: 0 22px;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .typing {
-            font-style: italic;
-            color: #999;
-        }
-
-        /* ACTION MENU */
-
-        .action-menu {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background: #eef2ff;
-            border: 1px solid #5865f2;
-            color: #5865f2;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .action-btn:hover {
-            background: #5865f2;
-            color: white;
-        }
-    </style>
-
     <section class="section">
-
-        <div class="section-header">
-            <h1>🤖 AI Assistant VokasiTera</h1>
-        </div>
-
         <div class="section-body">
 
-            <div class="row">
-                <div class="col-12">
+            <!-- INFO USER -->
+            <div class="alert alert-info">
 
-                    <div class="card">
+                <b>Login sebagai:</b> {{ $user->nama ?? 'User' }} <br>
+                <b>User ID:</b> {{ session('user_id') }}
 
-                        <div class="chat-wrapper">
+                <br><br>
 
-                            <!-- ACTION MENU -->
+                <b>Role:</b>
+                @foreach ($roles as $r)
+                    <span class="badge badge-primary">
+                        {{ $r['role'] }} - {{ $r['kategori_pa'] }} - Angkatan {{ $r['angkatan'] }} {{ $r['prodi'] }}
+                    </span>
+                @endforeach
 
-                            <div class="action-menu">
+            </div>
 
-                                <button class="action-btn"
-                                    onclick="runAction('generate kelompok mahasiswa berdasarkan nilai')">
-                                    👥 Generate Kelompok
-                                </button>
 
-                                <button class="action-btn" onclick="runAction('tentukan pembimbing mahasiswa')">
-                                    🎓 Tentukan Pembimbing
-                                </button>
+            <!-- CARD AI -->
+            <div class="card">
 
-                                <button class="action-btn" onclick="runAction('tentukan penguji sidang')">
-                                    🧑‍🏫 Tentukan Penguji
-                                </button>
+                <div class="card-header">
+                    <h4>AI Agent Pembentukan Kelompok</h4>
+                </div>
 
-                                <button class="action-btn" onclick="runAction('tampilkan mahasiswa bimbingan saya')">
-                                    📋 Mahasiswa Bimbingan
-                                </button>
+                <div class="card-body text-center">
 
-                            </div>
+                    <p>
+                        Sistem akan membuat <b>kelompok mahasiswa otomatis</b>
+                        berdasarkan keseimbangan nilai akademik.
+                    </p>
 
-                            <!-- CHAT BOX -->
+                    <form id="formGenerate" action="{{ route('ai.generate') }}" method="POST">
+                        @csrf
 
-                            <div id="chat-box" class="chat-box">
+                        <button type="button" id="btnGenerate" class="btn btn-lg btn-primary">
+                            <i class="fas fa-cogs"></i> Generate Kelompok
+                        </button>
 
-                                <div class="message bot">
-                                    <div class="bubble">
-                                        Halo 👋 saya <b>AI Assistant VokasiTera</b><br>
-                                        Silakan tanyakan apa saja terkait Proyek Akhir.
-                                    </div>
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS -->
+            @if (session('success'))
+                <div class="alert alert-success mt-3">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+
+            <!-- HASIL -->
+            @if (session('kelompok'))
+
+                <div class="card mt-4">
+
+                    <div class="card-header">
+                        <h4>Hasil Pembentukan Kelompok</h4>
+                    </div>
+
+                    <div class="card-body">
+
+                        @foreach (session('kelompok') as $k)
+                            <div class="mb-4">
+
+                                <h5 class="text-primary">
+                                    Kelompok {{ $k['kelompok'] }}
+                                </h5>
+
+                                <div class="alert alert-info">
+                                    <strong>Alasan AI:</strong>
+                                    {{ $k['alasan'] }}
                                 </div>
 
+                                <table class="table table-bordered table-striped">
+
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NIM</th>
+                                            <th>Nama</th>
+                                            <th>Gender</th>
+                                            <th>Sem 1</th>
+                                            <th>Sem 2</th>
+                                            <th>Sem 3</th>
+                                            <th>Sem 4</th>
+                                            <th>Sem 5</th>
+                                            <th>Rata Nilai</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        @foreach ($k['members'] as $i => $m)
+                                            <tr>
+                                                <td>{{ $i + 1 }}</td>
+
+                                                <td>{{ $m['nim'] }}</td>
+
+                                                <td>{{ $m['nama'] }}</td>
+
+                                                <td>
+                                                    @if ($m['gender'] == 'Pria')
+                                                        <span class="badge bg-primary">Pria</span>
+                                                    @else
+                                                        <span class="badge bg-warning">Wanita</span>
+                                                    @endif
+                                                </td>
+
+                                                <td>{{ $m['nilai_per_semester'][1] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][2] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][3] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][4] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][5] ?? '-' }}</td>
+
+                                                <td>{{ $m['rata_nilai_semester'] }}</td>
+
+                                            </tr>
+                                        @endforeach
+
+                                    </tbody>
+
+                                </table>
+
                             </div>
+                        @endforeach
 
-                            <!-- INPUT -->
-
-                            <div class="chat-input">
-
-                                <input type="text" id="message" placeholder="Tanyakan sesuatu..."
-                                    onkeypress="if(event.key==='Enter'){sendMessage()}">
-
-                                <button onclick="sendMessage()">
-                                    Kirim
-                                </button>
-
-                            </div>
-
-                        </div>
                     </div>
+
                 </div>
-            </div>
+
+            @endif
+
         </div>
-
     </section>
-
-    <!-- SESSION DATA -->
-
-    <script>
-        let userId = "{{ session('user_id') }}";
-        let role = "{{ session('role') }}";
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function addMessage(text, type) {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            let chat = document.getElementById("chat-box");
+            document.getElementById("btnGenerate").addEventListener("click", function() {
 
-            let html = `
-<div class="message ${type}">
-<div class="bubble">${text}</div>
-</div>
-`;
+                fetch("{{ route('ai.cekKelompok') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        }
+                    })
 
-            chat.insertAdjacentHTML("beforeend", html);
+                    .then(res => res.json())
 
-            chat.scrollTop = chat.scrollHeight;
+                    .then(data => {
 
-        }
+                        if (data.exists) {
 
-        function runAction(prompt) {
+                            Swal.fire({
+                                title: "Kelompok sudah ada",
+                                text: "Apakah ingin generate ulang kelompok?",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonText: "Ya, Generate Ulang",
+                                cancelButtonText: "Batal"
+                            }).then((result) => {
 
-            let input = document.getElementById("message");
+                                if (result.isConfirmed) {
+                                    showLoading()
+                                    document.getElementById("formGenerate").submit()
+                                }
 
-            input.value = prompt;
+                            })
 
-            sendMessage();
+                        } else {
 
-        }
+                            showLoading()
+                            document.getElementById("formGenerate").submit()
 
-        function sendMessage() {
-
-            let input = document.getElementById("message");
-
-            let message = input.value;
-
-            if (message.trim() === "") return;
-
-            addMessage(message, "user");
-
-            input.value = "";
-
-            addMessage("<span class='typing'>AI sedang mengetik...</span>", "bot");
-
-            fetch("{{ route('ai.chat') }}", {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-
-                    body: JSON.stringify({
-
-                        user_id: userId,
-                        role: role,
-                        message: message
+                        }
 
                     })
 
-                })
+            })
 
-                .then(res => res.json())
+        })
 
-                .then(data => {
+        function showLoading() {
 
-                    let chat = document.getElementById("chat-box");
-
-                    chat.lastChild.remove();
-
-                    addMessage(data.reply, "bot");
-
-                });
+            Swal.fire({
+                title: "AI Agent sedang bekerja...",
+                text: "Menganalisis mahasiswa dan membentuk kelompok",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            })
 
         }
     </script>
+
 
 @endsection
