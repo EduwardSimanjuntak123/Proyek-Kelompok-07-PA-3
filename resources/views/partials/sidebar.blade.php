@@ -35,16 +35,10 @@
                                 <span>Kelompok</span></a></li>
                         <li><a class="nav-link" href="{{ route('jadwal.index') }}"><i class="fas fa-calendar"></i>
                                 <span>Jadwal</span></a></li>
-                        <li class="nav-item dropdown {{ request()->is('pembimbing*') ? 'active' : '' }}">
-                            <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
+                        <li class="nav-item {{ request()->is('pembimbing*') ? 'active' : '' }}">
+                            <a href="{{ route('pembimbing.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i> <span>Pembimbing</span>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="nav-link {{--  --}}"
-                                        href="{{ route('pembimbing.index') }}">Pembimbing 1</a></li>
-                                <li><a class="nav-link {{--  --}}"
-                                        href="{{ route('pembimbing2.index') }}">Pembimbing 2</a></li>
-                            </ul>
                         </li>
                         <li class="nav-item dropdown {{ request()->is('penguji*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">

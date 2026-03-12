@@ -176,10 +176,6 @@ Route::prefix('penguji2')->group(function () {
     Route::get('/{id}/show', [Penguji_Controller::class, 'showpenguji2'])->name('penguji2.show');
 });
 
-// Agent
-Route::prefix('agent')->group(function(){
-        Route::get('/agent', [Agent_Controller::class, 'index'])->name('agent.index');
-});
 //CRUD Pengumuman
 Route::prefix('pengumuman')->group(function () {
     //CRUD pengumuman oleh koordinator

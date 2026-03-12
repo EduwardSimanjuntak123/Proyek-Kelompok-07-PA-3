@@ -71,11 +71,15 @@ public function create()
         : [];
 
     $prodi = Prodi::all();
-    $role = Role::all();
+
+    // HANYA KOORDINATOR
+    $role = Role::where('role_name','Koordinator')->first();
+
     $tahun_masuk = TahunMasuk::where('Status','Aktif')->get();
     $kategoripa = kategoriPA::all();
 
     $tahunAjaranAktif = TahunAJaran_Controller::getTahunAjaranAktif();
+
     return view('pages.BAAK.Kordinator.create', compact(
         'dosen',
         'prodi',
@@ -84,7 +88,6 @@ public function create()
         'kategoripa',
         'tahunAjaranAktif'
     ));
-    
 }
     public function store(Request $request)
     {
@@ -106,6 +109,12 @@ public function create()
     
         // Ambil role_name berdasarkan role_id
         $role = Role::find($validated['role_id']);
+
+if(strtolower($role->role_name) !== 'koordinator'){
+    return back()->withErrors([
+        'role_id' => 'BAAK hanya boleh menambahkan role Koordinator.'
+    ]);
+}
         $rolesToCheck = ['penguji 1', 'pembimbing 1', 'penguji 2', 'pembimbing 2']; 
         if (in_array(strtolower($role->role_name), $rolesToCheck)) {
             if($validated['status'] === 'Aktif'){
@@ -208,7 +217,6 @@ public function create()
         : [];
 
     $prodi = Prodi::all();
-    $role = Role::all();
     $tahun_masuk = TahunMasuk::all();
     $kategoripa = kategoriPA::all();
 
@@ -216,7 +224,6 @@ public function create()
         'dosenRole',
         'dosen',
         'prodi',
-        'role',
         'tahun_masuk',
         'kategoripa'
     ));

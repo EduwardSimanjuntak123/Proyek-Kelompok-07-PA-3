@@ -45,16 +45,11 @@
 
                                 {{-- Role --}}
                                 <div class="form-group">
-                                    <label for="role_id">Pilih Role</label>
-                                    <select id="role_id" name="role_id" class="select2 form-control" required>
-                                        <option value="">-- Pilih Role --</option>
-                                        @foreach ($role as $item)
-                                            <option value="{{ $item->id }}"
-                                                {{ old('role_id') == $item->id ? 'selected' : '' }}>
-                                                {{ $item->role_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <label>Role</label>
+
+                                    <input type="text" class="form-control" value="Koordinator" readonly>
+
+                                    <input type="hidden" name="role_id" value="{{ $role->id }}">
                                 </div>
                                 {{-- Prodi --}}
                                 <div class="form-group">
