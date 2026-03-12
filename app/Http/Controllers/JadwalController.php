@@ -24,6 +24,7 @@ class JadwalController extends Controller
 {
     public function index(Request $request)
     {
+
         try {
             $userID = session('user_id');
             if (!$userID) {
@@ -90,6 +91,7 @@ class JadwalController extends Controller
             $prodi_id = session('prodi_id');
             $TM_id = session('TM_id');
             $role_id = session('role_id');
+
     
             if (!$userID || !$token) {
                 return redirect()->route('login')->with('error', 'Sesi telah berakhir');
@@ -105,12 +107,13 @@ class JadwalController extends Controller
                 ->whereDoesntHave('jadwal') // Ensure no schedule exists yet
                 ->with('pengajuanSeminar') // Eager load pengajuanSeminar
                 ->get();
+    dd($kelompok);
     
             $kategoriPA = kategoriPA::find($KPA_id);
             $prodi = Prodi::find($prodi_id);
             $tahunMasuk = TahunMasuk::find($TM_id);
             $ruangan = Ruangan::all();
-    
+
             if ($kelompok->isEmpty()) {
                 // Check if there are groups with unapproved submissions
                 $hasUnapprovedGroups = Kelompok::where('KPA_id', $KPA_id)

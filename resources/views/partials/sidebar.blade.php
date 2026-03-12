@@ -61,7 +61,11 @@
                                     </a></li>
                                 <li>
                                     <a class="nav-link {{--  --}}"
-                                        href="{{ route('NilaiAkhir.index') }}">Nilai Mahasiswa</a>
+                                        href="{{ route('NilaiAkhir.index') }}">Nilai PA Mahasiswa</a>
+                                </li>
+                                <li>
+                                    <a class="nav-link {{--  --}}"
+                                        href="{{ route('koordinator.NilaiMatkul.index') }}">Nilai Matkul Mahasiswa</a>
                                 </li>
 
                             </ul>

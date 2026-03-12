@@ -1,185 +1,212 @@
 @extends('layouts.main')
-@section('title', 'CHAT AGENT')
+@section('title', 'AI Agent Kelompok')
 
 @section('content')
 
-    <style>
-        .chat-wrapper {
-            height: 70vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 25px;
-            background: #f7f9fc;
-            border-radius: 10px;
-        }
-
-        .message {
-            display: flex;
-            margin-bottom: 18px;
-        }
-
-        .message.bot {
-            justify-content: flex-start;
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .bubble {
-            padding: 12px 18px;
-            border-radius: 14px;
-            max-width: 65%;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .user .bubble {
-            background: #5865f2;
-            color: white;
-        }
-
-        .bot .bubble {
-            background: white;
-            border: 1px solid #ffffff;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input input:focus {
-            outline: none;
-            border-color: #5865f2;
-        }
-
-        .chat-input button {
-            background: #5865f2;
-            color: white;
-            border: none;
-            padding: 0 22px;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .typing {
-            font-style: italic;
-            color: #999;
-        }
-    </style>
-
     <section class="section">
-
-        <div class="section-header">
-            <h1>🤖 AI Assistant VokasiTera</h1>
-        </div>
-
         <div class="section-body">
 
-            <div class="row">
-                <div class="col-12">
+            <!-- INFO USER -->
+            <div class="alert alert-info">
 
-                    <div class="card">
+                <b>Login sebagai:</b> {{ $user->nama ?? 'User' }} <br>
+                <b>User ID:</b> {{ session('user_id') }}
 
-                        <div class="chat-wrapper">
+                <br><br>
 
-                            <div id="chat-box" class="chat-box">
+                <b>Role:</b>
+                @foreach ($roles as $r)
+                    <span class="badge badge-primary">
+                        {{ $r['role'] }} - {{ $r['kategori_pa'] }} - Angkatan {{ $r['angkatan'] }} {{ $r['prodi'] }}
+                    </span>
+                @endforeach
 
-                                <div class="message bot">
-                                    <div class="bubble">
-                                        Halo 👋 saya <b>AI Assistant VokasiTera</b>.<br>
-                                        Silakan tanyakan apa saja terkait Proyek Akhir Vokasi
-                                    </div>
+            </div>
+
+
+            <!-- CARD AI -->
+            <div class="card">
+
+                <div class="card-header">
+                    <h4>AI Agent Pembentukan Kelompok</h4>
+                </div>
+
+                <div class="card-body text-center">
+
+                    <p>
+                        Sistem akan membuat <b>kelompok mahasiswa otomatis</b>
+                        berdasarkan keseimbangan nilai akademik.
+                    </p>
+
+                    <form id="formGenerate" action="{{ route('ai.generate') }}" method="POST">
+                        @csrf
+
+                        <button type="button" id="btnGenerate" class="btn btn-lg btn-primary">
+                            <i class="fas fa-cogs"></i> Generate Kelompok
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS -->
+            @if (session('success'))
+                <div class="alert alert-success mt-3">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+
+            <!-- HASIL -->
+            @if (session('kelompok'))
+
+                <div class="card mt-4">
+
+                    <div class="card-header">
+                        <h4>Hasil Pembentukan Kelompok</h4>
+                    </div>
+
+                    <div class="card-body">
+
+                        @foreach (session('kelompok') as $k)
+                            <div class="mb-4">
+
+                                <h5 class="text-primary">
+                                    Kelompok {{ $k['kelompok'] }}
+                                </h5>
+
+                                <div class="alert alert-info">
+                                    <strong>Alasan AI:</strong>
+                                    {{ $k['alasan'] }}
                                 </div>
 
+                                <table class="table table-bordered table-striped">
+
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NIM</th>
+                                            <th>Nama</th>
+                                            <th>Gender</th>
+                                            <th>Sem 1</th>
+                                            <th>Sem 2</th>
+                                            <th>Sem 3</th>
+                                            <th>Sem 4</th>
+                                            <th>Sem 5</th>
+                                            <th>Rata Nilai</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        @foreach ($k['members'] as $i => $m)
+                                            <tr>
+                                                <td>{{ $i + 1 }}</td>
+
+                                                <td>{{ $m['nim'] }}</td>
+
+                                                <td>{{ $m['nama'] }}</td>
+
+                                                <td>
+                                                    @if ($m['gender'] == 'Pria')
+                                                        <span class="badge bg-primary">Pria</span>
+                                                    @else
+                                                        <span class="badge bg-warning">Wanita</span>
+                                                    @endif
+                                                </td>
+
+                                                <td>{{ $m['nilai_per_semester'][1] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][2] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][3] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][4] ?? '-' }}</td>
+                                                <td>{{ $m['nilai_per_semester'][5] ?? '-' }}</td>
+
+                                                <td>{{ $m['rata_nilai_semester'] }}</td>
+
+                                            </tr>
+                                        @endforeach
+
+                                    </tbody>
+
+                                </table>
+
                             </div>
-
-                            <div class="chat-input">
-
-                                <input type="text" id="message" placeholder="Tanyakan sesuatu..."
-                                    onkeypress="if(event.key==='Enter'){sendMessage()}">
-
-                                <button onclick="sendMessage()">
-                                    Kirim
-                                </button>
-
-                            </div>
-
-                        </div>
+                        @endforeach
 
                     </div>
 
                 </div>
-            </div>
+
+            @endif
 
         </div>
     </section>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function addMessage(text, type) {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            let chat = document.getElementById("chat-box");
+            document.getElementById("btnGenerate").addEventListener("click", function() {
 
-            let html = `
-<div class="message ${type}">
-<div class="bubble">${text}</div>
-</div>
-`;
-
-            chat.insertAdjacentHTML("beforeend", html);
-            chat.scrollTop = chat.scrollHeight;
-
-        }
-
-        function sendMessage() {
-
-            let input = document.getElementById("message");
-            let message = input.value;
-
-            if (message.trim() === "") return;
-
-            addMessage(message, "user");
-
-            input.value = "";
-
-            addMessage("<span class='typing'>AI sedang mengetik...</span>", "bot");
-
-            fetch("#", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({
-                        message: message
+                fetch("{{ route('ai.cekKelompok') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        }
                     })
-                })
-                .then(res => res.json())
-                .then(data => {
 
-                    let chat = document.getElementById("chat-box");
-                    chat.lastChild.remove();
+                    .then(res => res.json())
 
-                    addMessage(data.reply, "bot");
+                    .then(data => {
 
-                });
+                        if (data.exists) {
+
+                            Swal.fire({
+                                title: "Kelompok sudah ada",
+                                text: "Apakah ingin generate ulang kelompok?",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonText: "Ya, Generate Ulang",
+                                cancelButtonText: "Batal"
+                            }).then((result) => {
+
+                                if (result.isConfirmed) {
+                                    showLoading()
+                                    document.getElementById("formGenerate").submit()
+                                }
+
+                            })
+
+                        } else {
+
+                            showLoading()
+                            document.getElementById("formGenerate").submit()
+
+                        }
+
+                    })
+
+            })
+
+        })
+
+        function showLoading() {
+
+            Swal.fire({
+                title: "AI Agent sedang bekerja...",
+                text: "Menganalisis mahasiswa dan membentuk kelompok",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            })
 
         }
     </script>
+
 
 @endsection
