@@ -1,74 +1,102 @@
 @extends('layouts.main')
-@section('title', 'Edit Pembimbing 1')
+@section('title', 'Edit Pembimbing')
 
 @section('content')
     <section class="section">
         <div class="section-body">
             <div class="row">
                 <div class="col-12">
+
                     @include('partials.alert')
+
                     <div class="card">
+
                         <div class="card-header d-flex justify-content-between">
-                            <h4>Edit Pembimbing 1</h4>
-                            <a href="{{ route('pembimbing.index') }}" class="btn btn-primary">Kembali</a>
+                            <h4>Edit Pembimbing Kelompok</h4>
+
+                            <a href="{{ route('pembimbing.index') }}" class="btn btn-primary btn-sm">
+                                Kembali
+                            </a>
                         </div>
+
                         <div class="card-body">
 
-                            <form method="POST" action="{{ route('pembimbing.update', Crypt::encrypt($pembimbing['id'])) }}"
-                                enctype="multipart/form-data">
+                            <form method="POST" action="{{ route('pembimbing.update', Crypt::encrypt($kelompok_id)) }}">
                                 @csrf
                                 @method('PUT')
 
-                                {{-- Pilih Dosen --}}
+                                <input type="hidden" name="kelompok_id" value="{{ $kelompok_id }}">
+
+                                {{-- KELOMPOK --}}
                                 <div class="form-group">
-                                    <label for="user_id">Pilih Dosen</label>
-                                    <select id="user_id" name="user_id" class="select2 form-control" required>
-                                        <option value="">-- Pilih Dosen --</option>
-                                        @foreach ($dosen as $item)
-                                            <option value="{{ $item['user_id'] ?? '' }}"
-                                                {{ $item['user_id'] == $pembimbing['user_id'] ? 'selected' : '' }}>
-                                                {{ $item['nama'] ?? 'Tanpa Nama' }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+
+                                    <label>Kelompok</label>
+
+                                    <input type="text" class="form-control"
+                                        value="{{ $kelompok->nomor_kelompok ?? '-' }}" readonly>
 
                                 </div>
+
+                                {{-- PEMBIMBING 1 --}}
+                                {{-- PEMBIMBING 1 --}}
                                 <div class="form-group">
-                                    <label for="kelompok_id">Pilih Kelompok</label>
-                                    <select id="kelompok_id" name="kelompok_id" class="select2 form-control" required>
-                                        <option value="">-- Pilih Kelompok --</option>
-                                        @foreach ($Kelompok as $item)
-                                            <option value="{{ $item->id }}"
-                                                {{ $item->id == $pembimbing['kelompok_id'] ? 'selected' : '' }}>
-                                                {{ $item->nomor_kelompok ?? 'Tanpa Nama' }}
+                                    <label>Pembimbing 1</label>
+                                    <select name="pembimbing1" class="form-control select2">
+                                        {{-- pembimbing lama --}}
+                                        @if ($dosenPembimbing1)
+                                            <option value="{{ $dosenPembimbing1->user_id }}" selected>
+                                                {{ $dosenPembimbing1->nama }} (Pembimbing Lama)
                                             </option>
+                                        @endif
+
+                                        <option value="">-- Pilih Pembimbing 1 --</option>
+
+                                        @foreach ($dosen as $item)
+                                            @if (!$dosenPembimbing1 || $item['user_id'] != $dosenPembimbing1->user_id)
+                                                <option value="{{ $item['user_id'] }}">
+                                                    {{ $item['nama'] }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+
+                                {{-- PEMBIMBING 2 --}}
+                                <div class="form-group">
+                                    <label>Pembimbing 2</label>
+                                    <select name="pembimbing2" class="form-control select2">
+                                        {{-- pembimbing lama --}}
+                                        @if ($dosenPembimbing2)
+                                            <option value="{{ $dosenPembimbing2->user_id }}" selected>
+                                                {{ $dosenPembimbing2->nama }} (Pembimbing Lama)
+                                            </option>
+                                        @endif
+
+                                        <option value="">-- Pilih Pembimbing 2 --</option>
+
+                                        @foreach ($dosen as $item)
+                                            @if (!$dosenPembimbing2 || $item['user_id'] != $dosenPembimbing2->user_id)
+                                                <option value="{{ $item['user_id'] }}">
+                                                    {{ $item['nama'] }}
+                                                </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+
+                                    <i class="fas fa-save"></i> Simpan Perubahan
+
+                                </button>
+
                             </form>
 
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </section>
 @endsection
-@push('script')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('user_id');
-            const namaInput = document.getElementById('nama_dosen');
-
-            function updateNama() {
-                const selected = select.options[select.selectedIndex];
-                const nama = selected.getAttribute('data-nama') || '';
-                namaInput.value = nama;
-            }
-
-            updateNama(); // Set nama saat load
-            select.addEventListener('change', updateNama); // Update nama saat ganti dosen
-        });
-    </script>
-@endpush

@@ -139,9 +139,11 @@ Route::prefix('submitan')->group(function () {
 //  CRUD pembimbing oleh koordinator
 Route::prefix('pembimbing')->group(function () {
     Route::get('/', [pembimbing_Controller::class, 'index'])->name('pembimbing.index');
-    Route::get('/create', [pembimbing_Controller::class, 'create'])->name('pembimbing.create');
+    Route::get('/pembimbing/create/{id}', [pembimbing_Controller::class, 'create'])
+        ->name('pembimbing.create');
     Route::post('/', [pembimbing_Controller::class, 'store'])->name('pembimbing.store');
-    Route::get('/{id}', [pembimbing_Controller::class, 'edit'])->name('pembimbing.edit');
+    Route::get('/pembimbing/edit/{id}', [pembimbing_Controller::class, 'edit'])
+        ->name('pembimbing.edit');
     Route::put('/{id}', [pembimbing_Controller::class, 'update'])->name('pembimbing.update');
     Route::delete('/{id}', [pembimbing_Controller::class, 'destroy'])->name('pembimbing.destroy');
     Route::get('/{id}/show', [pembimbing_Controller::class, 'show'])->name('pembimbing.show');

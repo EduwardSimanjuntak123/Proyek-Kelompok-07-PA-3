@@ -40,6 +40,7 @@
                             <form method="POST" action="{{ route('pembimbing.store') }}">
                                 @csrf
 
+                                <input type="hidden" name="kelompok_id" value="{{ $kelompok_id }}">
 
                                 {{-- PEMBIMBING 1 --}}
                                 <div class="form-group">
@@ -51,17 +52,14 @@
                                         <option value="">-- Pilih Pembimbing 1 --</option>
 
                                         @foreach ($dosen as $item)
-                                            <option value="{{ $item->user_id }}">
-
-                                                {{ $item->nama }}
-
+                                            <option value="{{ $item['user_id'] }}">
+                                                {{ $item['nama'] }}
                                             </option>
                                         @endforeach
 
                                     </select>
 
                                 </div>
-
 
                                 {{-- PEMBIMBING 2 --}}
                                 <div class="form-group">
@@ -73,10 +71,8 @@
                                         <option value="">-- Pilih Pembimbing 2 --</option>
 
                                         @foreach ($dosen as $item)
-                                            <option value="{{ $item->user_id }}">
-
-                                                {{ $item->nama }}
-
+                                            <option value="{{ $item['user_id'] }}">
+                                                {{ $item['nama'] }}
                                             </option>
                                         @endforeach
 
@@ -84,15 +80,11 @@
 
                                 </div>
 
-
                                 <button type="submit" class="btn btn-primary">
-
                                     <i class="fas fa-save"></i> Simpan
-
                                 </button>
 
                             </form>
-
                         </div>
                     </div>
 

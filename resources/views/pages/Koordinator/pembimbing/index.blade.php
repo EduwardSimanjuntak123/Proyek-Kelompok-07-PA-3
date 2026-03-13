@@ -44,7 +44,7 @@
                                                 <td>{{ $loop->iteration }}</td>
 
                                                 <td>
-                                                    Kelompok {{ $item->nomor_kelompok ?? '-' }}
+                                                    {{ $item->nomor_kelompok ?? '-' }}
                                                 </td>
 
                                                 <td>
@@ -56,23 +56,31 @@
                                                 </td>
 
                                                 <td>
+                                                    @if ($item->pembimbing->count() == 0)
+                                                        <a href="{{ route('pembimbing.create', Crypt::encrypt($item->id)) }}"
+                                                            class="btn btn-success btn-sm">
+                                                            <i class="fas fa-plus"></i> Setting Pembimbing
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
+                                                            class="btn btn-warning btn-sm">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </a>
 
-                                                    <a href="{{ route('pembimbing.create', Crypt::encrypt($item->id)) }}"
-                                                        class="btn btn-success btn-sm">
-
-                                                        <i class="fas fa-plus"></i> Setting Pembimbing
-
-                                                    </a>
-
-                                                    <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
-                                                        class="btn btn-success btn-sm">
-
-                                                        <i class="fas fa-edit"></i> Edit
-
-                                                    </a>
-
+                                                        {{-- Hapus semua pembimbing dalam kelompok --}}
+                                                        <form
+                                                            action="{{ route('pembimbing.destroy', Crypt::encrypt($item->id)) }}"
+                                                            method="POST" style="display:inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="btn btn-danger btn-sm show_confirm"
+                                                                data-toggle="tooltip" title="Hapus semua pembimbing">
+                                                                <i class="nav-icon fas fa-trash-alt"></i> Hapus Pembimbing
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </td>
-
                                             </tr>
                                         @endforeach
 
@@ -91,3 +99,25 @@
         </div>
     </section>
 @endsection
+
+@push('script')
+    <script type="text/javascript">
+        $('.show_confirm').click(function(event) {
+            var form = $(this).closest("form");
+            var name = $(this).data("name");
+            event.preventDefault();
+            swal({
+                    title: `Yakin ingin menghapus data ini?`,
+                    text: "Data akan terhapus secara permanen!",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        form.submit();
+                    }
+                });
+        });
+    </script>
+@endpush
