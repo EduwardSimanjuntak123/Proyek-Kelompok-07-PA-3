@@ -28,13 +28,15 @@
             <div class="card">
 
                 <div class="card-header">
-                    <h4>AI Agent Pembentukan Kelompok</h4>
+                    <h4>AI Agent Pembentukan Kelompok {{ $r['kategori_pa'] }} - Angkatan {{ $r['angkatan'] }}
+                        {{ $r['prodi'] }}</h4>
                 </div>
 
                 <div class="card-body text-center">
 
                     <p>
-                        Sistem akan membuat <b>kelompok mahasiswa otomatis</b>
+                        Sistem akan membuat <b>kelompok mahasiswa {{ $r['kategori_pa'] }} - Angkatan {{ $r['angkatan'] }}
+                            {{ $r['prodi'] }} otomatis</b>
                         berdasarkan keseimbangan nilai akademik.
                     </p>
 
@@ -79,9 +81,9 @@
                                 </h5>
 
                                 <div class="alert alert-info">
-    <strong>Alasan AI:</strong>
-    {{ $k['alasan'] ?? 'AI menyeimbangkan mahasiswa berdasarkan rata-rata nilai akademik.' }}
-</div>
+                                    <strong>Alasan AI:</strong>
+                                    {{ $k['alasan'] ?? 'AI menyeimbangkan mahasiswa berdasarkan rata-rata nilai akademik.' }}
+                                </div>
 
                                 <table class="table table-bordered table-striped">
 
@@ -90,13 +92,12 @@
                                             <th>No</th>
                                             <th>NIM</th>
                                             <th>Nama</th>
-                                            <th>Gender</th>
                                             <th>Sem 1</th>
                                             <th>Sem 2</th>
                                             <th>Sem 3</th>
                                             <th>Sem 4</th>
                                             <th>Sem 5</th>
-                                            <th>Rata Nilai</th>
+                                            {{-- <th>Rata Nilai</th> --}}
                                         </tr>
                                     </thead>
 
@@ -110,13 +111,7 @@
 
                                                 <td>{{ $m['nama'] }}</td>
 
-                                                <td>
-                                                    @if ($m['gender'] == 'Pria')
-                                                        <span class="badge bg-primary">Pria</span>
-                                                    @else
-                                                        <span class="badge bg-warning">Wanita</span>
-                                                    @endif
-                                                </td>
+
 
                                                 <td>{{ $m['nilai_per_semester'][1] ?? '-' }}</td>
                                                 <td>{{ $m['nilai_per_semester'][2] ?? '-' }}</td>
@@ -124,7 +119,7 @@
                                                 <td>{{ $m['nilai_per_semester'][4] ?? '-' }}</td>
                                                 <td>{{ $m['nilai_per_semester'][5] ?? '-' }}</td>
 
-                                                <td>{{ $m['rata_nilai_semester'] }}</td>
+                                                {{-- <td>{{ $m['rata_nilai_semester'] }}</td> --}}
 
                                             </tr>
                                         @endforeach

@@ -23,6 +23,8 @@ use App\Http\Controllers\NilaiMatkulMhsController;
 use App\Http\Controllers\NilaiIndividu_Controller;
 use App\Http\Controllers\NilaiKelompok_Controller;
 use App\Http\Controllers\NilaiMahasiswa_Controller;
+use App\Http\Controllers\Agent\AgentPengujiController;
+
 use App\Http\Controllers\NilaiSeminar_Controller;
 use App\Http\Controllers\Penguji_Controller;
 use App\Http\Controllers\penguji_tugas_Controller;
@@ -36,7 +38,7 @@ use App\Models\Nilai_kelompok;
 use App\Models\Pengumuman;
 use App\Http\Controllers\PengajuanSeminarController;
 use App\Http\Controllers\TahunAJaran_Controller;
-use App\Http\Controllers\AIController;
+use App\Http\Controllers\Agent\AgentKelompokController;
 use App\Http\Controllers\MahasiswaSyncController;
 use App\Http\Controllers\Agent_Controller;
 
@@ -44,7 +46,7 @@ Route::post('/sync-mahasiswa', [MahasiswaSyncController::class, 'sync']);
 
 Route::post(
     '/agent/generate-groups',
-    [AIController::class, 'generateGroups']
+    [AgentKelompokController::class, 'generateGroups']
 )->name('agent.generate');
 
 //untuk login
@@ -487,13 +489,18 @@ Route::prefix('Histori')->group(function () {
 Route::prefix('ai-agent')->group(function () {
 
     // halaman chat
-    Route::get('/', [AIController::class, 'index'])
-        ->name('ai.chat');
+    Route::get('/kelompok', [AgentKelompokController::class, 'index'])
+        ->name('ai.kelompok');
+        Route::get('/penguji', [AgentPengujiController::class, 'index'])
+        ->name('ai.penguji');
 
     // kirim pesan ke AI
-    Route::post('/ai/cek-kelompok', [AIController::class, 'cekKelompok'])
+    Route::post('/ai/cek-kelompok', [AgentKelompokController::class, 'cekKelompok'])
         ->name('ai.cekKelompok');
 
-    Route::post('/ai-kelompok/generate', [AIController::class, 'generate'])->name('ai.generate');
+    Route::post('/ai-penguji/generate', [AgentPengujiController::class, 'generate'])->name('ai.penguji.generate');
+
+
+    Route::post('/ai-kelompok/generate', [AgentKelompokController::class, 'generate'])->name('ai.generate');
 
 });
