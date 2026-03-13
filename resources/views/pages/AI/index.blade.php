@@ -79,9 +79,9 @@
                                 </h5>
 
                                 <div class="alert alert-info">
-                                    <strong>Alasan AI:</strong>
-                                    {{ $k['alasan'] }}
-                                </div>
+    <strong>Alasan AI:</strong>
+    {{ $k['alasan'] ?? 'AI menyeimbangkan mahasiswa berdasarkan rata-rata nilai akademik.' }}
+</div>
 
                                 <table class="table table-bordered table-striped">
 

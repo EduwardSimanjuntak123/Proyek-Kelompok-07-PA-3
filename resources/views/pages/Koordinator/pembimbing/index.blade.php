@@ -33,42 +33,44 @@
 
                                     <tbody>
 
-                                        @foreach ($pembimbing as $item)
+                                        @foreach ($kelompok as $item)
+                                            @php
+                                                $pembimbing1 = $item->pembimbing->get(0);
+                                                $pembimbing2 = $item->pembimbing->get(1);
+                                            @endphp
+
                                             <tr>
 
                                                 <td>{{ $loop->iteration }}</td>
 
                                                 <td>
-                                                    Kelompok {{ $item->kelompok->nomor_kelompok ?? '-' }}
+                                                    Kelompok {{ $item->nomor_kelompok ?? '-' }}
                                                 </td>
 
                                                 <td>
-                                                    @if ($item->role_id == 1)
-                                                        {{ $item->nama }}
-                                                    @else
-                                                        -
-                                                    @endif
+                                                    {{ $pembimbing1->nama ?? '-' }}
                                                 </td>
 
                                                 <td>
-                                                    @if ($item->role_id == 2)
-                                                        {{ $item->nama }}
-                                                    @else
-                                                        -
-                                                    @endif
+                                                    {{ $pembimbing2->nama ?? '-' }}
                                                 </td>
 
                                                 <td>
-                                                    <div class="d-flex">
 
-                                                        <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-success btn-sm">
+                                                    <a href="{{ route('pembimbing.create', Crypt::encrypt($item->id)) }}"
+                                                        class="btn btn-success btn-sm">
 
-                                                            <i class="fas fa-edit"></i> Setting
+                                                        <i class="fas fa-plus"></i> Setting Pembimbing
 
-                                                        </a>
+                                                    </a>
 
-                                                    </div>
+                                                    <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
+                                                        class="btn btn-success btn-sm">
+
+                                                        <i class="fas fa-edit"></i> Edit
+
+                                                    </a>
+
                                                 </td>
 
                                             </tr>

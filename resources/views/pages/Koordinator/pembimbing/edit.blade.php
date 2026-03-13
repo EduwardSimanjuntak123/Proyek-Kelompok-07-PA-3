@@ -21,33 +21,28 @@
 
                                 {{-- Pilih Dosen --}}
                                 <div class="form-group">
-                                    <label>Pembimbing 1</label>
-
-                                    <select name="pembimbing1" class="form-control select2">
+                                    <label for="user_id">Pilih Dosen</label>
+                                    <select id="user_id" name="user_id" class="select2 form-control" required>
                                         <option value="">-- Pilih Dosen --</option>
-
                                         @foreach ($dosen as $item)
-                                            <option value="{{ $item['user_id'] }}">
-                                                {{ $item['nama'] }}
+                                            <option value="{{ $item['user_id'] ?? '' }}"
+                                                {{ $item['user_id'] == $pembimbing['user_id'] ? 'selected' : '' }}>
+                                                {{ $item['nama'] ?? 'Tanpa Nama' }}
                                             </option>
                                         @endforeach
-
                                     </select>
+
                                 </div>
-
-
                                 <div class="form-group">
-                                    <label>Pembimbing 2</label>
-
-                                    <select name="pembimbing2" class="form-control select2">
-                                        <option value="">-- Pilih Dosen --</option>
-
-                                        @foreach ($dosen as $item)
-                                            <option value="{{ $item['user_id'] }}">
-                                                {{ $item['nama'] }}
+                                    <label for="kelompok_id">Pilih Kelompok</label>
+                                    <select id="kelompok_id" name="kelompok_id" class="select2 form-control" required>
+                                        <option value="">-- Pilih Kelompok --</option>
+                                        @foreach ($Kelompok as $item)
+                                            <option value="{{ $item->id }}"
+                                                {{ $item->id == $pembimbing['kelompok_id'] ? 'selected' : '' }}>
+                                                {{ $item->nomor_kelompok ?? 'Tanpa Nama' }}
                                             </option>
                                         @endforeach
-
                                     </select>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

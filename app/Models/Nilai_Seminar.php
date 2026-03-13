@@ -4,9 +4,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Nilai_Mahasiswa extends Model
+class Nilai_Seminar extends Model
 {
       use HasFactory;
 
     protected $table = 'nilai_seminar';
-}
+
+    }

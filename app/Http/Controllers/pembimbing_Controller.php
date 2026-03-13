@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DosenRole;
 use App\Models\Kelompok;
 use App\Models\pembimbing;
+use App\Models\Dosen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
@@ -14,50 +15,35 @@ use Psy\TabCompletion\Matcher\FunctionDefaultParametersMatcher;
 
 class pembimbing_Controller extends Controller
 {
-  public function index (){
-    $token = session('token');
+  public function index()
+{
     $prodi_id = session('prodi_id');
-    $KPA_id = session('KPA_id');
-    $TM_id = session('TM_id');
-    
-    $pembimbing = pembimbing::with(['kelompok', 'dosenRoles.role'])
-        ->whereHas('dosenRoles.role', function ($query) {
-            $query->where('role_name', 'Pembimbing 1');
-        })
-        ->whereHas('kelompok', function ($query) use ($prodi_id, $KPA_id, $TM_id) {
-            $query->where('prodi_id', $prodi_id)
-                  ->where('KPA_id', $KPA_id)
-                  ->where('TM_id', $TM_id);
-        })
+    $KPA_id   = session('KPA_id');
+    $TM_id    = session('TM_id');
+
+    // Ambil kelompok yang sudah digenerate
+    $kelompok = Kelompok::with('pembimbing')
+        ->where('prodi_id', $prodi_id)
+        ->where('KPA_id', $KPA_id)
+        ->where('TM_id', $TM_id)
         ->get();
-    
-      // Ambil data dosen dari API eksternal
-      $responseDosen = Http::withHeaders([
-        'Authorization' => "Bearer $token"
-    ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
 
-    // Cek apakah request ke API sukses
-    if ($responseDosen->successful()) {
-        $dosen_list = $responseDosen->json()['data']['dosen'] ?? [];
-        
-        // Buat map user_id => nama
-        $dosen_map = collect($dosen_list)->keyBy('user_id');
-        
-        // Tambahkan nama dosen ke setiap data dosen_roles
-        $pembimbing->transform(function ($role) use ($dosen_map) {
-            $role->nama = $dosen_map[$role->user_id]['nama'] ?? 'N/A';
-            return $role;
-        });
-    } else {
-        // Tangani jika API gagal
-        $pembimbing->each(function ($role) {
-            $role->nama = 'N/A'; // Tampilkan N/A jika API gagal
-        });
-    }
-    
+    // Ambil data dosen dari tabel dosen
+    $dosen = Dosen::get()->keyBy('user_id');
 
-    return view('pages.Koordinator.pembimbing.index',compact('pembimbing'));
-  }
+    // Tambahkan nama dosen ke pembimbing
+    $kelompok->each(function ($item) use ($dosen) {
+
+        $item->pembimbing->each(function ($pb) use ($dosen) {
+
+            $pb->nama = $dosen[$pb->user_id]->nama ?? '-';
+
+        });
+
+    });
+
+    return view('pages.Koordinator.pembimbing.index', compact('kelompok'));
+}
   public function indexpembimbing2(){
     $token = session('token');
     $prodi_id = session('prodi_id');
