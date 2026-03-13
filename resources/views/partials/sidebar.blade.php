@@ -13,18 +13,25 @@
         @if (session('isLoggin'))
 
             <ul class="sidebar-menu">
-                <li class="menu-header">AI Assistant</li>
-                <li>
-                    <a class="nav-link" href="{{ route('ai.chat') }}">
-                        <i class="fas fa-robot"></i>
-                        <span>AI Agent</span>
-                    </a>
-                </li>
+
                 @if (session('role') == 'Dosen')
                     @php $dosenRoles = session('dosen_roles'); @endphp
 
                     {{--  untuk Koordinator --}}
                     @if (in_array(1, $dosenRoles))
+                        <li class="menu-header">AI Assistant</li>
+                        <li>
+                            <a class="nav-link" href="{{ route('ai.kelompok') }}">
+                                <i class="fas fa-robot"></i>
+                                <span>AI Agent Kelompok </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" href="{{ route('ai.penguji') }}">
+                                <i class="fas fa-robot"></i>
+                                <span>AI Agent Penguji </span>
+                            </a>
+                        </li>
                         <li class="menu-header">Kordinator</li>
                         <li><a class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
                                     class="fas fa-columns"></i>

@@ -29,7 +29,7 @@ class DosenController extends Controller
         ];
 
         // Samakan semua jadi lowercase dulu
-        $namaProdi = array_map(fn($p) => strtolower(trim($p)), $namaProdi);
+        $namaProdi = array_map(fn($p) => strtolower(trim($p)), $namaProdi);     
 
         $dosen = collect($dosen)
             ->filter(function ($item) use ($namaProdi) {

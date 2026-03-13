@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Agent;
+use App\Http\Controllers\Controller;
 use App\Models\DosenRole;
 use App\Models\Dosen;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
-class AIController extends Controller
+class AgentKelompokController extends Controller
 {
 
     public function index()
@@ -32,7 +33,7 @@ class AIController extends Controller
 
         // dd($roles);
 
-        return view('pages.AI.index', compact('roles', 'user'));
+        return view('pages.Koordinator.agent.agent-kelompok', compact('roles', 'user'));
     }
 
     public function generate()
@@ -58,7 +59,7 @@ class AIController extends Controller
         }
         // dd($payload);
 
-        $response = Http::timeout(240)
+        $response = Http::timeout(600)
             ->post('http://127.0.0.1:8001/generate-kelompok', [
                 "dosen_context" => $payload
             ]);
