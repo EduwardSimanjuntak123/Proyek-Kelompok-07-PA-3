@@ -29,7 +29,7 @@ class dashboard_Controller extends Controller
             $q->where('TM_id', $TM_id);
         })
         ->count();
-
+    // dd($jumlah_mahasiswa);
     $jumlah_pengumuman = Pengumuman::where('KPA_id', $KPA_id)
         ->where('prodi_id', $prodi_id)
         ->where('TM_id', $TM_id)

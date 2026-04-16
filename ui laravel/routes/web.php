@@ -500,16 +500,29 @@ Route::prefix('ai-agent')->group(function () {
     Route::post('/ai/cek-kelompok', [AgentKelompokController::class, 'cekKelompok'])
         ->name('ai.cekKelompok');
 
+    Route::post('/ai-kelompok/save', [AgentKelompokController::class, 'saveGeneratedGroups'])
+        ->name('ai.saveGroups');
+
+    Route::post('/ai-pembimbing/check', [AgentKelompokController::class, 'cekPembimbing'])
+        ->name('ai.cekPembimbing');
+
+    Route::post('/ai-pembimbing/save', [AgentKelompokController::class, 'saveGeneratedPembimbing'])
+        ->name('ai.savePembimbing');
+
+    Route::post('/ai-penguji/check', [AgentKelompokController::class, 'cekPenguji'])
+        ->name('ai.cekPenguji');
+
+    Route::post('/ai-penguji/save', [AgentKelompokController::class, 'saveGeneratedPenguji'])
+        ->name('ai.savePenguji');
+
+    Route::post('/ai-kelompok/delete-for-context', [AgentKelompokController::class, 'deleteForContext'])
+        ->name('ai.deleteForContext');
+
     Route::post('/ai-penguji/generate', [AgentPengujiController::class, 'generate'])->name('ai.penguji.generate');
 
-    Route::post('/ai-kelompok/generate', [AgentKelompokController::class, 'generate'])->name('ai.generate');
-    
-    // Save groups to database (NEW!)
-    Route::post('/ai-kelompok/save', [AgentKelompokController::class, 'saveGroupsToDatabase'])
-        ->name('ai.save-groups');
-    
-    // Apply constraint modification (NEW!)
-    Route::post('/ai-kelompok/constraint', [AgentKelompokController::class, 'applyConstraintModification'])
-        ->name('ai.constraint-modification');
+    Route::post('/ai-kelompok/generate', [AgentKelompokController::class, 'callAgent'])->name('ai.callAgent');
+
+    Route::post('/ai-kelompok/download-excel', [AgentKelompokController::class, 'downloadExcel'])
+        ->name('ai.downloadExcel');
 
 });

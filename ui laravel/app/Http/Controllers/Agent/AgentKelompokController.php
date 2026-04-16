@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Agent;
 use App\Http\Controllers\Controller;
 use App\Models\DosenRole;
 use App\Models\Dosen;
+use App\Models\Kelompok;
+use App\Models\KelompokMahasiswa;
+use App\Models\pembimbing as PembimbingModel;
+use App\Models\Penguji as PengujiModel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
   use Illuminate\Support\Facades\Log;
@@ -38,7 +43,54 @@ class AgentKelompokController extends Controller
         return view('pages.Koordinator.agent.agent-kelompok', compact('roles', 'user'));
     }
 
-    public function generate(\Illuminate\Http\Request $request)
+    private function getPrimaryDosenRole($userId)
+    {
+        return DosenRole::where('user_id', $userId)
+            ->orderByDesc('status')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    private function parseNomorKelompokToInt($nomor)
+    {
+        if (is_null($nomor)) {
+            return 0;
+        }
+
+        if (is_numeric($nomor)) {
+            return (int) $nomor;
+        }
+
+        if (preg_match('/(\d+)/', (string) $nomor, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return 0;
+    }
+
+    private function resolveTahunAjaranIdForRole($role)
+    {
+        if ($role && !empty($role->tahun_ajaran_id)) {
+            return (int) $role->tahun_ajaran_id;
+        }
+
+        $active = DB::table('tahun_ajaran')
+            ->where('status', 'Aktif')
+            ->orderByDesc('tahun_mulai')
+            ->first();
+
+        if ($active) {
+            return (int) $active->id;
+        }
+
+        $latest = DB::table('tahun_ajaran')
+            ->orderByDesc('tahun_mulai')
+            ->first();
+
+        return $latest ? (int) $latest->id : null;
+    }
+
+    public function callAgent(Request $request)
     {
         $traceId = Str::uuid();
 
@@ -75,17 +127,18 @@ class AgentKelompokController extends Controller
 
             $finalPayload = [
                 "prompt" => $prompt,
-                "dosen_context" => $payload
+                "dosen_context" => $payload,
+                "user_id" => $userId
             ];
 
             Log::info("[$traceId] Final Payload:", $finalPayload);
-            Log::info("[$traceId] Sending request to FastAPI...");
+            Log::info("[$traceId] Sending request to AI Agent API...");
 
             $response = Http::timeout(600)
-                ->post('http://127.0.0.1:8001/generate-kelompok', $finalPayload);
+                ->post('http://127.0.0.1:8002/agent', $finalPayload);
 
-            Log::info("[$traceId] FastAPI Status:", ['status' => $response->status()]);
-
+            Log::info("[$traceId] Agent API Status:", ['status' => $response->status()]);
+            // dd($response->body());
             if (!$response->successful()) {
                 Log::error("[$traceId] FastAPI ERROR RESPONSE", [
                     'status' => $response->status(),
@@ -100,32 +153,18 @@ class AgentKelompokController extends Controller
             $data = $response->json();
             Log::info("[$traceId] FastAPI Response:", $data);
 
-            // Extract rekomendasi dari response
-            $recommendations = $data['recommendations'] ?? null;
-            $groups = $data['groups'] ?? null;
-
-            if ($recommendations) {
-                session()->put("last_recommendations_$userId", $recommendations);
-                session()->put("last_groups_$userId", $groups);
-
-                Log::info("[$traceId] Recommendations stored in session", [
-                    'actions' => count($recommendations['actions'] ?? []),
-                    'constraints' => count($recommendations['constraints'] ?? []),
-                    'instructions' => count($recommendations['instructions'] ?? [])
-                ]);
-            }
-
             Log::info("[$traceId] === END GENERATE AI ===");
 
             return response()->json([
                 'success' => true,
                 'result' => $data['result'] ?? '',
-                'type' => $data['type'] ?? '',
-                'data' => $data['data'] ?? '',  // Include formatted HTML table from executor
-                'groups' => $groups,
-                'recommendations' => $recommendations,
-                'plan' => $data['plan'] ?? null,
-                'message' => count($groups ?? []) . ' kelompok berhasil dibuat'
+                'action' => $data['action'] ?? null,
+                'grouping_payload' => $data['grouping_payload'] ?? null,
+                'grouping_meta' => $data['grouping_meta'] ?? null,
+                'pembimbing_payload' => $data['pembimbing_payload'] ?? null,
+                'pembimbing_meta' => $data['pembimbing_meta'] ?? null,
+                'penguji_payload' => $data['penguji_payload'] ?? null,
+                'penguji_meta' => $data['penguji_meta'] ?? null,
             ]);
 
         } catch (\Exception $e) {
@@ -141,268 +180,671 @@ class AgentKelompokController extends Controller
         }
     }
 
-    /**
-     * Save kelompok hasil generate ke database
-     * Dipanggil ketika user click "Simpan ke Database"
-     */
-    public function saveGroupsToDatabase(\Illuminate\Http\Request $request)
+    public function cekKelompok(Request $request)
     {
-        $traceId = \Illuminate\Support\Str::uuid();
-        
         try {
-            Log::info("[$traceId] === START SAVE GROUPS ===");
-            
             $userId = session('user_id');
-            $groups = $request->input('groups', []);
-            $kategoriPaId = $request->input('kategori_pa_id');
-            $prodiId = $request->input('prodi_id');
-            $tahunMasukId = $request->input('tahun_masuk_id');
-            
-            Log::info("[$traceId] Save Groups Input", [
-                'user_id' => $userId,
-                'kelompok_count' => count($groups),
-                'kategori_pa_id' => $kategoriPaId,
-                'prodi_id' => $prodiId,
-                'tahun_masuk_id' => $tahunMasukId
-            ]);
-            
-            if (empty($groups)) {
+            if (!$userId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada kelompok untuk disimpan'
-                ], 400);
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
             }
-            
-            // ===== VALIDASI ROLE =====
-            $role = DosenRole::with('kategoriPA')
-                ->where('user_id', $userId)
-                ->where('kategori_pa', $kategoriPaId)
-                ->where('prodi_id', $prodiId)
-                ->where('tahun_masuk', $tahunMasukId)
-                ->first();
-            
+
+            $role = $this->getPrimaryDosenRole($userId);
             if (!$role) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki akses untuk kategori PA ini'
-                ], 403);
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
             }
-            
-            // ===== CREATE KELOMPOK RECORD =====
-            $kelompok = DB::table('kelompok')->insertGetId([
-                'KPA_id' => $role->kategoriPA->id,
-                'prodi_id' => $prodiId,
-                'TM_id' => $tahunMasukId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            
-            Log::info("[$traceId] Kelompok record created", ['kelompok_id' => $kelompok]);
-            
-            // ===== INSERT ANGGOTA KELOMPOK =====
-            $totalMembers = 0;
-            foreach ($groups as $groupData) {
-                $kelompokNum = $groupData['kelompok'] ?? 0;
-                $members = $groupData['members'] ?? [];
-                
-                foreach ($members as $member) {
-                    $nim = $member['nim'] ?? null;
-                    
-                    if (!$nim) {
-                        continue;
-                    }
-                    
-                    // Find mahasiswa by NIM
-                    $mahasiswa = DB::table('mahasiswa')->where('nim', $nim)->first();
-                    
-                    if ($mahasiswa) {
-                        DB::table('kelompok_mahasiswa')->insert([
-                            'kelompok_id' => $kelompok,
-                            'mahasiswa_id' => $mahasiswa->id,
-                            'nomor_urut' => $kelompokNum,
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-                        
-                        $totalMembers++;
-                        
-                        Log::info("[$traceId] Added member", [
-                            'nim' => $nim,
-                            'nama' => $member['nama'] ?? 'Unknown',
-                            'kelompok_num' => $kelompokNum
-                        ]);
-                    } else {
-                        Log::warning("[$traceId] Mahasiswa not found", ['nim' => $nim]);
-                    }
-                }
-            }
-            
-            Log::info("[$traceId] === END SAVE GROUPS ===", ['total_members' => $totalMembers]);
-            
+
+            $existingGroups = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->orderBy('id')
+                ->get(['id', 'nomor_kelompok', 'status']);
+
             return response()->json([
                 'success' => true,
-                'message' => "Kelompok berhasil disimpan ({$totalMembers} anggota dalam " . count($groups) . " kelompok)",
-                'kelompok_id' => $kelompok
+                'exists' => $existingGroups->isNotEmpty(),
+                'total' => $existingGroups->count(),
+                'groups' => $existingGroups,
+                'context' => [
+                    'prodi_id' => $role->prodi_id,
+                    'kategori_pa_id' => $role->KPA_id,
+                    'angkatan_id' => $role->TM_id,
+                    'tahun_ajaran_id' => $this->resolveTahunAjaranIdForRole($role),
+                ],
             ]);
-            
         } catch (\Exception $e) {
-            Log::error("[$traceId] SAVE GROUPS ERROR", [
+            Log::error('cekKelompok error', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
-                'file' => $e->getFile()
+                'file' => $e->getFile(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-    
-    /**
-     * Handle constraint modifications (must_pair atau avoid_pair)
-     * Dipanggil ketika user click pada constraint suggestion
-     */
-    public function applyConstraintModification(\Illuminate\Http\Request $request)
-    {
-        $traceId = \Illuminate\Support\Str::uuid();
-        
-        try {
-            Log::info("[$traceId] === START CONSTRAINT MODIFICATION ===");
-            
-            $userId = session('user_id');
-            $constraintType = $request->input('constraint_type');  // must_pair atau avoid_pair
-            $personA = $request->input('person_a');
-            $personB = $request->input('person_b');
-            $instruction = $request->input('instruction');  // Pre-formatted instruction
-            
-            Log::info("[$traceId] Constraint Modification Input", [
-                'user_id' => $userId,
-                'constraint_type' => $constraintType,
-                'person_a' => $personA,
-                'person_b' => $personB,
-                'instruction' => $instruction
-            ]);
-            
-            // Get last groups dari session
-            $lastGroups = session("last_groups_$userId");
-            if (!$lastGroups) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak ada grouping sebelumnya. Buat kelompok terlebih dahulu.'
-                ], 400);
-            }
-            
-            // Build new instruction dengan constraint
-            $newInstruction = "modifikasi kelompok: " . $instruction;
-            
-            Log::info("[$traceId] Sending regenerate request to FastAPI with constraint");
-            
-            // Get dosen context lagi untuk regenerate
-            $roles = DosenRole::with('role', 'kategoriPA', 'tahunMasuk', 'prodi')
-                ->where('user_id', $userId)
-                ->get();
-            
-            $payload = [];
-            foreach ($roles as $r) {
-                $payload[] = [
-                    "user_id" => $r->user_id,
-                    "angkatan" => $r->TahunMasuk->id,
-                    "prodi" => $r->prodi->nama_prodi,
-                    "prodi_id" => $r->prodi->id,
-                    "role" => $r->role->role_name,
-                    "kategori_pa" => $r->kategoriPA->id
-                ];
-            }
-            
-            $finalPayload = [
-                "prompt" => $newInstruction,
-                "dosen_context" => $payload
-            ];
-            
-            // Call FastAPI untuk regenerate dengan constraint
-            $response = Http::timeout(600)
-                ->post('http://127.0.0.1:8001/generate-kelompok', $finalPayload);
-            
-            if (!$response->successful()) {
-                Log::error("[$traceId] FastAPI regenerate error", [
-                    'status' => $response->status()
-                ]);
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal regenerate kelompok dengan constraint'
-                ], 500);
-            }
-            
-            $regenerateResult = $response->json();
-            $newGroups = $regenerateResult['groups'] ?? null;
-            $newRecommendations = $regenerateResult['recommendations'] ?? null;
-            
-            // Store ke session
-            if ($newGroups) {
-                session()->put("last_groups_$userId", $newGroups);
-                session()->put("last_recommendations_$userId", $newRecommendations);
-            }
-            
-            Log::info("[$traceId] === END CONSTRAINT MODIFICATION ===", [
-                'new_groups_count' => count($newGroups ?? [])
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Kelompok berhasil dimodifikasi sesuai constraint',
-                'instruction_applied' => $instruction,
-                'constraint_type' => $constraintType,
-                'new_groups' => $newGroups,
-                'new_recommendations' => $newRecommendations,
-                'result_html' => $regenerateResult['result'] ?? ''
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error("[$traceId] CONSTRAINT MODIFICATION ERROR", [
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Gagal mengecek kelompok: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function cekKelompok()
+    public function saveGeneratedGroups(Request $request)
     {
-
-        $userId = session('user_id');
-
-        $roles = DosenRole::with('kategoriPA', 'tahunMasuk', 'prodi')
-            ->where('user_id', $userId)
-            ->get();
-
-        $exists = false;
-
-        foreach ($roles as $r) {
-
-            $cek = DB::table('kelompok')
-                ->where('KPA_id', $r->kategoriPA->id)
-                ->where('prodi_id', $r->prodi->id)
-                ->where('TM_id', $r->tahunMasuk->id)
-                ->exists();
-
-            if ($cek) {
-                $exists = true;
-                break;
-            }
-
-        }
-
-        return response()->json([
-            'exists' => $exists
+        $request->validate([
+            'grouping_payload' => 'required|array',
+            'grouping_payload.groups' => 'required|array|min:1',
+            'replace_existing' => 'nullable|boolean',
         ]);
 
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $groupsPayload = $request->input('grouping_payload.groups', []);
+            $replaceExisting = (bool) $request->boolean('replace_existing', false);
+
+            $tahunAjaranId = $this->resolveTahunAjaranIdForRole($role);
+            if (!$tahunAjaranId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun ajaran belum tersedia.'
+                ], 422);
+            }
+
+            $existingQuery = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id);
+
+            $existingIds = $existingQuery->pluck('id')->toArray();
+            $existingCount = count($existingIds);
+
+            $savedKelompok = 0;
+            $savedMembers = 0;
+            $deletedKelompok = 0;
+            $deletedMembers = 0;
+            $skippedExistingMembers = 0;
+
+            DB::transaction(function () use (
+                $groupsPayload,
+                $role,
+                $tahunAjaranId,
+                $replaceExisting,
+                $existingIds,
+                &$savedKelompok,
+                &$savedMembers,
+                &$deletedKelompok,
+                &$deletedMembers,
+                &$skippedExistingMembers
+            ) {
+                if ($replaceExisting && !empty($existingIds)) {
+                    $deletedMembers = KelompokMahasiswa::whereIn('kelompok_id', $existingIds)->delete();
+                    $deletedKelompok = Kelompok::whereIn('id', $existingIds)->delete();
+                }
+
+                $occupiedUserIds = KelompokMahasiswa::pluck('user_id')
+                    ->map(function ($val) {
+                        return (int) $val;
+                    })
+                    ->toArray();
+                $occupiedMap = array_fill_keys($occupiedUserIds, true);
+
+                $maxNomor = Kelompok::where('prodi_id', $role->prodi_id)
+                    ->where('KPA_id', $role->KPA_id)
+                    ->where('TM_id', $role->TM_id)
+                    ->pluck('nomor_kelompok')
+                    ->map(function ($nomor) {
+                        return $this->parseNomorKelompokToInt($nomor);
+                    })
+                    ->max();
+
+                $nextNomor = ((int) $maxNomor) + 1;
+
+                foreach ($groupsPayload as $group) {
+                    $memberUserIds = collect($group['members'] ?? [])
+                        ->pluck('user_id')
+                        ->filter()
+                        ->map(function ($val) {
+                            return (int) $val;
+                        })
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $newUserIds = [];
+                    foreach ($memberUserIds as $uid) {
+                        if (!isset($occupiedMap[$uid])) {
+                            $newUserIds[] = $uid;
+                        } else {
+                            $skippedExistingMembers++;
+                        }
+                    }
+
+                    if (empty($newUserIds)) {
+                        continue;
+                    }
+
+                    $kelompok = Kelompok::create([
+                        'nomor_kelompok' => (string) $nextNomor,
+                        'KPA_id' => $role->KPA_id,
+                        'prodi_id' => $role->prodi_id,
+                        'TM_id' => $role->TM_id,
+                        'tahun_ajaran_id' => $tahunAjaranId,
+                        'status' => 'Aktif',
+                    ]);
+
+                    $savedKelompok++;
+                    $nextNomor++;
+
+                    foreach ($newUserIds as $userIdMahasiswa) {
+                        KelompokMahasiswa::create([
+                            'user_id' => $userIdMahasiswa,
+                            'kelompok_id' => $kelompok->id,
+                        ]);
+                        $occupiedMap[$userIdMahasiswa] = true;
+                        $savedMembers++;
+                    }
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelompok berhasil disimpan ke database.',
+                'saved_kelompok' => $savedKelompok,
+                'saved_members' => $savedMembers,
+                'deleted_kelompok' => $deletedKelompok,
+                'deleted_members' => $deletedMembers,
+                'skipped_existing_members' => $skippedExistingMembers,
+                'existing_count' => $existingCount,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('saveGeneratedGroups error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan kelompok: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
+    public function saveGeneratedPembimbing(Request $request)
+    {
+        $request->validate([
+            'pembimbing_payload' => 'required|array',
+            'pembimbing_payload.groups' => 'required|array|min:1',
+            'replace_existing' => 'nullable|boolean',
+        ]);
+
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $groupsPayload = $request->input('pembimbing_payload.groups', []);
+            $replaceExisting = (bool) $request->boolean('replace_existing', false);
+
+            $contextKelompokIds = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($contextKelompokIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada kelompok pada konteks ini.'
+                ], 422);
+            }
+
+            $existingCount = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)->count();
+            if ($existingCount > 0 && !$replaceExisting) {
+                return response()->json([
+                    'success' => false,
+                    'requires_confirmation' => true,
+                    'message' => 'Pembimbing sudah ada. Konfirmasi untuk hapus assignment lama dan simpan hasil baru.',
+                    'existing_count' => $existingCount,
+                ], 409);
+            }
+
+            $savedAssignments = 0;
+            $deletedAssignments = 0;
+            $allowedKelompokIdSet = array_flip($contextKelompokIds);
+
+            DB::transaction(function () use (
+                $groupsPayload,
+                $replaceExisting,
+                $contextKelompokIds,
+                $allowedKelompokIdSet,
+                &$savedAssignments,
+                &$deletedAssignments
+            ) {
+                if ($replaceExisting) {
+                    $deletedAssignments = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)->delete();
+                }
+
+                foreach ($groupsPayload as $group) {
+                    $kelompokId = (int) ($group['kelompok_id'] ?? 0);
+                    if ($kelompokId <= 0 || !isset($allowedKelompokIdSet[$kelompokId])) {
+                        continue;
+                    }
+
+                    $assignedInGroup = [];
+                    foreach (($group['pembimbing'] ?? []) as $pb) {
+                        $dosenUserId = (int) ($pb['user_id'] ?? 0);
+                        if ($dosenUserId <= 0 || isset($assignedInGroup[$dosenUserId])) {
+                            continue;
+                        }
+
+                        $assignedInGroup[$dosenUserId] = true;
+
+                        PembimbingModel::firstOrCreate([
+                            'kelompok_id' => $kelompokId,
+                            'user_id' => $dosenUserId,
+                        ]);
+
+                        $savedAssignments++;
+                    }
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembimbing berhasil disimpan ke database.',
+                'saved_assignments' => $savedAssignments,
+                'deleted_assignments' => $deletedAssignments,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('saveGeneratedPembimbing error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan pembimbing: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function cekPembimbing(Request $request)
+    {
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $contextKelompokIds = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($contextKelompokIds)) {
+                return response()->json([
+                    'success' => true,
+                    'exists' => false,
+                    'total' => 0,
+                    'message' => 'Tidak ada kelompok pada konteks ini.'
+                ]);
+            }
+
+            $existingCount = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)->count();
+
+            return response()->json([
+                'success' => true,
+                'exists' => $existingCount > 0,
+                'total' => $existingCount,
+                'context_kelompok_total' => count($contextKelompokIds),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('cekPembimbing error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal cek pembimbing: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function saveGeneratedPenguji(Request $request)
+    {
+        $request->validate([
+            'penguji_payload' => 'required|array',
+            'penguji_payload.groups' => 'required|array|min:1',
+            'replace_existing' => 'nullable|boolean',
+        ]);
+
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $groupsPayload = $request->input('penguji_payload.groups', []);
+            $replaceExisting = (bool) $request->boolean('replace_existing', false);
+
+            $contextKelompokIds = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($contextKelompokIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada kelompok pada konteks ini.'
+                ], 422);
+            }
+
+            $existingCount = PengujiModel::whereIn('kelompok_id', $contextKelompokIds)->count();
+            if ($existingCount > 0 && !$replaceExisting) {
+                return response()->json([
+                    'success' => false,
+                    'requires_confirmation' => true,
+                    'message' => 'Penguji sudah ada. Konfirmasi untuk hapus assignment lama dan simpan hasil baru.',
+                    'existing_count' => $existingCount,
+                ], 409);
+            }
+
+            $savedAssignments = 0;
+            $deletedAssignments = 0;
+            $skippedAsPembimbing = 0;
+            $allowedKelompokIdSet = array_flip($contextKelompokIds);
+
+            $pembimbingRows = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)
+                ->get(['kelompok_id', 'user_id']);
+
+            $pembimbingMap = [];
+            foreach ($pembimbingRows as $row) {
+                $gid = (int) $row->kelompok_id;
+                $uid = (int) $row->user_id;
+                if (!isset($pembimbingMap[$gid])) {
+                    $pembimbingMap[$gid] = [];
+                }
+                $pembimbingMap[$gid][$uid] = true;
+            }
+
+            DB::transaction(function () use (
+                $groupsPayload,
+                $replaceExisting,
+                $contextKelompokIds,
+                $allowedKelompokIdSet,
+                $pembimbingMap,
+                &$savedAssignments,
+                &$deletedAssignments,
+                &$skippedAsPembimbing
+            ) {
+                if ($replaceExisting) {
+                    $deletedAssignments = PengujiModel::whereIn('kelompok_id', $contextKelompokIds)->delete();
+                }
+
+                foreach ($groupsPayload as $group) {
+                    $kelompokId = (int) ($group['kelompok_id'] ?? 0);
+                    if ($kelompokId <= 0 || !isset($allowedKelompokIdSet[$kelompokId])) {
+                        continue;
+                    }
+
+                    $assignedInGroup = [];
+                    foreach (($group['penguji'] ?? []) as $pb) {
+                        $dosenUserId = (int) ($pb['user_id'] ?? 0);
+                        if ($dosenUserId <= 0 || isset($assignedInGroup[$dosenUserId])) {
+                            continue;
+                        }
+
+                        if (isset($pembimbingMap[$kelompokId][$dosenUserId])) {
+                            $skippedAsPembimbing++;
+                            continue;
+                        }
+
+                        $assignedInGroup[$dosenUserId] = true;
+
+                        PengujiModel::firstOrCreate([
+                            'kelompok_id' => $kelompokId,
+                            'user_id' => $dosenUserId,
+                        ]);
+
+                        $savedAssignments++;
+                    }
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penguji berhasil disimpan ke database.',
+                'saved_assignments' => $savedAssignments,
+                'deleted_assignments' => $deletedAssignments,
+                'skipped_as_pembimbing' => $skippedAsPembimbing,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('saveGeneratedPenguji error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan penguji: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function cekPenguji(Request $request)
+    {
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $contextKelompokIds = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($contextKelompokIds)) {
+                return response()->json([
+                    'success' => true,
+                    'exists' => false,
+                    'total' => 0,
+                    'message' => 'Tidak ada kelompok pada konteks ini.'
+                ]);
+            }
+
+            $existingCount = PengujiModel::whereIn('kelompok_id', $contextKelompokIds)->count();
+
+            return response()->json([
+                'success' => true,
+                'exists' => $existingCount > 0,
+                'total' => $existingCount,
+                'context_kelompok_total' => count($contextKelompokIds),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('cekPenguji error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal cek penguji: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteForContext(Request $request)
+    {
+        try {
+            $userId = session('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session user tidak ditemukan.'
+                ], 401);
+            }
+
+            $role = $this->getPrimaryDosenRole($userId);
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role dosen tidak ditemukan.'
+                ], 404);
+            }
+
+            $existingIds = Kelompok::where('prodi_id', $role->prodi_id)
+                ->where('KPA_id', $role->KPA_id)
+                ->where('TM_id', $role->TM_id)
+                ->pluck('id')
+                ->toArray();
+
+            $deletedMembers = 0;
+            $deletedKelompok = 0;
+
+            DB::transaction(function () use ($existingIds, &$deletedMembers, &$deletedKelompok) {
+                if (!empty($existingIds)) {
+                    $deletedMembers = KelompokMahasiswa::whereIn('kelompok_id', $existingIds)->delete();
+                    $deletedKelompok = Kelompok::whereIn('id', $existingIds)->delete();
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelompok berhasil dihapus.',
+                'deleted_kelompok' => $deletedKelompok,
+                'deleted_members' => $deletedMembers,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('deleteForContext error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus kelompok: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function downloadExcel(Request $request)
+    {
+        try {
+            $filename = $request->input('filename');
+            
+            if (!$filename) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Filename tidak ditemukan'
+                ], 400);
+            }
+
+            // Path ke file Excel yang sudah di-generate oleh agent_ai
+            $filePath = base_path('../agent_ai/storage/outputs/' . basename($filename));
+
+            // Validate file exists
+            if (!file_exists($filePath)) {
+                Log::warning('File not found for download', [
+                    'requested_filename' => $filename,
+                    'expected_path' => $filePath,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File tidak ditemukan'
+                ], 404);
+            }
+
+            // Return file download
+            return response()->download($filePath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('downloadExcel error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendownload file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+  
 }
