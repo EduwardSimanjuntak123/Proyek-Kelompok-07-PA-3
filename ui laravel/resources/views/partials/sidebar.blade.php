@@ -2,7 +2,34 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand mt-3">
             {{-- <img src="{{ file_exists(public_path('assets/img/logovokasi.png')) ? asset('assets/img/logovokasi.png') : 'https://via.placeholder.com/300' }}" style="width: 130px"> --}}
-            <img src="{{ asset('assets/img/Logovokasi.png') }}" style="width: 130px" alt="Logo Vokasi">
+
+            @php
+                $dashboardRoute = '#';
+                if (session('isLoggin')) {
+                    $role = session('role');
+                    if ($role == 'Dosen') {
+                        $dosenRoles = session('dosen_roles');
+                        if (in_array(1, $dosenRoles)) {
+                            $dashboardRoute = route('dashboard.koordinator');
+                        } elseif (in_array(2, $dosenRoles) || in_array(4, $dosenRoles)) {
+                            $dashboardRoute = route('dashboard.penguji');
+                        } elseif (in_array(3, $dosenRoles) || in_array(5, $dosenRoles)) {
+                            $dashboardRoute = route('dashboard.pembimbing');
+                        }
+                    } elseif ($role == 'Mahasiswa') {
+                        $dashboardRoute = route('dashboard.mahasiswa');
+                    } elseif ($role == 'Staff') {
+                        $dashboardRoute = route('dashboard.BAAK');
+                    }
+                }
+            @endphp
+
+            <a href="{{ $dashboardRoute }}" style="text-decoration: none; cursor: pointer;">
+                <img src="{{ asset('assets/img/Logovokasi.png') }}"
+                    style="width: 130px; transition: opacity 0.3s; hover:opacity 0.8;" alt="Logo Vokasi"
+                    title="Kembali ke Dashboard">
+            </a>
+
             @if (session('isLoggin'))
                 <p>User Logged In as: {{ session('role') }}</p>
             @else
@@ -22,14 +49,9 @@
                         <li class="menu-header">AI Assistant</li>
                         <li>
                             <a class="nav-link" href="{{ route('ai.kelompok') }}">
-                                <i class="fas fa-robot"></i>
-                                <span>AI Agent Kelompok </span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav-link" href="{{ route('ai.penguji') }}">
-                                <i class="fas fa-robot"></i>
-                                <span>AI Agent Penguji </span>
+                                <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent"
+                                    style="width: 20px; height: 20px; object-fit: contain; display: inline-block; margin-right: 8px;">
+                                <span>VokasiTera Agent </span>
                             </a>
                         </li>
                         <li class="menu-header">Kordinator</li>
@@ -188,11 +210,6 @@
                             <span>Pengumuman</span></a></li>
                     <li><a class="nav-link" href="{{ route('TahunMasuk.index') }}"><i
                                 class="fas fa-graduation-cap"></i> <span>Tahun Masuk</span></a></li>
-                    <li><a class="nav-link" href="{{ route('listDosen.index') }}"><i
-                                class="fas fa-chalkboard-teacher"></i>
-                            <span>Daftar dosen</span></a></li>
-                    <li><a class="nav-link" href="{{ route('listMahasiswa.index') }}"><i class="fas fa-users"></i>
-                            <span>Daftar Mahasiswa</span></a></li>
                 @endif
             </ul>
         @endif

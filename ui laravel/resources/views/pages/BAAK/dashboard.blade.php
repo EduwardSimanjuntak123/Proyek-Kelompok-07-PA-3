@@ -6,15 +6,69 @@
         <div class="section-header">
             <h1>Dashboard BAAK</h1>
         </div>
+        <div class="section-body">
+            <div class="row">
 
-         <div class="container">
-                <h2 class="text-center mb-4">Kalender Jadwal Seminar</h2>
-                <div class="card shadow">
-                    <div class="card-body">
-                        <div id="calendar"></div>
+                <!-- Jumlah Mahasiswa -->
+                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
+                    <div class="card card-statistic-1">
+                        <div class="card-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="card-wrap">
+                            <div class="card-header">
+                                <h4>Jumlah Mahasiswa</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ $jumlah_mahasiswa }}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Pengumuman -->
+                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
+                    <div class="card card-statistic-1">
+                        <div class="card-icon bg-success">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <div class="card-wrap">
+                            <div class="card-header">
+                                <h4>Pengumuman</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ $jumlah_pengumuman }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jumlah Dosen -->
+                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
+                    <div class="card card-statistic-1">
+                        <div class="card-icon bg-info">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="card-wrap">
+                            <div class="card-header">
+                                <h4>Jumlah Dosen</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ $jumlah_dosen }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kalender Jadwal Seminar -->
+                <div class="container">
+                    <h2 class="text-center mb-4">Kalender Jadwal Seminar</h2>
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -23,7 +77,7 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
 
             var calendar = new FullCalendar.Calendar(calendarEl, {

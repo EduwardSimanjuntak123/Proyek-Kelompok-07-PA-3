@@ -294,17 +294,26 @@ return view('pages.Mahasiswa.dashboard', compact('mahasiswa_kelompok', 'pembimbi
     }
   
 public function BAAK(){
- $jadwal = Jadwal::all();
-  $events = $jadwal->map(function ($item) {
-    return [
-        'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok. 'seminar  ',
-        'start' => Carbon::parse($item->waktu_mulai)->toIso8601String(),
-        'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
-    ];
-});
+    // Menghitung total mahasiswa dari semua kelompok
+    $jumlah_mahasiswa = KelompokMahasiswa::count();
+    
+    // Menghitung total pengumuman
+    $jumlah_pengumuman = Pengumuman::count();
+    
+    // Menghitung total dosen
+    $jumlah_dosen = DosenRole::distinct('user_id')->count('user_id');
+    
+    // Mengambil jadwal dan membuat events untuk calendar
+    $jadwal = Jadwal::all();
+    $events = $jadwal->map(function ($item) {
+        return [
+            'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok. ' seminar',
+            'start' => Carbon::parse($item->waktu_mulai)->toIso8601String(),
+            'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
+        ];
+    });
 
-    return view('pages.BAAK.dashboard', compact('events'));
-
-    }
+    return view('pages.BAAK.dashboard', compact('jumlah_mahasiswa', 'jumlah_pengumuman', 'jumlah_dosen', 'events'));
+}
     
 }

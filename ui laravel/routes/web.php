@@ -211,17 +211,6 @@ Route::prefix('pengumuman')->group(function () {
     Route::delete('/pengumuman/{id}', [PengumumanController::class, 'destroy'])->name('pengumuman.destroy');
 
 });
-//Pengumuman by Koordinator
-Route::prefix('pengumuman')->group(function () {
-    Route::get('/', [PengumumanController::class, 'index'])->name('pengumuman.index');
-    Route::get('/create', [PengumumanController::class, 'create'])->name('pengumuman.create');
-    Route::post('/', [PengumumanController::class, 'store'])->name('pengumuman.store');
-    Route::get('/{id}', [PengumumanController::class, 'edit'])->name('pengumuman.edit');
-    Route::put('/{id}', [PengumumanController::class, 'update'])->name('pengumuman.update');
-    Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('pengumuman.destroy');
-    Route::get('/{id}/show', [PengumumanController::class, 'show'])->name('pengumuman.show');
-    Route::get('/pengumuman/mahasiswa', [PengumumanController::class, 'showMahasiswa'])->name('pengumuman.mahasiswa.index');
-});
 // request bimbingan oleh mahasiswa
 // approve request bimbingan oleh mahasiswa
 Route::prefix('bimbingan')->group(function () {
@@ -246,7 +235,6 @@ Route::prefix('pengumuman')->group(function () {
     Route::get('/BAAK/pengumuman/edit/{id}', [PengumumanController::class, 'editpengumuman'])->name('pengumuman.BAAK.edit');
     Route::put('/BAAK/pengumuman/{id}', [PengumumanController::class, 'updatepengumuman'])->name('pengumuman.BAAK.update');
     Route::delete('/BAAK/pengumuman/{id}', [PengumumanController::class, 'destroypengumuman'])->name('pengumuman.BAAK.destroy');
-    Route::get('/pengumuman/show/BAAK/{id}', [PengumumanController::class, 'showPengumumanBAAK'])->name('pengumuman.BAAK.show');
 });
 // Route untuk pengumuman umum (akses umum / semua peran)
 Route::prefix('pengumuman')->group(function () {
@@ -256,7 +244,6 @@ Route::prefix('pengumuman')->group(function () {
     Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('pengumuman.edit');
     Route::put('/{id}', [PengumumanController::class, 'update'])->name('pengumuman.update');
     Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('pengumuman.destroy');
-    Route::get('/{id}', [PengumumanController::class, 'show'])->name('pengumuman.show');
 });
 
 // Route pengumuman untuk Mahasiswa
@@ -285,15 +272,7 @@ Route::prefix('TahunMasuk')->group(function () {
     Route::delete('/{id}', [TahunMasuk_Controller::class, 'destroy'])->name('TahunMasuk.destroy');
 });
 
-Route::prefix('DaftarDosen')->group(function () {
-    Route::get('/', [DosenController::class, 'index'])->name('listDosen.index');
 
-});
-
-Route::prefix('DaftarMahasiswa')->group(function () {
-    Route::get('/', [MahasiswaController::class, 'index'])->name('listMahasiswa.index');
-
-});
 
 Route::prefix('NilaiBimbingan')->group(function () {
     //untuk pembimbing 1
