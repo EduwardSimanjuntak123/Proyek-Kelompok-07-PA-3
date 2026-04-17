@@ -193,6 +193,7 @@
     flex: 1;
     min-width: 0;
     width: 100%;
+    display: block;
     border: none;
     background: transparent;
     outline: none;
@@ -202,11 +203,12 @@
     resize: none;
     line-height: 1.5;
     min-height: 22px;
-    max-height: 80px;
-    overflow-y: hidden;
+    max-height: 140px;
+    overflow-y: auto;
     overflow-x: hidden;
     word-break: break-word;
     white-space: pre-wrap;
+    box-sizing: border-box;
 }
 
 .landing-input-wrap textarea::placeholder {
@@ -704,7 +706,7 @@
 .input-wrapper {
     display: flex;
     gap: 9px;
-    align-items: flex-end;
+    align-items: center;
     background: #f4f8fb;
     border: 0.5px solid #b8d4e6;
     border-radius: 12px;
@@ -722,6 +724,7 @@
 #userInput {
     flex: 1;
     min-width: 0;
+    display: block;
     border: none;
     background: transparent;
     outline: none;
@@ -731,11 +734,12 @@
     resize: none;
     line-height: 1.5;
     min-height: 20px;
-    max-height: 140px;
-    overflow-y: hidden;
+    max-height: 180px;
+    overflow-y: auto;
     overflow-x: hidden;
     word-break: break-word;
     white-space: pre-wrap;
+    box-sizing: border-box;
 }
 
 #userInput::placeholder {
@@ -825,6 +829,9 @@
 .panduan-header {
     display: flex;
     justify-content: space-between;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    vertical-align: middle;
     align-items: flex-start;
     padding: 22px 24px 18px;
     border-bottom: 1px solid #edf3f7;
@@ -1138,6 +1145,8 @@
     justify-content: center;
     flex-shrink: 0;
     transition: all 0.2s ease;
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 
 .step-number {

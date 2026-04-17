@@ -1603,6 +1603,14 @@
         }
 
         // Initialize chat
+        function autoResizeTextarea(textarea, minHeight = 0) {
+            if (!textarea) return;
+
+            textarea.style.height = 'auto';
+            const nextHeight = Math.max(textarea.scrollHeight, minHeight);
+            textarea.style.height = `${nextHeight}px`;
+        }
+
         window.initializeAgent = function() {
             console.log("[chatbot] Initializing...")
             const input = document.getElementById("userInput")
@@ -1622,6 +1630,12 @@
                     }
                 }
             })
+
+            input.addEventListener("input", function() {
+                autoResizeTextarea(input, 20)
+            })
+
+            autoResizeTextarea(input, 20)
 
             // Button click to send
             sendBtn.addEventListener("click", function(e) {
@@ -1650,6 +1664,7 @@
 
             appendMessage("user", message)
             input.value = ""
+            autoResizeTextarea(input, 20)
             input.focus()
 
             let loadingId = appendLoading()
@@ -1829,6 +1844,12 @@
 
         // ENTER di landing input
         if (landingInput) {
+            landingInput.addEventListener("input", function() {
+                autoResizeTextarea(landingInput, 22)
+            })
+
+            autoResizeTextarea(landingInput, 22)
+
             landingInput.addEventListener("keydown", function(e) {
                 if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -1867,6 +1888,7 @@
 
                         if (landingInput) {
                             landingInput.value = "";
+                            autoResizeTextarea(landingInput, 22)
                             landingInput.focus();
                         }
                     }
