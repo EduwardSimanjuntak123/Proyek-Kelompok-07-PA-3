@@ -12,13 +12,6 @@
                             <a href="{{ route('kelompok.create') }}" class="btn btn-primary">
                                 <i class="nav-icon fas fa-folder-plus"></i>&nbsp; Tambah Kelompok
                             </a>
-                            {{-- @dd($mahasiswaBelumMasuk) --}}
-                            <p>Jumlah mahasiswa (Blade): {{ count($mahasiswa) }}</p>
-                            <button id="agentBtn" class="btn btn-success">
-                                🤖 Agent Beraksi
-                            </button>
-                            <div id="aiResult" class="mt-4"></div>
-                            {{-- @dd($mahasiswa)     --}}
                         </div>
                         <div class="card-body">
                             @include('partials.alert')
@@ -116,7 +109,7 @@
                         return;
                     }
 
-                   const groups = data.groups;
+                    const groups = data.groups;
 
                     groups.forEach((group, index) => {
 

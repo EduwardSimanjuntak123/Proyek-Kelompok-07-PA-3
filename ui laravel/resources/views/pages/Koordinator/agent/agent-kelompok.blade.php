@@ -231,6 +231,20 @@
             }
         }
 
+        const AI_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+    <rect x="4" y="7" width="16" height="12" rx="3" />
+    <circle cx="9" cy="13" r="1" />
+    <circle cx="15" cy="13" r="1" />
+    <path d="M9 17h6" />
+    <path d="M12 3v4" />
+    <circle cx="12" cy="2" r="1" />
+</svg>`;
+
+        const USER_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+</svg>`;
+
         // Append message with proper bubble styling
         // ===== MESSAGE RENDER (FIXED CSS MATCH) =====
         function appendMessage(sender, text) {
@@ -242,7 +256,7 @@
             // Avatar
             const avatar = document.createElement("div");
             avatar.className = `msg-av ${sender === "user" ? "user-av" : "ai-av"}`;
-            avatar.innerHTML = sender === "user" ? "👤" : "🤖";
+            avatar.innerHTML = sender === "user" ? USER_ICON : AI_ICON;
 
             // Body
             const body = document.createElement("div");
@@ -301,7 +315,7 @@
 
             const avatar = document.createElement("div");
             avatar.className = "msg-av ai-av";
-            avatar.innerHTML = "🤖";
+            avatar.innerHTML = AI_ICON;
 
             const body = document.createElement("div");
             body.className = "msg-body";
@@ -964,17 +978,21 @@
 
             const avatar = document.createElement("div");
             avatar.className = "msg-av ai-av";
-            avatar.innerHTML = "🤖";
+            avatar.innerHTML = AI_ICON;
 
             const skeleton = document.createElement("div");
             skeleton.className = "skeleton-wrap";
             skeleton.id = id;
 
             skeleton.innerHTML = `
-        <div class="skeleton-line" style="width:120px;"></div>
-        <div class="skeleton-line" style="width:180px;"></div>
-        <div class="skeleton-line" style="width:90px;"></div>
-    `;
+    <div class="ai-thinking">
+        <span class="ai-thinking-icon">${AI_ICON}</span>
+        AI sedang berpikir...
+    </div>
+    <div class="skeleton-line" style="width:120px;"></div>
+    <div class="skeleton-line" style="width:180px;"></div>
+    <div class="skeleton-line" style="width:90px;"></div>
+`;
 
             row.appendChild(avatar);
             row.appendChild(skeleton);
