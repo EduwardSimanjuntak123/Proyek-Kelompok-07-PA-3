@@ -2,10 +2,12 @@ import json
 import logging
 import traceback
 import re
+import math
 from datetime import date, datetime
 from decimal import Decimal
 import html
 from tools.grouping import create_group
+from tools.grouping_by_grades import create_group_by_grades, calculate_student_average_grades
 from tools.dosen_tools import get_dosen_by_dosen_context
 from tools.mahasiswa_tools import get_mahasiswa_by_dosen_context, get_mahasiswa_without_kelompok_by_context
 from tools.kelompok_tools import (
@@ -36,7 +38,15 @@ from tools.penguji_tools import (
 )
 from tools.dosen_role_tools import get_dosen_roles_by_dosen_context
 from tools.jadwal_tools import get_jadwal_by_dosen_context
-from tools.nilai_mahasiswa_tools import get_nilai_akhir_by_dosen_context
+from tools.nilai_mahasiswa_tools import (
+    get_nilai_akhir_by_dosen_context,
+    get_nilai_permatkul_by_mahasiswa,
+    get_nilai_persemester_by_mahasiswa,
+    get_combined_analisis_nilai,
+    get_nilai_permatkul_by_dosen_context,
+    get_nilai_persemester_by_dosen_context,
+    get_combined_analisis_by_dosen_context
+)
 from tools.academic_tools import get_kategori_pa_list, get_tahun_ajaran_list, get_ruangan_list
 from tools.roles_tools import get_roles_list
 from tools.excel_tools import generate_excel_by_context
@@ -658,20 +668,132 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
+                prompt = state.get("messages", [{}])[-1].get("content", "")
+                prompt_lower = prompt.lower()
                 prodi_id = dosen_context.get("prodi_id")
-                logger.info(f"[{user_id}] 📍 Query nilai akhir dengan context: prodi_id={prodi_id}")
-                result = get_nilai_akhir_by_dosen_context(prodi_id=prodi_id)
-
-                if result.get("status") == "success":
-                    state["result"] = format_query_result(
-                        "nilai akhir mahasiswa",
-                        result["data"],
-                        fields=["nim", "nama", "nilai_akhir", "kelompok_id", "prodi_id"]
-                    )
-                    logger.info(f"[{user_id}] ✓ {len(result['data'])} nilai akhir ditemukan")
+                
+                # Extract nama mahasiswa dari prompt
+                # Pattern: "nilai [nama mahasiswa]"
+                nama_match = re.search(r"nilai\s+([A-Za-z\s]+?)(?:\s+semester|\s+ta|\s+tahun|$)", prompt_lower)
+                nama = None
+                if nama_match:
+                    nama = nama_match.group(1).strip()
+                    if nama and len(nama) > 3:  # Minimal 4 karakter untuk nama valid
+                        nama = re.sub(r"\s+", " ", nama)  # Clean multiple spaces
+                    else:
+                        nama = None
+                
+                # Extract semester dari prompt
+                semester = None
+                semester_match = re.search(r"semester\s+(\d+)", prompt_lower)
+                if semester_match:
+                    semester = int(semester_match.group(1))
+                
+                logger.info(f"[{user_id}] 📍 Query nilai dengan context: prodi_id={prodi_id}, nama={nama}, semester={semester}")
+                
+                # Determine query type based on what user asked for
+                if nama:
+                    # Query by mahasiswa name
+                    if "semester" in prompt_lower or semester:
+                        # Get persemester data for specific student
+                        result = get_nilai_persemester_by_mahasiswa(nama=nama, prodi_id=prodi_id)
+                        if result.get("status") == "success":
+                            mahasiswa_list = result.get("mahasiswa_list", [])
+                            if mahasiswa_list:
+                                # Format response with per-semester data
+                                html_result = f"<h2>Nilai Per Semester: {nama}</h2>"
+                                for mhs in mahasiswa_list:
+                                    mhs_info = mhs.get("mahasiswa", {})
+                                    semesters = mhs.get("nilai_persemester", [])
+                                    html_result += f"<h3>{mhs_info.get('nim')} - {mhs_info.get('nama')}</h3>"
+                                    html_result += f"<p>Program Studi: {mhs_info.get('prodi_name')} | <strong>Rata-rata Nilai Kumulatif: {mhs.get('cumulative_gpa')}</strong></p>"
+                                    
+                                    for sem in semesters:
+                                        html_result += f"<h4>{sem.get('semester_label')}</h4>"
+                                        html_result += f"<p><strong>Rata-rata Nilai Semester: {sem.get('gpa_semester')}</strong> | Total Courses: {sem.get('total_courses')}</p>"
+                                        
+                                        if sem.get('courses'):
+                                            html_result += "<table border='1' cellpadding='8' cellspacing='0' style='width:100%; border-collapse:collapse;'>"
+                                            html_result += "<thead style='background-color:#f2f2f2;'><tr><th>Nama Matakuliah</th><th>Nilai Angka</th></tr></thead><tbody>"
+                                            for course in sem.get('courses', []):
+                                                html_result += f"<tr><td>{course.get('nama_matkul')}</td><td>{course.get('nilai_angka')}</td></tr>"
+                                            html_result += "</tbody></table><br>"
+                                
+                                state["result"] = html_result
+                                logger.info(f"[{user_id}] ✓ Nilai persemester ditemukan untuk {nama}")
+                            else:
+                                state["result"] = f"<p>Tidak ada data nilai untuk mahasiswa: {nama}</p>"
+                                logger.info(f"[{user_id}] ℹ️ Tidak ada nilai persemester untuk {nama}")
+                        else:
+                            state["result"] = result.get("message", f"Tidak ada data nilai untuk {nama}")
+                            logger.warning(f"[{user_id}] ✗ query_nilai persemester gagal untuk {nama}")
+                    else:
+                        # Get permatkul data for specific student
+                        result = get_nilai_permatkul_by_mahasiswa(nama=nama, prodi_id=prodi_id)
+                        if result.get("status") == "success":
+                            mahasiswa_list = result.get("mahasiswa_list", [])
+                            if mahasiswa_list:
+                                # Format response with per-course data
+                                html_result = f"<h2>Nilai Mahasiswa: {nama}</h2>"
+                                for mhs in mahasiswa_list:
+                                    mhs_info = mhs.get("mahasiswa", {})
+                                    courses = mhs.get("nilai_permatkul", [])
+                                    html_result += f"<h3>{mhs_info.get('nim')} - {mhs_info.get('nama')}</h3>"
+                                    html_result += f"<p>Program Studi: {mhs_info.get('prodi_name')}</p>"
+                                    html_result += "<table border='1' cellpadding='8' cellspacing='0' style='width:100%; border-collapse:collapse;'>"
+                                    html_result += "<thead style='background-color:#f2f2f2;'><tr><th>Kode</th><th>Mata Kuliah</th><th>SKS</th><th>Nilai Angka</th><th>Nilai Huruf</th><th>Bobot</th></tr></thead><tbody>"
+                                    for course in courses:
+                                        html_result += f"<tr><td>{course.get('kode_mk')}</td><td>{course.get('nama_matkul')}</td><td>{course.get('sks')}</td><td>{course.get('nilai_angka')}</td><td>{course.get('nilai_huruf')}</td><td>{course.get('bobot_nilai')}</td></tr>"
+                                    html_result += "</tbody></table>"
+                                    html_result += f"<p><strong>Rata-rata Nilai: {mhs.get('rata_rata_nilai')}</strong></p><br>"
+                                state["result"] = html_result
+                                logger.info(f"[{user_id}] ✓ Nilai permatkul ditemukan untuk {nama}")
+                            else:
+                                state["result"] = f"<p>Tidak ada data nilai untuk mahasiswa: {nama}</p>"
+                                logger.info(f"[{user_id}] ℹ️ Tidak ada nilai permatkul untuk {nama}")
+                        else:
+                            state["result"] = result.get("message", f"Tidak ada data nilai untuk {nama}")
+                            logger.warning(f"[{user_id}] ✗ query_nilai permatkul gagal untuk {nama}")
                 else:
-                    state["result"] = result.get("message", "Error mengambil data nilai akhir")
-                    logger.warning(f"[{user_id}] ✗ query_nilai gagal")
+                    # Query all students in prodi (dosen context)
+                    if "semester" in prompt_lower or semester:
+                        # Get persemester for all students
+                        result = get_nilai_persemester_by_dosen_context(prodi_id=prodi_id, semester=semester)
+                        if result.get("status") == "success":
+                            semesters = result.get("semesters", [])
+                            html_result = f"<h2>Nilai Per Semester - {result['prodi']['prodi_name']}</h2>"
+                            for sem in semesters:
+                                html_result += f"<h3>{sem.get('semester_label')}</h3>"
+                                html_result += f"<p>Total Mahasiswa: {sem.get('total_mahasiswa')} | Rata-rata GPA: {sem.get('rata_rata_gpa')}</p>"
+                                html_result += "<table border='1' cellpadding='8' cellspacing='0' style='width:100%; border-collapse:collapse;'>"
+                                html_result += "<thead style='background-color:#f2f2f2;'><tr><th>NIM</th><th>Nama</th><th>GPA</th><th>Total Courses</th></tr></thead><tbody>"
+                                for mhs in sem.get('mahasiswa_list', []):
+                                    html_result += f"<tr><td>{mhs.get('nim')}</td><td>{mhs.get('nama')}</td><td>{mhs.get('gpa')}</td><td>{mhs.get('total_courses')}</td></tr>"
+                                html_result += "</tbody></table><br>"
+                            state["result"] = html_result
+                            logger.info(f"[{user_id}] ✓ Nilai persemester untuk semua mahasiswa ditemukan")
+                        else:
+                            state["result"] = result.get("message", "Tidak ada data nilai persemester")
+                            logger.warning(f"[{user_id}] ✗ query_nilai persemester dosen context gagal")
+                    else:
+                        # Get permatkul for all students
+                        result = get_nilai_permatkul_by_dosen_context(prodi_id=prodi_id)
+                        if result.get("status") == "success":
+                            courses = result.get("courses", [])
+                            html_result = f"<h2>Nilai Per Matakuliah - {result['prodi']['prodi_name']}</h2>"
+                            for course in courses:
+                                html_result += f"<h3>{course.get('kode_mk')} - {course.get('nama_matkul')} ({course.get('sks')} SKS)</h3>"
+                                html_result += f"<p>Total Mahasiswa: {course.get('total_mahasiswa')} | Rata-rata: {course.get('rata_rata_nilai')}</p>"
+                                html_result += "<table border='1' cellpadding='8' cellspacing='0' style='width:100%; border-collapse:collapse;'>"
+                                html_result += "<thead style='background-color:#f2f2f2;'><tr><th>NIM</th><th>Nama</th><th>Nilai Angka</th><th>Nilai Huruf</th></tr></thead><tbody>"
+                                for mhs in course.get('mahasiswa_list', []):
+                                    html_result += f"<tr><td>{mhs.get('nim')}</td><td>{mhs.get('nama')}</td><td>{mhs.get('nilai_angka')}</td><td>{mhs.get('nilai_huruf')}</td></tr>"
+                                html_result += "</tbody></table><br>"
+                            state["result"] = html_result
+                            logger.info(f"[{user_id}] ✓ Nilai permatkul untuk semua mahasiswa ditemukan")
+                        else:
+                            state["result"] = result.get("message", "Tidak ada data nilai permatkul")
+                            logger.warning(f"[{user_id}] ✗ query_nilai permatkul dosen context gagal")
 
         elif action == "query_dosen_role":
             logger.info(f"[{user_id}] ⚙️  TOOLS: query_dosen_role (role dosen)")
@@ -1164,6 +1286,240 @@ def executor_node(state):
                     logger.info(f"[{user_id}] ✓ {grouping_result.get('summary', {}).get('total_groups', 0)} kelompok direkomendasikan")
                 else:
                     logger.warning(f"[{user_id}] ✗ create_group gagal: {grouping_result.get('message')}")
+
+        elif action == "create_group_by_grades":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: create_group_by_grades (buat kelompok berdasarkan nilai)")
+            
+            if not dosen_context:
+                state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+            else:
+                prompt = state.get("messages", [{}])[-1].get("content", "")
+                
+                # Check if user intent is to RECREATE
+                recreate_keywords = ["acak kembali", "acak ulang", "buat ulang", "ganti"]
+                is_recreate_intent = any(kw in prompt.lower() for kw in recreate_keywords)
+                
+                # Cek existing groups pada konteks ini
+                existing_check = check_existing_kelompok_by_context(
+                    prodi_id=dosen_context.get("prodi_id"),
+                    kategori_pa_id=dosen_context.get("kategori_pa"),
+                    angkatan_id=dosen_context.get("angkatan"),
+                )
+                
+                if is_recreate_intent and existing_check.get("status") == "success" and existing_check.get("total", 0) > 0:
+                    logger.info(f"[{user_id}] 🔄 RECREATE INTENT DETECTED: {existing_check.get('total')} existing groups found")
+                    
+                    escaped_prompt = html.escape(prompt)
+                    
+                    confirmation_html = f"""
+<div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#b45309;">⚠️ Konfirmasi: Kelompok Sudah Ada</h3>
+  <p>Ditemukan <strong>{existing_check.get('total', 0)}</strong> kelompok pada konteks ini.</p>
+  <p>Untuk membuat kelompok baru, harus menghapus data kelompok yang ada terlebih dahulu.</p>
+  <p style="margin-bottom:12px;"><strong>Pilih aksi berikut:</strong></p>
+  <div style="display:flex; gap:10px;">
+    <button type="button" class="btn btn-warning confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
+      <i class="fas fa-sync"></i> Hapus Lama & Buat Baru
+    </button>
+    <button type="button" class="btn btn-secondary cancel-recreate" style="padding:8px 16px;">
+      Batal
+    </button>
+  </div>
+</div>
+"""
+                    
+                    state["result"] = confirmation_html
+                    state["recreate_confirmation_pending"] = True
+                    state["recreate_context"] = {
+                        "prodi_id": dosen_context.get("prodi_id"),
+                        "kategori_pa_id": dosen_context.get("kategori_pa"),
+                        "angkatan_id": dosen_context.get("angkatan"),
+                        "prompt": prompt,
+                    }
+                    logger.info(f"[{user_id}] ✓ Konfirmasi recreate ditampilkan, menunggu user confirmation")
+                    return state
+                
+                # Extract group count from prompt
+                group_count = None
+                members_per_group = None
+                
+                # Check for "X orang perkelompok" pattern first
+                members_pattern = r"(\d+)\s+orang\s+perkelompok"
+                members_match = re.search(members_pattern, prompt.lower())
+                if members_match:
+                    members_per_group = int(members_match.group(1))
+                    logger.info(f"[{user_id}] 👥 Detected 'orang perkelompok' pattern: {members_per_group} members per group")
+                    
+                    # Calculate available students first
+                    try:
+                        grade_result = calculate_student_average_grades(
+                            prodi_id=dosen_context.get("prodi_id"),
+                            kategori_pa_id=dosen_context.get("kategori_pa"),
+                            angkatan_id=dosen_context.get("angkatan"),
+                            exclude_existing=True
+                        )
+                        if grade_result.get("status") == "success":
+                            available_students = len(grade_result.get("student_grades", []))
+                            group_count = math.ceil(available_students / members_per_group)
+                            logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
+                        else:
+                            # Fallback to default if calculation fails
+                            group_count = 5
+                            logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
+                    except Exception as e:
+                        # Fallback to default if error
+                        group_count = 5
+                        logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
+                else:
+                    # Check for direct group count patterns
+                    count_patterns = [
+                        r"buat\s+(\d+)\s+kelompok",
+                        r"bagi\s+jadi\s+(\d+)\s+kelompok",
+                        r"(\d+)\s+kelompok",
+                    ]
+                    for pattern in count_patterns:
+                        match = re.search(pattern, prompt.lower())
+                        if match:
+                            group_count = int(match.group(1))
+                            break
+                
+                if not group_count:
+                    # Default to 5 groups if not specified
+                    group_count = 5
+                    logger.info(f"[{user_id}] ℹ️ Jumlah kelompok tidak ditentukan, menggunakan default 5 kelompok")
+                
+                logger.info(f"[{user_id}] 📍 Create group by grades: prodi_id={dosen_context.get('prodi_id')}, kategori_pa_id={dosen_context.get('kategori_pa')}, group_count={group_count}")
+                
+                grouping_result = create_group_by_grades(
+                    prodi_id=dosen_context.get("prodi_id"),
+                    kategori_pa_id=dosen_context.get("kategori_pa"),
+                    group_count=group_count,
+                    angkatan_id=dosen_context.get("angkatan"),
+                    exclude_existing=True,
+                )
+                
+                if grouping_result.get("status") == "success":
+                    # Format result
+                    groups = grouping_result.get("groups", [])
+                    class_stats = grouping_result.get("class_statistics", {})
+                    group_stats = grouping_result.get("group_statistics", {})
+                    breakdown = grouping_result.get("breakdown", {})
+                    
+                    html_result = f"""
+<div style="background:#f3f4f6; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#1f2937;">✅ Kelompok Berdasarkan Nilai Berhasil Dibuat</h3>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <p style="margin:0 0 8px 0;"><strong>📊 Kategori PA:</strong> {grouping_result.get('pa_category', 'N/A')}</p>
+    <p style="margin:0 0 8px 0;"><strong>📚 Semester yang Digunakan:</strong> {', '.join(map(str, grouping_result.get('semesters_used', [])))}</p>
+    <p style="margin:0;"><strong>🎯 Jumlah Kelompok:</strong> {len(groups)}</p>
+  </div>
+  
+  <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#b45309;">📋 Breakdown Mahasiswa</h4>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Total Mahasiswa dalam Prodi:</strong></td>
+        <td style="padding:8px;">{breakdown.get('total_mahasiswa_dalam_prodi', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Sudah dalam Kelompok (Excluded):</strong></td>
+        <td style="padding:8px;">{breakdown.get('sudah_dalam_kelompok_excluded', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Kandidat untuk Grouping:</strong></td>
+        <td style="padding:8px;"><strong>{breakdown.get('kandidat_untuk_grouping', 0)}</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Dengan Data Nilai (Nilai Aktual):</strong></td>
+        <td style="padding:8px;"><strong style="color:#10b981;">{breakdown.get('dengan_data_nilai_semesters', 0)} ✓</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:8px;"><strong>Tanpa Data Nilai (Nilai Default 0):</strong></td>
+        <td style="padding:8px;"><strong style="color:#3b82f6;">{breakdown.get('tanpa_data_nilai_semesters', 0)} ✓</strong></td>
+      </tr>
+    </table>
+    <p style="margin:12px 0 0 0; font-size:12px; color:#1f2937; font-style:italic;">
+      <strong>💡 Catatan:</strong> Semua {breakdown.get('kandidat_untuk_grouping', 0)} mahasiswa kandidat digunakan dalam grouping. 
+      {breakdown.get('catatan', '')}
+    </p>
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#374151;">📈 Statistik Kelas</h4>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Total Mahasiswa:</strong></td>
+        <td style="padding:8px;">{class_stats.get('total_students', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Rata-rata Nilai Kelas:</strong></td>
+        <td style="padding:8px;">{class_stats.get('mean', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Standar Deviasi:</strong></td>
+        <td style="padding:8px;">{class_stats.get('std_dev', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Range Nilai:</strong></td>
+        <td style="padding:8px;">{class_stats.get('min_grade', 0)} - {class_stats.get('max_grade', 0)}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#374151;">👥 Detail Kelompok</h4>
+"""
+                    
+                    acceptable_range = group_stats.get("acceptable_range", {})
+                    for group in groups:
+                        members_html = "<ul style='margin:8px 0; padding-left:20px;'>"
+                        for member in group.get("members", []):
+                            members_html += f"<li>{member.get('nim', 'N/A')} - {member.get('nama', 'N/A')} (Nilai: {member.get('average_grade', 0)})</li>"
+                        members_html += "</ul>"
+                        
+                        within_range = group.get("within_acceptable_range", False)
+                        status_icon = "✅" if within_range else "⚠️"
+                        status_color = "#059669" if within_range else "#d97706"
+                        
+                        html_result += f"""
+    <div style="border:1px solid #d1d5db; border-radius:4px; padding:12px; margin-bottom:12px; background:#f9fafb;">
+      <p style="margin:0 0 8px 0;"><strong>Kelompok {group.get('group_number')}:</strong> {group.get('member_count')} anggota</p>
+      <p style="margin:0 0 8px 0; color:{status_color};"><strong>{status_icon} Rata-rata Nilai: {group.get('group_average')} (Deviasi: {group.get('deviation_from_mean', 0)})</strong></p>
+      <p style="margin:0 0 8px 0; font-size:12px; color:#6b7280;">Anggaran Kelompok:</p>
+      {members_html}
+    </div>
+"""
+                    
+                    html_result += f"""
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px;">
+    <h4 style="margin-top:0; color:#374151;">✔️ Verifikasi Keseimbangan</h4>
+    <p style="margin:0 0 8px 0;"><strong>Range Nilai Acceptable:</strong> {acceptable_range.get('min', 0)} - {acceptable_range.get('max', 0)} (Center: {acceptable_range.get('center', 0)} ± {acceptable_range.get('std_dev', 0)})</p>
+    <p style="margin:0;"><strong>Status:</strong> {'✅ Semua kelompok seimbang' if group_stats.get('all_within_range') else '⚠️ Beberapa kelompok menyimpang dari range'}</p>
+  </div>
+</div>
+"""
+                    
+                    state["result"] = html_result
+                    state["grouping_payload"] = {
+                        "groups": groups,
+                        "class_statistics": class_stats,
+                        "group_statistics": group_stats,
+                    }
+                    state["grouping_meta"] = {
+                        "prodi_id": dosen_context.get("prodi_id"),
+                        "kategori_pa_id": dosen_context.get("kategori_pa"),
+                        "angkatan_id": dosen_context.get("angkatan"),
+                        "method": "by_grades",
+                    }
+                    logger.info(f"[{user_id}] ✓ {len(groups)} kelompok berdasarkan nilai berhasil dibuat")
+                else:
+                    error_msg = grouping_result.get("message", "Error tidak diketahui")
+                    state["result"] = f"<p style='color:red;'>❌ Gagal membuat kelompok: {error_msg}</p>"
+                    logger.warning(f"[{user_id}] ✗ create_group_by_grades gagal: {error_msg}")
 
         elif action == "check_kelompok":
             logger.info(f"[{user_id}] ⚙️  TOOLS: check_kelompok (cek kelompok existing)")
