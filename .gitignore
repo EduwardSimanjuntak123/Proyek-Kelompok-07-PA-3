@@ -7,5 +7,8 @@ env/
 .env
 
 # Python cache
-__pycache__/
+
 *.pyc
+*.log
+conversation_history/
+__pycache__/
