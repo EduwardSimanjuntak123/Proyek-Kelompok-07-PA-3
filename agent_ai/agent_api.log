@@ -1519,3 +1519,120 @@ openai.APIConnectionError: Connection error.
 2026-04-22 08:23:48,079 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (13137 chars)
 2026-04-22 08:23:48,081 [main] INFO: [3607] ✓ Sukses (13137 chars)
 2026-04-22 08:23:48,081 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 08:47:54,566 [api] INFO: [user_3607] 📨 API Request: 'bautkan kelompok berdasarkan nilai 6 orang perkelo...'
+2026-04-22 08:47:54,567 [main] INFO: [3607] 🚀 Agent: 'bautkan kelompok berdasarkan nilai 6 orang perkelompok...'
+2026-04-22 08:47:54,577 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 08:47:54,578 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 08:47:54,578 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 08:47:54,578 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 08:47:54,578 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 08:47:54,581 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 08:47:54,590 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'bautkan kelompok berdasarkan nilai 6 orang perkelo...' → create_group_by_grades ✓
+2026-04-22 08:47:54,604 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: create_group_by_grades (buat kelompok berdasarkan nilai)
+2026-04-22 08:47:54,641 [nodes.executor_node] INFO: [3607] 👥 Detected 'orang perkelompok' pattern: 6 members per group
+2026-04-22 08:47:54,792 [nodes.executor_node] INFO: [3607] ℹ️ Mahasiswa tersedia: 69, Anggota per kelompok: 6 → 12 kelompok
+2026-04-22 08:47:54,794 [nodes.executor_node] INFO: [3607] 📍 Create group by grades: prodi_id=4, kategori_pa_id=2, group_count=12
+2026-04-22 08:47:54,880 [nodes.executor_node] INFO: [3607] ✓ 12 kelompok berdasarkan nilai berhasil dibuat
+2026-04-22 08:47:54,884 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 08:47:54,885 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (13157 chars)
+2026-04-22 08:47:54,888 [main] INFO: [3607] ✓ Sukses (13157 chars)
+2026-04-22 08:47:54,888 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 08:58:41,747 [api] INFO: [user_3607] 📨 API Request: 'buatkan ke excel...'
+2026-04-22 08:58:41,749 [main] INFO: [3607] 🚀 Agent: 'buatkan ke excel...'
+2026-04-22 08:58:41,754 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 08:58:41,754 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 08:58:41,756 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 08:58:41,756 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 08:58:41,757 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 08:58:41,759 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 08:58:41,760 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'buatkan ke excel...' → LLM (no keyword match)
+2026-04-22 08:58:41,767 [openai._base_client] DEBUG: Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': '\nKamu adalah AI Router - tentukan action untuk query.\n\n## ROUTING RULES:\n\n- Jika ada kata: cek kelompok, status kelompok, sudah ada kelompok → check_kelompok\n- Jika ada kata: hapus kelompok, delete kelompok, reset kelompok → delete_kelompok\n- Jika ada kata: dosen, daftar dosen → query_dosen\n- Jika ada kata: role dosen, peran dosen → query_dosen_role\n- Jika ada kata: mahasiswa, siswa, nim → query_mahasiswa\n- Jika ada kata: kelompok, group → query_kelompok\n- Jika ada kata: mata kuliah, matakuliah, mk → query_matakuliah \n- Jika ada kata: prodi, program studi → query_prodi\n- Jika ada kata: daftar role, list role, roles sistem → query_roles\n- Jika ada kata: kategori pa, pa-1, pa-2, pa-3 → query_kategori_pa\n- Jika ada kata: tahun ajaran, tahun akademik → query_tahun_ajaran\n- Jika ada kata: ruangan, room → query_ruangan\n- Jika ada kata: jadwal, schedule, jadwal sidang, jadwal bimbingan → query_jadwal\n- Jika ada kata: pembimbing, advisor → query_pembimbing\n- Jika ada kata: penguji, daftar penguji → query_penguji\n- Jika ada kata: generate pembimbing, assign pembimbing, buat pembimbing → generate_pembimbing\n- Jika ada kata: sudah ada pembimbing, cek pembimbing → check_pembimbing\n- Jika ada kata: generate penguji, assign penguji, buat penguji → generate_penguji\n- Jika ada kata: sudah ada penguji, cek penguji → check_penguji\n- Jika ada kata: nilai, grade, ipk → query_nilai\n- Jika ada kata: buat kelompok berdasarkan nilai, kelompok nilai → create_group_by_grades\n- Jika ada kata: buat kelompok, grouping → create_group\n- Jika ada kata: buat excel, export excel, spreadsheet → generate_excel\n- Lainnya: chat\n\n## OUTPUT (JSON ONLY):\n{"action": "check_kelompok"|"delete_kelompok"|"query_dosen"|"query_dosen_role"|"query_mahasiswa"|"query_kelompok"|"query_anggota_kelompok"|"query_matakuliah"|"query_prodi"|"query_roles"|"query_kategori_pa"|"query_tahun_ajaran"|"query_ruangan"|"query_jadwal"|"query_nilai"|"query_pembimbing"|"query_penguji"|"generate_pembimbing"|"check_pembimbing"|"generate_penguji"|"check_penguji"|"create_group"|"create_group_by_grades"|"generate_excel"|"chat"}\n'}, {'role': 'user', 'content': 'buatkan ke excel'}], 'model': 'gpt-5-mini'}}
+2026-04-22 08:58:41,784 [httpcore.connection] DEBUG: connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+2026-04-22 08:58:41,934 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021D2CFA5D10>
+2026-04-22 08:58:41,934 [httpcore.connection] DEBUG: start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021D1C2D35C0> server_hostname='api.openai.com' timeout=5.0
+2026-04-22 08:58:42,058 [httpcore.connection] DEBUG: start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021D2CFA7950>
+2026-04-22 08:58:42,058 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'POST']>
+2026-04-22 08:58:42,059 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-04-22 08:58:42,059 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'POST']>
+2026-04-22 08:58:42,059 [httpcore.http11] DEBUG: send_request_body.complete
+2026-04-22 08:58:42,059 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'POST']>
+2026-04-22 08:58:43,933 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Wed, 22 Apr 2026 01:58:43 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'CF-Ray', b'9f0106608941cbdd-SIN'), (b'CF-Cache-Status', b'DYNAMIC'), (b'Server', b'cloudflare'), (b'Strict-Transport-Security', b'max-age=31536000; includeSubDomains; preload'), (b'X-Content-Type-Options', b'nosniff'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'eduward-kxnf3j'), (b'openai-processing-ms', b'1293'), (b'openai-project', b'proj_kGSAL49mJQX80P6KI1LBEumF'), (b'openai-version', b'2020-10-01'), (b'x-openai-proxy-wasm', b'v0.1'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'500000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'499459'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'64ms'), (b'x-request-id', b'req_0172716ba5f0452eba0c6a00adcaf472'), (b'set-cookie', b'__cf_bm=bLVn6vxrsKZ8HDUicYrIviy_h5kUBgpBBXCQDbFf0w8-1776823122.0104666-1.0.1.1-hIIFFKOgF5Pl8CwszW8iMWj_4hI7KUyjjtoIg88Vgca.y77bVt1p_npEJiBk.Drd4ZCJpRQF1GIUFN2Qss3z2FxycWCQNaaLs7INIc75cNGxw9GgLJ5_Rqszs.XXNyd9; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Wed, 22 Apr 2026 02:28:43 GMT'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+2026-04-22 08:58:43,935 [httpx] INFO: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-22 08:58:43,938 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'POST']>
+2026-04-22 08:58:43,940 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-04-22 08:58:43,940 [httpcore.http11] DEBUG: response_closed.started
+2026-04-22 08:58:43,942 [httpcore.http11] DEBUG: response_closed.complete
+2026-04-22 08:58:43,942 [openai._base_client] DEBUG: HTTP Request: POST https://api.openai.com/v1/chat/completions "200 OK"
+2026-04-22 08:58:43,958 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: generate_excel (buat spreadsheet)
+2026-04-22 08:58:43,958 [tools.excel_tools] ERROR: Template Excel tidak ditemukan: D:\semester 6\PROYEK AKHIR 3\Proyek-Kelompok-07-PA-3\agent_ai\tools\..\storage\Kelompok dan Pembimbing.xlsx
+2026-04-22 08:58:43,958 [nodes.executor_node] WARNING: [3607] ✗ generate_excel gagal: Template Excel tidak ditemukan di D:\semester 6\PROYEK AKHIR 3\Proyek-Kelompok-07-PA-3\agent_ai\tools\..\storage\Kelompok dan Pembimbing.xlsx
+2026-04-22 08:58:43,964 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 08:58:43,968 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (171 chars)
+2026-04-22 08:58:43,971 [main] INFO: [3607] ✓ Sukses (171 chars)
+2026-04-22 08:58:43,971 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 09:27:43,448 [api] INFO: [user_3607] 📨 API Request: 'buatakn kelompok 6 orang perkelompok berdasarkan n...'
+2026-04-22 09:27:43,450 [main] INFO: [3607] 🚀 Agent: 'buatakn kelompok 6 orang perkelompok berdasarkan nilai...'
+2026-04-22 09:27:43,455 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 09:27:43,455 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 09:27:43,455 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 09:27:43,457 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 09:27:43,457 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 09:27:43,458 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 09:27:43,460 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'buatakn kelompok 6 orang perkelompok berdasarkan n...' → create_group_by_grades ✓ (grade-based PRIORITY)
+2026-04-22 09:27:43,463 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: create_group_by_grades (buat kelompok berdasarkan nilai)
+2026-04-22 09:27:43,467 [nodes.executor_node] INFO: [3607] 👥 Detected 'orang perkelompok' pattern: 6 members per group
+2026-04-22 09:27:43,607 [nodes.executor_node] INFO: [3607] ℹ️ Mahasiswa tersedia: 69, Anggota per kelompok: 6 → 12 kelompok
+2026-04-22 09:27:43,607 [nodes.executor_node] INFO: [3607] 📍 Create group by grades: prodi_id=4, kategori_pa_id=2, group_count=12
+2026-04-22 09:27:43,687 [nodes.executor_node] INFO: [3607] ✓ 12 kelompok berdasarkan nilai berhasil dibuat
+2026-04-22 09:27:43,690 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 09:27:43,690 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (13157 chars)
+2026-04-22 09:27:43,693 [main] INFO: [3607] ✓ Sukses (13157 chars)
+2026-04-22 09:27:43,693 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 09:27:43,905 [api] INFO: [user_3607] 📨 API Request: 'buatakn kelompok 6 orang perkelompok berdasarkan n...'
+2026-04-22 09:27:43,907 [main] INFO: [3607] 🚀 Agent: 'buatakn kelompok 6 orang perkelompok berdasarkan nilai...'
+2026-04-22 09:27:43,914 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 09:27:43,914 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 09:27:43,915 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 09:27:43,915 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 09:27:43,915 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 09:27:43,917 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 09:27:43,920 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'buatakn kelompok 6 orang perkelompok berdasarkan n...' → create_group_by_grades ✓ (grade-based PRIORITY)
+2026-04-22 09:27:43,923 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: create_group_by_grades (buat kelompok berdasarkan nilai)
+2026-04-22 09:27:43,925 [nodes.executor_node] INFO: [3607] 👥 Detected 'orang perkelompok' pattern: 6 members per group
+2026-04-22 09:27:44,022 [nodes.executor_node] INFO: [3607] ℹ️ Mahasiswa tersedia: 69, Anggota per kelompok: 6 → 12 kelompok
+2026-04-22 09:27:44,024 [nodes.executor_node] INFO: [3607] 📍 Create group by grades: prodi_id=4, kategori_pa_id=2, group_count=12
+2026-04-22 09:27:44,123 [nodes.executor_node] INFO: [3607] ✓ 12 kelompok berdasarkan nilai berhasil dibuat
+2026-04-22 09:27:44,125 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 09:27:44,126 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (13157 chars)
+2026-04-22 09:27:44,129 [main] INFO: [3607] ✓ Sukses (13157 chars)
+2026-04-22 09:27:44,130 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 09:27:52,167 [api] INFO: [user_3607] 📨 API Request: 'buatkan pembimbing...'
+2026-04-22 09:27:52,167 [main] INFO: [3607] 🚀 Agent: 'buatkan pembimbing...'
+2026-04-22 09:27:52,174 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 09:27:52,174 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 09:27:52,174 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 09:27:52,175 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 09:27:52,175 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 09:27:52,177 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 09:27:52,179 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'buatkan pembimbing...' → generate_pembimbing ✓
+2026-04-22 09:27:52,182 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: generate_pembimbing
+2026-04-22 09:27:52,208 [nodes.executor_node] INFO: [3607] ✓ generate_pembimbing preview siap disimpan
+2026-04-22 09:27:52,211 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 09:27:52,213 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (4716 chars)
+2026-04-22 09:27:52,216 [main] INFO: [3607] ✓ Sukses (4716 chars)
+2026-04-22 09:27:52,216 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
+2026-04-22 09:28:02,523 [api] INFO: [user_3607] 📨 API Request: 'buatkan penguji...'
+2026-04-22 09:28:02,523 [main] INFO: [3607] 🚀 Agent: 'buatkan penguji...'
+2026-04-22 09:28:02,529 [nodes.question_node] INFO: [3607] ❓ QUESTION_NODE: Starting...
+2026-04-22 09:28:02,529 [nodes.question_node] DEBUG: [3607] Loading conversation history from memory...
+2026-04-22 09:28:02,530 [nodes.question_node] DEBUG: [3607] Loaded 10 previous messages
+2026-04-22 09:28:02,530 [nodes.question_node] DEBUG: [3607] User input already in state - API mode
+2026-04-22 09:28:02,530 [nodes.question_node] DEBUG: [3607] Saving conversation to memory...
+2026-04-22 09:28:02,532 [nodes.question_node] INFO: [3607] ✓ QUESTION_NODE: Complete (9 messages)
+2026-04-22 09:28:02,535 [nodes.planner_node] INFO: [3607] 📋 PLANNER: 'buatkan penguji...' → generate_penguji ✓
+2026-04-22 09:28:02,538 [nodes.executor_node] INFO: [3607] ⚙️  TOOLS: generate_penguji
+2026-04-22 09:28:02,555 [nodes.executor_node] INFO: [3607] ✓ generate_penguji preview siap disimpan
+2026-04-22 09:28:02,558 [nodes.answer_node] INFO: [3607] 📊 ANSWER: Gunakan hasil dari tools
+2026-04-22 09:28:02,559 [nodes.answer_node] INFO: [3607] ✓ Respons dikirim (4899 chars)
+2026-04-22 09:28:02,564 [main] INFO: [3607] ✓ Sukses (4899 chars)
+2026-04-22 09:28:02,564 [api] INFO: [user_3607] ✓ Respons dikirim ke Laravel
