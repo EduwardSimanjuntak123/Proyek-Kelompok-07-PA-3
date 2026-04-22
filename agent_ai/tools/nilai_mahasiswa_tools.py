@@ -98,7 +98,7 @@ def get_nilai_permatkul_by_mahasiswa(mahasiswa_id: int = None, nim: str = None, 
             MataKuliah
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         ).outerjoin(
             MataKuliah,
             NilaiMatkulMahasiswa.kode_mk == MataKuliah.kode_mk
@@ -203,7 +203,7 @@ def get_nilai_permatkul_group_by_dosen_context(prodi_id: int = None, semester: i
             MataKuliah
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         ).outerjoin(
             MataKuliah,
             NilaiMatkulMahasiswa.kode_mk == MataKuliah.kode_mk
@@ -309,7 +309,7 @@ def get_nilai_persemester_by_mahasiswa(mahasiswa_id: int = None, nim: str = None
             MataKuliah
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         ).outerjoin(
             MataKuliah,
             NilaiMatkulMahasiswa.kode_mk == MataKuliah.kode_mk
@@ -439,7 +439,7 @@ def get_nilai_persemester_group_by_dosen_context(prodi_id: int = None, semester:
             Mahasiswa
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         )
         
         if filters:
@@ -616,7 +616,7 @@ def get_nilai_permatkul_by_dosen_context(prodi_id: int, semester: int = None) ->
             MataKuliah
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         ).outerjoin(
             MataKuliah,
             NilaiMatkulMahasiswa.kode_mk == MataKuliah.kode_mk
@@ -716,7 +716,7 @@ def get_nilai_persemester_by_dosen_context(prodi_id: int, semester: int = None) 
             Mahasiswa
         ).join(
             Mahasiswa,
-            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.id
+            NilaiMatkulMahasiswa.mahasiswa_id == Mahasiswa.user_id
         ).filter(and_(*filters))
         
         rows = query.all()

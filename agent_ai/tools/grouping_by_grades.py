@@ -129,7 +129,7 @@ def calculate_student_average_grades(
             # Query grades for this student in specified semesters
             grade_query = session.query(NilaiMatkulMahasiswa).filter(
                 and_(
-                    NilaiMatkulMahasiswa.mahasiswa_id == mhs.id,
+                    NilaiMatkulMahasiswa.mahasiswa_id == mhs.user_id,
                     NilaiMatkulMahasiswa.semester.in_(semesters)
                 )
             ).all()

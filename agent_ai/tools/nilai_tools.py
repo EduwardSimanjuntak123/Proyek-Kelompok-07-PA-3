@@ -24,7 +24,7 @@ def get_nilai_mahasiswa(mahasiswa_id: int = None, nama: str = None) -> dict:
                 session.close()
                 return {"status": "empty", "message": f"Mahasiswa {nama} tidak ditemukan"}
             nilais = session.query(NilaiMatkulMahasiswa).filter(
-                NilaiMatkulMahasiswa.mahasiswa_id == mahasiswa.id
+                NilaiMatkulMahasiswa.mahasiswa_id == mahasiswa.user_id
             ).all()
         else:
             session.close()
