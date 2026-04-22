@@ -53,6 +53,134 @@
                 </div>
             </header>
 
+            {{-- VERIFICATION SIDEBAR --}}
+            <aside class="verification-sidebar">
+                <div class="sidebar-header">
+                    <h3>Alur Verifikasi</h3>
+                </div>
+
+                <div class="verification-steps">
+                    {{-- Step 1: Pembagian Kelompok --}}
+                    <div class="step-item" data-step="kelompok">
+                        <div class="step-line"></div>
+                        <div class="step-content">
+                            <div class="step-indicator">
+                                <div class="step-number">1</div>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-title">Pembagian Kelompok</div>
+                                <div class="step-subtitle">Buat & generate kelompok</div>
+                            </div>
+                            <div class="step-status" data-status="pending">
+                                <svg class="status-icon pending-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                </svg>
+                                <svg class="status-icon success-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                    style="display: none;">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Step 2: Verifikasi Pembimbing --}}
+                    <div class="step-item" data-step="pembimbing">
+                        <div class="step-line"></div>
+                        <div class="step-content">
+                            <div class="step-indicator">
+                                <div class="step-number">2</div>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-title">Verifikasi Pembimbing</div>
+                                <div class="step-subtitle">Tentukan dosen pembimbing</div>
+                            </div>
+                            <div class="step-status" data-status="pending">
+                                <svg class="status-icon pending-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                </svg>
+                                <svg class="status-icon success-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                    style="display: none;">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Step 3: Verifikasi Penguji --}}
+                    <div class="step-item" data-step="penguji">
+                        <div class="step-line"></div>
+                        <div class="step-content">
+                            <div class="step-indicator">
+                                <div class="step-number">3</div>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-title">Verifikasi Penguji</div>
+                                <div class="step-subtitle">Tentukan dosen penguji</div>
+                            </div>
+                            <div class="step-status" data-status="pending">
+                                <svg class="status-icon pending-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                </svg>
+                                <svg class="status-icon success-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round" style="display: none;">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Step 4: Jadwal Seminar --}}
+                    <div class="step-item last" data-step="jadwal">
+                        <div class="step-line"></div>
+                        <div class="step-content">
+                            <div class="step-indicator">
+                                <div class="step-number">4</div>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-title">Jadwal Seminar</div>
+                                <div class="step-subtitle">Tentukan waktu seminar</div>
+                            </div>
+                            <div class="step-status" data-status="pending">
+                                <svg class="status-icon pending-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                </svg>
+                                <svg class="status-icon success-icon" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round" style="display: none;">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <div class="status-legend">
+                        <div class="legend-item">
+                            <div class="legend-icon pending"></div>
+                            <span>Pending</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon warning"></div>
+                            <span>Ada Issue</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon success"></div>
+                            <span>Selesai</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
             {{-- LANDING VIEW --}}
             <div class="landing-view" id="landingView">
                 <div class="landing-icon-wrap">
@@ -220,6 +348,117 @@
         let isDeletingForContext = false;
         let isLoadingPembimbingCheck = false;
         let isLoadingPengujiCheck = false;
+
+        // ============== VERIFICATION SIDEBAR FUNCTIONS ==============
+
+        /**
+         * Load verification status dari database saat page load
+         */
+        async function loadVerificationStatusFromDatabase() {
+            try {
+                const response = await fetch('/ai-agent/verification-status');
+                if (!response.ok) throw new Error('Failed to fetch verification status');
+
+                const data = await response.json();
+                if (data.success && data.data) {
+                    console.log('[sidebar] Loaded verification status from database:', data.data);
+
+                    // Update setiap step dengan status dari database
+                    updateSidebarStatus('kelompok', data.data.kelompok);
+                    updateSidebarStatus('pembimbing', data.data.pembimbing);
+                    updateSidebarStatus('penguji', data.data.penguji);
+                    updateSidebarStatus('jadwal', data.data.jadwal);
+                }
+            } catch (error) {
+                console.warn('[sidebar] Error loading verification status:', error.message);
+            }
+        }
+
+        /**
+         * Update status sidebar untuk tahapan verifikasi
+         * @param {string} step - 'kelompok' | 'pembimbing' | 'penguji' | 'jadwal'
+         * @param {string} status - 'pending' | 'warning' | 'success'
+         */
+        function updateSidebarStatus(step, status) {
+            const stepElement = document.querySelector(`.step-item[data-step="${step}"]`);
+            if (!stepElement) return;
+
+            const stepStatus = stepElement.querySelector('.step-status');
+            const pendingIcon = stepElement.querySelector('.pending-icon');
+            const successIcon = stepElement.querySelector('.success-icon');
+
+            // Update data-status attribute
+            stepElement.setAttribute('data-status', status);
+            stepStatus.setAttribute('data-status', status);
+
+            // Update icons based on status
+            if (status === 'success' && successIcon && pendingIcon) {
+                pendingIcon.style.display = 'none';
+                successIcon.style.display = 'block';
+            } else if (status === 'warning' || status === 'pending') {
+                if (pendingIcon) pendingIcon.style.display = 'block';
+                if (successIcon) successIcon.style.display = 'none';
+            }
+
+            console.log(`[sidebar] Updated ${step} status to ${status}`);
+        }
+
+        /**
+         * Get current status dari sidebar
+         * @param {string} step
+         * @returns {string} current status
+         */
+        function getSidebarStatus(step) {
+            const stepElement = document.querySelector(`.step-item[data-step="${step}"]`);
+            if (!stepElement) return 'pending';
+            return stepElement.getAttribute('data-status') || 'pending';
+        }
+
+        /**
+         * Check status kelompok dan update sidebar
+         * Return true jika semua mahasiswa sudah dapat kelompok
+         */
+        function checkKelompokStatus() {
+            // Implementasi bisa melalui API atau check dari data
+            // Untuk sekarang, return true jika grouping tersimpan tanpa error
+            if (latestGroupingPayload && !isSavingGeneratedGroups) {
+                updateSidebarStatus('kelompok', 'success');
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Check status pembimbing dan update sidebar
+         */
+        function checkPembimbingStatus() {
+            if (latestPembimbingPayload && !isSavingGeneratedPembimbing) {
+                updateSidebarStatus('pembimbing', 'success');
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Check status penguji dan update sidebar
+         */
+        function checkPengujiStatus() {
+            if (latestPengujiPayload && !isSavingGeneratedPenguji) {
+                updateSidebarStatus('penguji', 'success');
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Update sidebar status ketika ada warning/issue
+         * Misalnya ada mahasiswa yang belum dapat kelompok
+         */
+        function setSidebarWarning(step, hasWarning = true) {
+            if (hasWarning) {
+                updateSidebarStatus(step, 'warning');
+            }
+        }
 
         // Scroll to bottom smoothly
         function scrollToBottom() {
@@ -598,6 +837,9 @@
                     throw new Error(data.message || "Gagal menyimpan kelompok.");
                 }
 
+                // Update sidebar status
+                updateSidebarStatus('kelompok', 'success');
+
                 Swal.fire({
                     title: "Berhasil",
                     html: `
@@ -620,6 +862,8 @@
                     btn.innerHTML = '<i class="fas fa-check"></i> Sudah Disimpan';
                 });
             } catch (error) {
+                // Update sidebar status to warning
+                updateSidebarStatus('kelompok', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan.", "error");
             } finally {
                 isSavingGeneratedGroups = false;
@@ -690,6 +934,9 @@
                     throw new Error(data.message || "Gagal menyimpan pembimbing.");
                 }
 
+                // Update sidebar status
+                updateSidebarStatus('pembimbing', 'success');
+
                 Swal.fire({
                     title: "Berhasil",
                     html: `
@@ -709,6 +956,8 @@
                     btn.innerHTML = '<i class="fas fa-check"></i> Pembimbing Sudah Disimpan';
                 });
             } catch (error) {
+                // Update sidebar status to warning
+                updateSidebarStatus('pembimbing', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan pembimbing.", "error");
             } finally {
                 isSavingGeneratedPembimbing = false;
@@ -817,6 +1066,9 @@
                     throw new Error(data.message || "Gagal menyimpan penguji.");
                 }
 
+                // Update sidebar status
+                updateSidebarStatus('penguji', 'success');
+
                 Swal.fire({
                     title: "Berhasil",
                     html: `
@@ -836,6 +1088,8 @@
                     btn.innerHTML = '<i class="fas fa-check"></i> Penguji Sudah Disimpan';
                 });
             } catch (error) {
+                // Update sidebar status to warning
+                updateSidebarStatus('penguji', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan penguji.", "error");
             } finally {
                 isSavingGeneratedPenguji = false;
@@ -1390,6 +1644,11 @@
 
             if (typeof window.initializeAgent === 'function') {
                 window.initializeAgent()
+            }
+
+            // Load verification status dari database
+            if (typeof loadVerificationStatusFromDatabase === 'function') {
+                loadVerificationStatusFromDatabase()
             }
 
             // Help button

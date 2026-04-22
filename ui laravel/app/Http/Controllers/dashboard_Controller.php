@@ -58,8 +58,12 @@ class dashboard_Controller extends Controller
     ];
 });
 
-    return view('pages.Koordinator.dashboard', compact('jumlah_mahasiswa', 'jumlah_pengumuman','jumlah_dosen','jumlah_tugas','events'));
+    // Check verification status
+    $verification_status = $this->checkVerificationStatus($KPA_id, $prodi_id, $TM_id);
+
+    return view('pages.Koordinator.dashboard', compact('jumlah_mahasiswa', 'jumlah_pengumuman','jumlah_dosen','jumlah_tugas','events', 'verification_status'));
 }
+
   public function pembimbing() {
     $KPA_id = session('KPA_id');
     $prodi_id = session('prodi_id');
@@ -314,6 +318,55 @@ public function BAAK(){
     });
 
     return view('pages.BAAK.dashboard', compact('jumlah_mahasiswa', 'jumlah_pengumuman', 'jumlah_dosen', 'events'));
+}
+
+// ============= CHECK VERIFICATION STATUS =============
+/**
+ * Check verification status untuk alur PA
+ * Return array dengan status untuk setiap tahapan
+ */
+private function checkVerificationStatus($KPA_id, $prodi_id, $TM_id) {
+    // Check kelompok
+    $kelompok_count = Kelompok::where('KPA_id', $KPA_id)
+        ->where('prodi_id', $prodi_id)
+        ->where('TM_id', $TM_id)
+        ->count();
+    
+    $kelompok_status = $kelompok_count > 0 ? 'success' : 'pending';
+
+    // Check pembimbing
+    $pembimbing_count = pembimbing::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+        $q->where('KPA_id', $KPA_id);
+        $q->where('prodi_id', $prodi_id);
+        $q->where('TM_id', $TM_id);
+    })->count();
+    
+    $pembimbing_status = $pembimbing_count > 0 ? 'success' : 'pending';
+
+    // Check penguji
+    $penguji_count = Penguji::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+        $q->where('KPA_id', $KPA_id);
+        $q->where('prodi_id', $prodi_id);
+        $q->where('TM_id', $TM_id);
+    })->count();
+    
+    $penguji_status = $penguji_count > 0 ? 'success' : 'pending';
+
+    // Check jadwal
+    $jadwal_count = Jadwal::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+        $q->where('KPA_id', $KPA_id);
+        $q->where('prodi_id', $prodi_id);
+        $q->where('TM_id', $TM_id);
+    })->count();
+    
+    $jadwal_status = $jadwal_count > 0 ? 'success' : 'pending';
+
+    return [
+        'kelompok' => $kelompok_status,
+        'pembimbing' => $pembimbing_status,
+        'penguji' => $penguji_status,
+        'jadwal' => $jadwal_status
+    ];
 }
     
 }

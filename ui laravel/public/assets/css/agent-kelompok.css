@@ -10,7 +10,7 @@
     height: calc(100vh - 80px);
     min-height: 560px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 280px;
     grid-template-rows: auto 1fr;
     border: 0.5px solid #c8dce9;
     border-radius: 16px;
@@ -876,4 +876,265 @@
     66% {
         content: "...";
     }
+}
+
+/* ===== VERIFICATION SIDEBAR ===== */
+.verification-sidebar {
+    background: #f8fafb;
+    border-left: 0.5px solid #d8eaf3;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    grid-row: 1 / -1;
+}
+
+.sidebar-header {
+    margin-bottom: 20px;
+}
+
+.sidebar-header h3 {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1a2e3b;
+    margin: 0;
+}
+
+.verification-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+}
+
+.step-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2px;
+}
+
+.step-item.last .step-line {
+    display: none;
+}
+
+.step-line {
+    position: absolute;
+    left: 20px;
+    top: 44px;
+    width: 1px;
+    height: calc(100% + 6px);
+    background: #c8dce9;
+}
+
+.step-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.step-content:hover {
+    background: rgba(76, 155, 200, 0.08);
+}
+
+.step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e8f1f7;
+    border: 1px solid #c8dce9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.step-number {
+    font-size: 13px;
+    font-weight: 800;
+    color: #4c9bc8;
+}
+
+.step-item[data-status="success"] .step-indicator {
+    background: #d4f1e0;
+    border-color: #22c55e;
+}
+
+.step-item[data-status="warning"] .step-indicator {
+    background: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.step-item[data-status="success"] .step-number {
+    color: #22c55e;
+}
+
+.step-item[data-status="warning"] .step-number {
+    color: #f59e0b;
+}
+
+.step-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.step-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a2e3b;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.step-subtitle {
+    font-size: 10px;
+    color: #6b8fa3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.step-status {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.step-status[data-status="pending"] {
+    background: #e8f1f7;
+    border: 1px solid #c8dce9;
+}
+
+.step-status[data-status="warning"] {
+    background: #fef3c7;
+}
+
+.step-status[data-status="success"] {
+    background: #d4f1e0;
+}
+
+.status-icon {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+}
+
+.pending-icon {
+    stroke: #9bbdd0;
+}
+
+.step-status[data-status="pending"] .pending-icon {
+    display: block !important;
+}
+
+.step-status[data-status="pending"] .success-icon {
+    display: none !important;
+}
+
+.step-status[data-status="warning"] .status-icon {
+    stroke: #f59e0b;
+}
+
+.step-status[data-status="success"] .pending-icon {
+    display: none !important;
+}
+
+.success-icon {
+    stroke: #22c55e;
+}
+
+.step-status[data-status="success"] .success-icon {
+    stroke: #22c55e;
+    display: block !important;
+    stroke-dasharray: 24;
+    animation: successCheck 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Success checkmark animation */
+@keyframes successCheck {
+    0% {
+        stroke-dashoffset: 24;
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        stroke-dashoffset: 0;
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 0.5px solid #d8eaf3;
+}
+
+.status-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: #6b8fa3;
+}
+
+.legend-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-icon.pending {
+    background: #e8f1f7;
+    border: 1px solid #c8dce9;
+}
+
+.legend-icon.warning {
+    background: #fef3c7;
+}
+
+.legend-icon.success {
+    background: #d4f1e0;
+}
+
+/* Topbar grid spanning */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #fff; /* penting biar tidak transparan */
+}
+
+/* Landing view grid spanning */
+.landing-view {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* Chat view grid spanning */
+.chat-view {
+    grid-column: 1;
+    grid-row: 2;
 }

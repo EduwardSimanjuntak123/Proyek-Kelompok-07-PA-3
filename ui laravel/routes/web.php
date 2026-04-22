@@ -504,4 +504,7 @@ Route::prefix('ai-agent')->group(function () {
     Route::post('/ai-kelompok/download-excel', [AgentKelompokController::class, 'downloadExcel'])
         ->name('ai.downloadExcel');
 
+    Route::get('/verification-status', [AgentKelompokController::class, 'getVerificationStatus'])
+        ->name('ai.verificationStatus');
+
 });

@@ -8,6 +8,7 @@ use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
 use App\Models\pembimbing as PembimbingModel;
 use App\Models\Penguji as PengujiModel;
+use App\Models\Jadwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -842,6 +843,68 @@ class AgentKelompokController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mendownload file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get verification status dari database
+     */
+    public function getVerificationStatus()
+    {
+        try {
+            $KPA_id = session('KPA_id');
+            $prodi_id = session('prodi_id');
+            $TM_id = session('TM_id');
+
+            // Check kelompok
+            $kelompok_count = Kelompok::where('KPA_id', $KPA_id)
+                ->where('prodi_id', $prodi_id)
+                ->where('TM_id', $TM_id)
+                ->count();
+            
+            $kelompok_status = $kelompok_count > 0 ? 'success' : 'pending';
+
+            // Check pembimbing
+            $pembimbing_count = PembimbingModel::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+                $q->where('KPA_id', $KPA_id);
+                $q->where('prodi_id', $prodi_id);
+                $q->where('TM_id', $TM_id);
+            })->count();
+            
+            $pembimbing_status = $pembimbing_count > 0 ? 'success' : 'pending';
+
+            // Check penguji
+            $penguji_count = PengujiModel::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+                $q->where('KPA_id', $KPA_id);
+                $q->where('prodi_id', $prodi_id);
+                $q->where('TM_id', $TM_id);
+            })->count();
+            
+            $penguji_status = $penguji_count > 0 ? 'success' : 'pending';
+
+            // Check jadwal
+            $jadwal_count = Jadwal::whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+                $q->where('KPA_id', $KPA_id);
+                $q->where('prodi_id', $prodi_id);
+                $q->where('TM_id', $TM_id);
+            })->count();
+            
+            $jadwal_status = $jadwal_count > 0 ? 'success' : 'pending';
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'kelompok' => $kelompok_status,
+                    'pembimbing' => $pembimbing_status,
+                    'penguji' => $penguji_status,
+                    'jadwal' => $jadwal_status
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
