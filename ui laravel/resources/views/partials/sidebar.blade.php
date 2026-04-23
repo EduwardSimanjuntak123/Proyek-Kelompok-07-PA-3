@@ -2,7 +2,6 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand mt-3">
             {{-- <img src="{{ file_exists(public_path('assets/img/logovokasi.png')) ? asset('assets/img/logovokasi.png') : 'https://via.placeholder.com/300' }}" style="width: 130px"> --}}
-
             @php
                 $dashboardRoute = '#';
                 if (session('isLoggin')) {
@@ -40,6 +39,8 @@
         @if (session('isLoggin'))
 
             <ul class="sidebar-menu">
+@dd(session('dosen_roles'))
+
 
                 @if (session('role') == 'Dosen')
                     @php $dosenRoles = session('dosen_roles'); @endphp
