@@ -52,6 +52,22 @@ def planner_node(state):
             state["plan"] = plan
             return state
 
+        # Intent khusus: pembimbing assignment HARUS dicheck lebih dulu
+        # SEBELUM "daftar dosen pembimbing" karena lebih spesifik
+        if ("generate" in prompt_lower or "buat" in prompt_lower or "assign" in prompt_lower) and "pembimbing" in prompt_lower and not any(term in prompt_lower for term in ["daftar", "list", "tampilkan", "lihat"]):
+            plan = {"action": "generate_pembimbing"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_pembimbing ✓")
+            state["plan"] = plan
+            return state
+
+        # Intent khusus: penguji assignment HARUS dicheck lebih dulu
+        # SEBELUM "daftar penguji" karena lebih spesifik
+        if ("generate" in prompt_lower or "buat" in prompt_lower or "assign" in prompt_lower) and "penguji" in prompt_lower and not any(term in prompt_lower for term in ["daftar", "list", "tampilkan", "lihat"]):
+            plan = {"action": "generate_penguji"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_penguji ✓")
+            state["plan"] = plan
+            return state
+
         # Intent khusus: daftar dosen pembimbing (beda dengan daftar dosen umum)
         if "dosen pembimbing" in prompt_lower or "daftar pembimbing" in prompt_lower:
             plan = {"action": "query_pembimbing"}
@@ -59,15 +75,10 @@ def planner_node(state):
             state["plan"] = plan
             return state
 
-        if ("generate" in prompt_lower or "buat" in prompt_lower or "assign" in prompt_lower) and "pembimbing" in prompt_lower:
-            plan = {"action": "generate_pembimbing"}
-            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_pembimbing ✓")
-            state["plan"] = plan
-            return state
-
-        if ("generate" in prompt_lower or "buat" in prompt_lower or "assign" in prompt_lower) and "penguji" in prompt_lower:
-            plan = {"action": "generate_penguji"}
-            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_penguji ✓")
+        # Intent khusus: daftar dosen penguji
+        if "dosen penguji" in prompt_lower or "daftar penguji" in prompt_lower:
+            plan = {"action": "query_penguji"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → query_penguji ✓ (dosen penguji list)")
             state["plan"] = plan
             return state
 

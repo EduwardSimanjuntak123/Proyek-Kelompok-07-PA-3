@@ -163,9 +163,11 @@ Route::prefix('pembimbing2')->group(function () {
 //CRUD untuk penguji1 oleh koordinator
 Route::prefix('penguji')->group(function () {
     Route::get('/', [Penguji_Controller::class, 'index'])->name('penguji.index');
-    Route::get('/create', [Penguji_Controller::class, 'create'])->name('penguji.create');
+    Route::get('/penguji/create/{id}', [Penguji_Controller::class, 'create'])
+        ->name('penguji.create');
     Route::post('/', [Penguji_Controller::class, 'store'])->name('penguji.store');
-    Route::get('/{id}', [Penguji_Controller::class, 'edit'])->name('penguji.edit');
+    Route::get('/penguji/edit/{id}', [Penguji_Controller::class, 'edit'])
+        ->name('penguji.edit');
     Route::put('/{id}', [Penguji_Controller::class, 'update'])->name('penguji.update');
     Route::delete('/{id}', [Penguji_Controller::class, 'destroy'])->name('penguji.destroy');
     Route::get('/{id}/show', [Penguji_Controller::class, 'show'])->name('penguji.show');

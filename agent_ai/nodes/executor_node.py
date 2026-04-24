@@ -1518,7 +1518,7 @@ def executor_node(state):
                     logger.info(f"[{user_id}] ✓ {len(groups)} kelompok berdasarkan nilai berhasil dibuat")
                 else:
                     error_msg = grouping_result.get("message", "Error tidak diketahui")
-                    state["result"] = f"<p style='color:red;'>❌ Gagal membuat kelompok: {error_msg}</p>"
+                    state["result"] = f"<p style=''>Gagal membuat kelompok: {error_msg}</p>"
                     logger.warning(f"[{user_id}] ✗ create_group_by_grades gagal: {error_msg}")
 
         elif action == "check_kelompok":

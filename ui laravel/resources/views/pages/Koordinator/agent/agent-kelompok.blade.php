@@ -220,18 +220,7 @@
                 </div>
 
                 <div class="chip-row">
-                    <button class="chip" data-instruction="Buat 5 kelompok mahasiswa">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11"
-                            height="11">
-                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                            <path d="M16 3.13a4 4 0 010 7.75" />
-                        </svg>
-                        Buat kelompok
-                    </button>
-
-                    <button class="chip" data-instruction="Bagi mahasiswa menjadi 6 orang per kelompok">
+                    <button class="chip" data-instruction="Buat Kelompok dengan 5 orang per kelompok berdasarkan nilai">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11"
                             height="11">
                             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -239,25 +228,27 @@
                             <rect x="3" y="14" width="7" height="7" rx="1" />
                             <rect x="14" y="14" width="7" height="7" rx="1" />
                         </svg>
-                        6 orang/kelompok
+                        5 orang/kelompok
                     </button>
 
-                    <button class="chip" data-instruction="Tentukan dosen pembimbing untuk setiap kelompok">
+                    <button class="chip" data-instruction="Buat Dosen Pembimbing untuk setiap kelompok">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11"
                             height="11">
-                            <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
-                            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                            <path d="M20 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                            <path d="M16 3.13a4 4 0 010 7.75" />
                         </svg>
-                        Set pembimbing
+                        Buat Dosen Pembimbing
                     </button>
 
-                    <button class="chip" data-instruction="Tentukan dosen penguji untuk setiap kelompok">
+                    <button class="chip" data-instruction="Buat Dosen Penguji untuk setiap kelompok">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11"
                             height="11">
                             <path d="M9 11l3 3L22 4" />
                             <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
                         </svg>
-                        Set penguji
+                        Buat Dosen Penguji
                     </button>
 
                     <button class="chip" data-instruction="Apa yang bisa kamu lakukan?">
@@ -1622,19 +1613,8 @@
                 })
         };
 
-        document.getElementById("landingSend")?.addEventListener("click", () => {
-            const val = document.getElementById("landingInput").value;
-            document.getElementById("userInput").value = val;
-            window.sendMessage();
-        });
-
-        document.getElementById("landingInput")?.addEventListener("keydown", function(e) {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                document.getElementById("userInput").value = this.value;
-                window.sendMessage();
-            }
-        });
+        // Note: Event listeners for landingInput and landingSend are now in DOMContentLoaded
+        // to avoid duplicate event binding
 
         // ============== END CHATBOT UI ==============
 
