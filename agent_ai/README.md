@@ -116,7 +116,6 @@
 **Intelligent algorithm untuk smart student grouping berdasarkan nilai**
 
 ### Features
-
 - 📊 **PA-Aware**: Maps PA category → required semesters
   - PA-1 → [1]
   - PA-2 → [1, 2, 3]
@@ -159,19 +158,6 @@ Output: 15 kelompok ready to use ✅
 
 ### Output Example
 
-```html
-<h3>✅ Kelompok Berdasarkan Nilai Berhasil Dibuat</h3>
-
-📋 Breakdown Mahasiswa: - Total dalam Prodi: 87 - Sudah dalam Kelompok: 18 -
-Kandidat Grouping: 69 - Dengan Data Nilai: 34 ✓ - Tanpa Data Nilai: 35 ✓
-(default 0) 📈 Class Statistics: - Mean: 75.5 - Std Dev: 8.2 - Range: 60.0 -
-95.0 👥 Group 1 (6 members): - 11419006 - Mei Pane (78.5) - 11419010 - Sahat
-P.H. (76.0) - 11419049 - Zico A.A. (74.2) - 11419062 - Ares J.M. (73.8) -
-11419075 - Budi Santo (72.5) - 11419088 - Citra Dewi (71.0) Avg: 74.3 |
-Deviation: -1.2 ✅ ... (14 more groups)
-```
-
----
 
 ## 📁 Project Structure
 
@@ -257,7 +243,6 @@ agent_ai/
 ```
 
 #### Response
-
 ```json
 {
     "success": true,
@@ -295,7 +280,6 @@ agent_ai/
 ```
 
 ### GET /health
-
 **Health check**
 
 ```bash
@@ -320,7 +304,6 @@ curl http://localhost:8002/health
             "timestamp": "2026-04-22T10:30:15Z"
         }
     ],
-
     "plan": {
         "action": "create_group_by_grades",
         "confidence": 0.95,
@@ -333,7 +316,6 @@ curl http://localhost:8002/health
         "groups": [...],
         "class_statistics": {...}
     },
-
     "grouping_meta": {
         "prodi_id": 4,
         "kategori_pa_id": 2,
@@ -359,7 +341,6 @@ curl http://localhost:8002/health
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 ```
 Python 3.9+
 MySQL 5.7+
@@ -433,7 +414,6 @@ curl -X POST http://localhost:8002/agent \
 4️⃣  EXECUTOR NODE
     - Extract: members_per_group = 6
     - Get PA semesters: PA-2 → [1, 2, 3]
-
     🔧 Call: calculate_student_average_grades()
        └─ Query: 87 mahasiswa in prodi_id=4
        └─ Filter: nilai in semester 1,2,3
@@ -452,7 +432,6 @@ curl -X POST http://localhost:8002/agent \
           - Group 2: student[1], student[16], student[31], ...
           - etc.
        └─ Verify: all group means within [67.3, 83.7] ✓
-
     🔧 Format: Generate HTML with
        - Breakdown (87 total, 34 with data, 53 default 0)
        - Class statistics (mean, std_dev, range)
@@ -602,20 +581,17 @@ curl -X POST http://localhost:8002/agent \
 ## 🔧 Recent Updates (April 2026)
 
 ### ✅ Grade-Based Intelligent Grouping
-
 - Implemented `grouping_by_grades.py` (340+ lines)
 - PA-category aware semester mapping
 - Statistical balance verification
 - Transparent breakdown reporting
 
 ### ✅ "Orang Perkelompok" Support
-
 - Pattern matching: `r"(\d+)\s+orang\s+perkelompok"`
 - Automatic group count: `ceil(total_students / members_per_group)`
 - Fallback to default 5 groups if not specified
 
 ### ✅ Database Query Fixes
-
 - Fixed foreign key: `mahasiswa_id` → `user_id` mapping
 - Updated all 6 join statements in query tools
 - Validated with debug_nilai_students.py
