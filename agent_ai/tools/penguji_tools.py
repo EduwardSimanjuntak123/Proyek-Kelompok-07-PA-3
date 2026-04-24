@@ -16,9 +16,11 @@ from sqlalchemy import func, or_
 
 from core.database import SessionLocal
 from models.dosen import Dosen
+from models.dosen_role import DosenRole
 from models.kelompok import Kelompok
 from models.pembimbing import Pembimbing
 from models.penguji import Penguji
+from models.role import Role
 
 
 DOSEN_ID_FALLBACK_OFFSET = 1000000000
@@ -376,13 +378,14 @@ def generate_penguji_assignments_by_context(
             loads[uid] += 1
 
         inserts = []
+        dosen_role_inserts = []
         if persist:
             if existing_assignments and replace_existing:
                 session.query(Penguji).filter(Penguji.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
 
             now = datetime.now()
             for kelompok in kelompoks:
-                for user_id in group_assignments[kelompok.id]:
+                for idx, user_id in enumerate(group_assignments[kelompok.id]):
                     inserts.append(
                         Penguji(
                             user_id=user_id,
@@ -391,8 +394,37 @@ def generate_penguji_assignments_by_context(
                             updated_at=now,
                         )
                     )
+                    
+                    # Tentukan role_id berdasarkan posisi penguji (1st atau 2nd)
+                    # role_id 2 = Penguji 1, role_id 4 = Penguji 2
+                    role_id = 2 if idx == 0 else 4
+                    
+                    # Cek apakah DosenRole sudah ada
+                    existing_role = session.query(DosenRole).filter(
+                        DosenRole.user_id == user_id,
+                        DosenRole.role_id == role_id,
+                        DosenRole.prodi_id == prodi_id,
+                        DosenRole.KPA_id == kategori_pa_id,
+                        DosenRole.TM_id == angkatan_id,
+                    ).first()
+                    
+                    # Jika belum ada, buat DosenRole baru
+                    if not existing_role:
+                        dosen_role_inserts.append(
+                            DosenRole(
+                                user_id=user_id,
+                                role_id=role_id,
+                                prodi_id=prodi_id,
+                                KPA_id=kategori_pa_id,
+                                TM_id=angkatan_id,
+                                tahun_ajaran_id=1,  # default tahun ajaran
+                                status="Aktif",
+                            )
+                        )
 
             session.add_all(inserts)
+            if dosen_role_inserts:
+                session.add_all(dosen_role_inserts)
             session.commit()
 
         grouped_output = []

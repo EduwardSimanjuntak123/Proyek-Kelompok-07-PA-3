@@ -39,7 +39,6 @@
         @if (session('isLoggin'))
 
             <ul class="sidebar-menu">
-@dd(session('dosen_roles'))
 
 
                 @if (session('role') == 'Dosen')
@@ -125,7 +124,8 @@
                                             href="{{ route('penguji1.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
                                     <li><a class="nav-link {{ request()->routeIs('penguji1.NilaiIndividu.index') ? 'active' : '' }}"
                                             href="{{ route('penguji1.NilaiIndividu.index') }}">Nilai Individu</a></li>
-                                @elseif (in_array(4, $dosenRoles))
+                                @endif
+                                @if (in_array(4, $dosenRoles))
                                     <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiKelompok.index') ? 'active' : '' }}"
                                             href="{{ route('penguji2.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
                                     <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiIndividu.index') ? 'active' : '' }}"
@@ -165,7 +165,8 @@
                                     <li><a class="nav-link {{ request()->routeIs('pembimbing1.NilaiBimbingan.index') ? 'active' : '' }}"
                                             href="{{ route('pembimbing1.NilaiBimbingan.index') }}">Nilai Bimbingan</a>
                                     </li>
-                                @elseif (in_array(5, $dosenRoles))
+                                @endif
+                                @if (in_array(5, $dosenRoles))
                                     <li><a class="nav-link {{ request()->routeIs('pembimbing2.NilaiKelompok.index') ? 'active' : '' }}"
                                             href="{{ route('pembimbing2.NilaiKelompok.index') }}">Nilai Kelompok
                                             (Seminar)</a></li>
