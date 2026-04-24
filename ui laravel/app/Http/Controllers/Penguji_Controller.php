@@ -257,6 +257,31 @@ public function store(Request $request)
             'user_id' => $validated['user_id'],
             'kelompok_id' => $kelompokId,
         ]);
+
+        // ✅ AUTO-CREATE DosenRole untuk Penguji 1 jika belum ada
+        $prodi_id = session('prodi_id');
+        $KPA_id = session('KPA_id');
+        $TM_id = session('TM_id');
+        $tahun_ajaran_id = session('tahun_ajaran_id') ?? 1;
+        
+        $existingRole = DosenRole::where('user_id', $validated['user_id'])
+            ->where('role_id', 2) // Penguji 1
+            ->where('prodi_id', $prodi_id)
+            ->where('KPA_id', $KPA_id)
+            ->where('TM_id', $TM_id)
+            ->first();
+        
+        if (!$existingRole) {
+            DosenRole::create([
+                'user_id' => $validated['user_id'],
+                'role_id' => 2, // Penguji 1
+                'prodi_id' => $prodi_id,
+                'KPA_id' => $KPA_id,
+                'TM_id' => $TM_id,
+                'tahun_ajaran_id' => $tahun_ajaran_id,
+                'status' => 'Aktif'
+            ]);
+        }
     }
 
     return redirect()->route('penguji.index')->with('success', 'Data Berhasil disimpan');
@@ -291,6 +316,31 @@ public function storepenguji2(Request $request){
             'user_id' => $validated['user_id'],
             'kelompok_id' => $kelompokId,
         ]);
+
+        // ✅ AUTO-CREATE DosenRole untuk Penguji 2 jika belum ada
+        $prodi_id = session('prodi_id');
+        $KPA_id = session('KPA_id');
+        $TM_id = session('TM_id');
+        $tahun_ajaran_id = session('tahun_ajaran_id') ?? 1;
+        
+        $existingRole = DosenRole::where('user_id', $validated['user_id'])
+            ->where('role_id', 4) // Penguji 2
+            ->where('prodi_id', $prodi_id)
+            ->where('KPA_id', $KPA_id)
+            ->where('TM_id', $TM_id)
+            ->first();
+        
+        if (!$existingRole) {
+            DosenRole::create([
+                'user_id' => $validated['user_id'],
+                'role_id' => 4, // Penguji 2
+                'prodi_id' => $prodi_id,
+                'KPA_id' => $KPA_id,
+                'TM_id' => $TM_id,
+                'tahun_ajaran_id' => $tahun_ajaran_id,
+                'status' => 'Aktif'
+            ]);
+        }
     }
     return redirect()->route('penguji2.index')->with('succes', 'Data Berhasil disimpan');
   }

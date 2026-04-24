@@ -107,7 +107,7 @@ class JadwalController extends Controller
                 ->whereDoesntHave('jadwal') // Ensure no schedule exists yet
                 ->with('pengajuanSeminar') // Eager load pengajuanSeminar
                 ->get();
-    dd($kelompok);
+    // dd($kelompok);
     
             $kategoriPA = kategoriPA::find($KPA_id);
             $prodi = Prodi::find($prodi_id);

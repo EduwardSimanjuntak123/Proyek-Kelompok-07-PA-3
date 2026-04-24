@@ -9,6 +9,7 @@ use App\Jobs\SyncMatkulJob;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Exception;
 use GuzzleHttp\Exception\RequestException;
 use App\Models\User;
@@ -32,6 +33,173 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        // Check if DEMO_MODE is enabled
+        if (env('DEMO_MODE') === true || env('DEMO_MODE') === 'true') {
+            return $this->demoLogin($request);
+        }
+
+        // Production mode - use external API
+        return $this->externalApiLogin($request);
+    }
+
+    /**
+     * Demo login untuk testing tanpa external API
+     * PENTING: Tidak membuat akun baru, hanya authenticate akun existing
+     * Support: mahasiswa, dosen, staff (demo), chandra.simanjuntak (real staff)
+     */
+    private function demoLogin(Request $request)
+    {
+        $username = $request->input('username');
+        $password = $request->input('password');
+
+        // Demo password untuk demo users
+        $demoPassword = 'password123';
+        $defaultPassword = 'default_password_123';
+
+        // Try to find staff dengan username chandra.simanjuntak (REAL ACCOUNT)
+        if (strtolower($username) === 'chandra.simanjuntak' || strtolower($username) === 'chandra') {
+            // Cari staff user dengan email chandra.simanjuntak@del.ac.id
+            $staffUser = User::where('email', 'chandra.simanjuntak@del.ac.id')->first();
+            
+            if (!$staffUser) {
+                return redirect()->back()->withErrors(['login' => 'Akun staff tidak ditemukan.'])->withInput();
+            }
+
+            // Verify password using Hash::check (bekerja dengan bcrypt)
+            if (!Hash::check($password, $staffUser->password)) {
+                return redirect()->back()->withErrors(['login' => 'Username dan password tidak sesuai.'])->withInput();
+            }
+
+            $user = $staffUser;
+            
+            $userData = [
+                'user_id' => $staffUser->id,
+                'role' => 'Staff',
+                'name' => $staffUser->name,
+                'email' => $staffUser->email,
+                'isLoggin' => true,
+                'token' => 'demo-token-' . time(),
+            ];
+        }
+        // Try to find mahasiswa by username
+        else if (strtolower($username) === 'mahasiswa' || strpos(strtolower($username), 'mahasiswa') !== false) {
+            // Validate demo password
+            if ($password !== $demoPassword && $password !== $defaultPassword) {
+                return redirect()->back()->withErrors(['login' => 'Username dan password tidak sesuai.'])->withInput();
+            }
+
+            // Get first available mahasiswa from database
+            $mahasiswa = \DB::table('mahasiswa')
+                ->whereNotNull('email')
+                ->where('email', '!=', '-')
+                ->first();
+            
+            if (!$mahasiswa) {
+                return redirect()->back()->withErrors(['login' => 'Tidak ada data mahasiswa dengan email valid di database.'])->withInput();
+            }
+
+            // PENTING: Cari user existing dengan email dari mahasiswa table
+            $user = User::where('email', $mahasiswa->email)->first();
+            
+            if (!$user) {
+                return redirect()->back()->withErrors(['login' => 'Akun mahasiswa belum di-setup. Jalankan: php artisan db:seed --class=MigrateExistingUsersSeeder'])->withInput();
+            }
+
+            $userData = [
+                'user_id' => $mahasiswa->user_id, // Gunakan mahasiswa.user_id untuk relasi kelompok
+                'role' => 'Mahasiswa',
+                'name' => $mahasiswa->nama ?: $user->name,
+                'email' => $user->email,
+                'isLoggin' => true,
+                'token' => 'demo-token-' . time(),
+            ];
+        } 
+        // Try to find dosen
+        else if (strtolower($username) === 'dosen' || strpos(strtolower($username), 'dosen') !== false) {
+            // Validate demo password
+            if ($password !== $demoPassword && $password !== $defaultPassword) {
+                return redirect()->back()->withErrors(['login' => 'Username dan password tidak sesuai.'])->withInput();
+            }
+
+            $dosen = \DB::table('dosen')
+                ->whereNotNull('email')
+                ->where('email', '!=', '-')
+                ->first();
+            
+            if (!$dosen) {
+                return redirect()->back()->withErrors(['login' => 'Tidak ada data dosen dengan email valid di database.'])->withInput();
+            }
+
+            // PENTING: Cari user existing dengan email dari dosen table
+            $user = User::where('email', $dosen->email)->first();
+            
+            if (!$user) {
+                return redirect()->back()->withErrors(['login' => 'Akun dosen belum di-setup. Jalankan: php artisan db:seed --class=MigrateExistingUsersSeeder'])->withInput();
+            }
+
+            $userData = [
+                'user_id' => $dosen->user_id,
+                'role' => 'Dosen',
+                'name' => $dosen->nama ?: $user->name,
+                'email' => $user->email,
+                'isLoggin' => true,
+                'token' => 'demo-token-' . time(),
+            ];
+        }
+        // Try to find staff (DEMO)
+        else if (strtolower($username) === 'staff' || strpos(strtolower($username), 'staff') !== false) {
+            // Validate demo password
+            if ($password !== $demoPassword && $password !== $defaultPassword) {
+                return redirect()->back()->withErrors(['login' => 'Username dan password tidak sesuai.'])->withInput();
+            }
+
+            $userData = [
+                'user_id' => 3001,
+                'role' => 'Staff',
+                'name' => 'Staff BAAK Test',
+                'email' => 'staff@test.com',
+                'isLoggin' => true,
+                'token' => 'demo-token-' . time(),
+            ];
+
+            // Cari atau buat staff user
+            $user = User::where('email', $userData['email'])->first();
+            if (!$user) {
+                $user = User::create([
+                    'name' => $userData['name'],
+                    'email' => $userData['email'],
+                    'password' => bcrypt($demoPassword),
+                ]);
+            }
+        }
+        else {
+            return redirect()->back()->withErrors(['login' => 'Username tidak valid. Gunakan: mahasiswa, dosen, staff, atau chandra.simanjuntak.'])->withInput();
+        }
+
+        // Set session data
+        Session::put($userData);
+
+        // Login to Laravel Auth
+        Auth::login($user);
+
+        // Redirect berdasarkan role
+        if ($userData['role'] == 'Mahasiswa') {
+            return redirect()->route('dashboard.mahasiswa');
+        } elseif ($userData['role'] == 'Dosen') {
+            session(['dosen_roles' => [1]]);
+            return redirect()->route('dashboard.koordinator');
+        } elseif ($userData['role'] == 'Staff') {
+            return redirect()->route('dashboard.BAAK');
+        }
+
+        return redirect()->route('dashboard.mahasiswa');
+    }
+
+    /**
+     * External API login (Production mode)
+     */
+    private function externalApiLogin(Request $request)
+    {
         $client = new Client();
         $url = env('API_URL') . "jwt-api/do-auth";
 
@@ -81,18 +249,23 @@ class AuthController extends Controller
                         ->first();
 
                     if ($dosenRole) {
-                        // Simpan ke session
+                        // Simpan primary role ke session (untuk default context)
                         session([
                             'prodi_id' => $dosenRole->prodi_id,
                             'KPA_id' => $dosenRole->KPA_id,
                             'TM_id' => $dosenRole->TM_id,
                             'role_id' => $dosenRole->role_id,
+                            'tahun_ajaran_id' => $dosenRole->tahun_ajaran_id,
                         ]);
 
-                        // Dosen roles logic for redirection
-                        $dosenRoles = DosenRole::where('user_id', $userTemp['user_id'])->pluck('role_id')->toArray();
+                        // ✅ Query SEMUA roles yang aktif (tidak hanya yang pertama)
+                        $dosenRoles = DosenRole::where('user_id', $userTemp['user_id'])
+                            ->where('status', 'Aktif')
+                            ->pluck('role_id')
+                            ->toArray();
                         session(['dosen_roles' => $dosenRoles]);
 
+                        // Redirect ke primary role berdasarkan priority
                         if (in_array('1', $dosenRoles)) {
                             return redirect()->route('dashboard.koordinator');
                         } elseif (in_array('2', $dosenRoles) || in_array('4', $dosenRoles)) {

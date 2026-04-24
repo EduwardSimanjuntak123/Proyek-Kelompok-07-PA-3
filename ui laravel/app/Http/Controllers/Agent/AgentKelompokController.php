@@ -448,6 +448,7 @@ class AgentKelompokController extends Controller
                 $replaceExisting,
                 $contextKelompokIds,
                 $allowedKelompokIdSet,
+                $role,
                 &$savedAssignments,
                 &$deletedAssignments
             ) {
@@ -462,6 +463,7 @@ class AgentKelompokController extends Controller
                     }
 
                     $assignedInGroup = [];
+                    $pembimbingIndex = 0; // Track index for role assignment (1st or 2nd)
                     foreach (($group['pembimbing'] ?? []) as $pb) {
                         $dosenUserId = (int) ($pb['user_id'] ?? 0);
                         if ($dosenUserId <= 0 || isset($assignedInGroup[$dosenUserId])) {
@@ -475,6 +477,30 @@ class AgentKelompokController extends Controller
                             'user_id' => $dosenUserId,
                         ]);
 
+                        // ✅ AUTO-CREATE DosenRole untuk pembimbing jika belum ada
+                        // role_id 3 = Pembimbing 1, role_id 5 = Pembimbing 2
+                        $roleId = ($pembimbingIndex === 0) ? 3 : 5;
+                        
+                        $existingRole = DosenRole::where('user_id', $dosenUserId)
+                            ->where('role_id', $roleId)
+                            ->where('prodi_id', $role->prodi_id)
+                            ->where('KPA_id', $role->KPA_id)
+                            ->where('TM_id', $role->TM_id)
+                            ->first();
+                        
+                        if (!$existingRole) {
+                            DosenRole::create([
+                                'user_id' => $dosenUserId,
+                                'role_id' => $roleId,
+                                'prodi_id' => $role->prodi_id,
+                                'KPA_id' => $role->KPA_id,
+                                'TM_id' => $role->TM_id,
+                                'tahun_ajaran_id' => session('tahun_ajaran_id') ?? 1,
+                                'status' => 'Aktif'
+                            ]);
+                        }
+
+                        $pembimbingIndex++;
                         $savedAssignments++;
                     }
                 }
@@ -631,6 +657,7 @@ class AgentKelompokController extends Controller
                 $contextKelompokIds,
                 $allowedKelompokIdSet,
                 $pembimbingMap,
+                $role,
                 &$savedAssignments,
                 &$deletedAssignments,
                 &$skippedAsPembimbing
@@ -646,6 +673,7 @@ class AgentKelompokController extends Controller
                     }
 
                     $assignedInGroup = [];
+                    $pengujiIndex = 0; // Track index for role assignment (1st or 2nd)
                     foreach (($group['penguji'] ?? []) as $pb) {
                         $dosenUserId = (int) ($pb['user_id'] ?? 0);
                         if ($dosenUserId <= 0 || isset($assignedInGroup[$dosenUserId])) {
@@ -664,6 +692,30 @@ class AgentKelompokController extends Controller
                             'user_id' => $dosenUserId,
                         ]);
 
+                        // ✅ AUTO-CREATE DosenRole untuk penguji jika belum ada
+                        // role_id 2 = Penguji 1, role_id 4 = Penguji 2
+                        $roleId = ($pengujiIndex === 0) ? 2 : 4;
+                        
+                        $existingRole = DosenRole::where('user_id', $dosenUserId)
+                            ->where('role_id', $roleId)
+                            ->where('prodi_id', $role->prodi_id)
+                            ->where('KPA_id', $role->KPA_id)
+                            ->where('TM_id', $role->TM_id)
+                            ->first();
+                        
+                        if (!$existingRole) {
+                            DosenRole::create([
+                                'user_id' => $dosenUserId,
+                                'role_id' => $roleId,
+                                'prodi_id' => $role->prodi_id,
+                                'KPA_id' => $role->KPA_id,
+                                'TM_id' => $role->TM_id,
+                                'tahun_ajaran_id' => session('tahun_ajaran_id') ?? 1,
+                                'status' => 'Aktif'
+                            ]);
+                        }
+
+                        $pengujiIndex++;
                         $savedAssignments++;
                     }
                 }

@@ -528,13 +528,14 @@ def generate_pembimbing_assignments_by_context(
                 loads[uid] += 1
 
         inserts = []
+        dosen_role_inserts = []
         if persist:
             if existing_assignments and replace_existing:
                 session.query(Pembimbing).filter(Pembimbing.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
 
             now = datetime.now()
             for kelompok in kelompoks:
-                for user_id in group_assignments[kelompok.id]:
+                for idx, user_id in enumerate(group_assignments[kelompok.id]):
                     inserts.append(
                         Pembimbing(
                             user_id=user_id,
@@ -543,8 +544,37 @@ def generate_pembimbing_assignments_by_context(
                             updated_at=now,
                         )
                     )
+                    
+                    # Tentukan role_id berdasarkan posisi pembimbing (1st atau 2nd)
+                    # role_id 3 = Pembimbing 1, role_id 5 = Pembimbing 2
+                    role_id = 3 if idx == 0 else 5
+                    
+                    # Cek apakah DosenRole sudah ada
+                    existing_role = session.query(DosenRole).filter(
+                        DosenRole.user_id == user_id,
+                        DosenRole.role_id == role_id,
+                        DosenRole.prodi_id == prodi_id,
+                        DosenRole.KPA_id == kategori_pa_id,
+                        DosenRole.TM_id == angkatan_id,
+                    ).first()
+                    
+                    # Jika belum ada, buat DosenRole baru
+                    if not existing_role:
+                        dosen_role_inserts.append(
+                            DosenRole(
+                                user_id=user_id,
+                                role_id=role_id,
+                                prodi_id=prodi_id,
+                                KPA_id=kategori_pa_id,
+                                TM_id=angkatan_id,
+                                tahun_ajaran_id=1,  # default tahun ajaran
+                                status="Aktif",
+                            )
+                        )
 
             session.add_all(inserts)
+            if dosen_role_inserts:
+                session.add_all(dosen_role_inserts)
             session.commit()
 
         grouped_output = []

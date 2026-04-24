@@ -215,6 +215,31 @@ class pembimbing_Controller extends Controller
             'kelompok_id' => $request->kelompok_id
         ]);
 
+        // ✅ AUTO-CREATE DosenRole untuk Pembimbing 1 jika belum ada
+        $prodi_id = session('prodi_id');
+        $KPA_id = session('KPA_id');
+        $TM_id = session('TM_id');
+        $tahun_ajaran_id = session('tahun_ajaran_id') ?? 1; // default tahun ajaran
+        
+        $existingRole = DosenRole::where('user_id', $request->pembimbing1)
+            ->where('role_id', 3) // Pembimbing 1
+            ->where('prodi_id', $prodi_id)
+            ->where('KPA_id', $KPA_id)
+            ->where('TM_id', $TM_id)
+            ->first();
+        
+        if (!$existingRole) {
+            DosenRole::create([
+                'user_id' => $request->pembimbing1,
+                'role_id' => 3, // Pembimbing 1
+                'prodi_id' => $prodi_id,
+                'KPA_id' => $KPA_id,
+                'TM_id' => $TM_id,
+                'tahun_ajaran_id' => $tahun_ajaran_id,
+                'status' => 'Aktif'
+            ]);
+        }
+
         if ($request->pembimbing2) {
 
             pembimbing::create([
@@ -222,6 +247,25 @@ class pembimbing_Controller extends Controller
                 'kelompok_id' => $request->kelompok_id
             ]);
 
+            // ✅ AUTO-CREATE DosenRole untuk Pembimbing 2 jika belum ada
+            $existingRole2 = DosenRole::where('user_id', $request->pembimbing2)
+                ->where('role_id', 5) // Pembimbing 2
+                ->where('prodi_id', $prodi_id)
+                ->where('KPA_id', $KPA_id)
+                ->where('TM_id', $TM_id)
+                ->first();
+            
+            if (!$existingRole2) {
+                DosenRole::create([
+                    'user_id' => $request->pembimbing2,
+                    'role_id' => 5, // Pembimbing 2
+                    'prodi_id' => $prodi_id,
+                    'KPA_id' => $KPA_id,
+                    'TM_id' => $TM_id,
+                    'tahun_ajaran_id' => $tahun_ajaran_id,
+                    'status' => 'Aktif'
+                ]);
+            }
         }
 
         return redirect()->route('pembimbing.index')
@@ -370,6 +414,12 @@ class pembimbing_Controller extends Controller
     // ambil semua pembimbing untuk kelompok
     $pembimbing = pembimbing::where('kelompok_id', $kelompok_id)->get();
 
+    // Get session context
+    $prodi_id = session('prodi_id');
+    $KPA_id = session('KPA_id');
+    $TM_id = session('TM_id');
+    $tahun_ajaran_id = session('tahun_ajaran_id') ?? 1;
+
     // pembimbing 1
     if ($pembimbing1 = $pembimbing->first()) {
         $pembimbing1->user_id = $request->pembimbing1;
@@ -378,6 +428,26 @@ class pembimbing_Controller extends Controller
         pembimbing::create([
             'kelompok_id' => $kelompok_id,
             'user_id' => $request->pembimbing1
+        ]);
+    }
+
+    // ✅ AUTO-CREATE DosenRole untuk Pembimbing 1 jika belum ada
+    $existingRole = DosenRole::where('user_id', $request->pembimbing1)
+        ->where('role_id', 3)
+        ->where('prodi_id', $prodi_id)
+        ->where('KPA_id', $KPA_id)
+        ->where('TM_id', $TM_id)
+        ->first();
+    
+    if (!$existingRole) {
+        DosenRole::create([
+            'user_id' => $request->pembimbing1,
+            'role_id' => 3,
+            'prodi_id' => $prodi_id,
+            'KPA_id' => $KPA_id,
+            'TM_id' => $TM_id,
+            'tahun_ajaran_id' => $tahun_ajaran_id,
+            'status' => 'Aktif'
         ]);
     }
 
@@ -390,6 +460,26 @@ class pembimbing_Controller extends Controller
             pembimbing::create([
                 'kelompok_id' => $kelompok_id,
                 'user_id' => $request->pembimbing2
+            ]);
+        }
+
+        // ✅ AUTO-CREATE DosenRole untuk Pembimbing 2 jika belum ada
+        $existingRole2 = DosenRole::where('user_id', $request->pembimbing2)
+            ->where('role_id', 5)
+            ->where('prodi_id', $prodi_id)
+            ->where('KPA_id', $KPA_id)
+            ->where('TM_id', $TM_id)
+            ->first();
+        
+        if (!$existingRole2) {
+            DosenRole::create([
+                'user_id' => $request->pembimbing2,
+                'role_id' => 5,
+                'prodi_id' => $prodi_id,
+                'KPA_id' => $KPA_id,
+                'TM_id' => $TM_id,
+                'tahun_ajaran_id' => $tahun_ajaran_id,
+                'status' => 'Aktif'
             ]);
         }
     }
@@ -410,7 +500,7 @@ class pembimbing_Controller extends Controller
         ]);
 
         // Ambil data pembimbing berdasarkan ID
-        $pembimbing = Pembimbing::findOrFail($id); // Gantilah ini sesuai nama model kamu
+        $pembimbing = Pembimbing::findOrFail($id);
 
         // Cek apakah kelompok sudah dibimbing oleh dosen lain
         // $sudahAda = Pembimbing::where('kelompok_id', $request->kelompok_id)
@@ -426,6 +516,31 @@ class pembimbing_Controller extends Controller
         $pembimbing->kelompok_id = $request->kelompok_id;
         $pembimbing->save();
 
+        // ✅ AUTO-CREATE DosenRole untuk Pembimbing 2 jika belum ada
+        $prodi_id = session('prodi_id');
+        $KPA_id = session('KPA_id');
+        $TM_id = session('TM_id');
+        $tahun_ajaran_id = session('tahun_ajaran_id') ?? 1;
+
+        $existingRole = DosenRole::where('user_id', $request->user_id)
+            ->where('role_id', 5) // Pembimbing 2
+            ->where('prodi_id', $prodi_id)
+            ->where('KPA_id', $KPA_id)
+            ->where('TM_id', $TM_id)
+            ->first();
+        
+        if (!$existingRole) {
+            DosenRole::create([
+                'user_id' => $request->user_id,
+                'role_id' => 5, // Pembimbing 2
+                'prodi_id' => $prodi_id,
+                'KPA_id' => $KPA_id,
+                'TM_id' => $TM_id,
+                'tahun_ajaran_id' => $tahun_ajaran_id,
+                'status' => 'Aktif'
+            ]);
+        }
+
         return redirect()->route('pembimbing2.index')
             ->with('success', 'Data pembimbing berhasil diperbarui.');
     }
@@ -434,6 +549,30 @@ class pembimbing_Controller extends Controller
 {
     try {
         $kelompok_id = Crypt::decrypt($encryptedId);
+
+        // Ambil semua pembimbing untuk kelompok ini
+        $pembimbingList = pembimbing::where('kelompok_id', $kelompok_id)->get();
+
+        // ✅ Hapus DosenRole entries jika pembimbing tidak di-assign ke kelompok lain
+        foreach ($pembimbingList as $pb) {
+            $masihAdaKelompok = pembimbing::where('user_id', $pb->user_id)
+                ->where('kelompok_id', '!=', $kelompok_id)
+                ->exists();
+
+            // Jika dosen tidak punya kelompok lain, hapus dari dosen_roles (untuk Pembimbing 1 & 2 di PA ini)
+            if (!$masihAdaKelompok) {
+                $prodi_id = session('prodi_id');
+                $KPA_id = session('KPA_id');
+                $TM_id = session('TM_id');
+                
+                DosenRole::where('user_id', $pb->user_id)
+                    ->whereIn('role_id', [3, 5]) // Pembimbing 1 atau 2
+                    ->where('prodi_id', $prodi_id)
+                    ->where('KPA_id', $KPA_id)
+                    ->where('TM_id', $TM_id)
+                    ->delete();
+            }
+        }
 
         // Hapus semua pembimbing untuk kelompok ini
         pembimbing::where('kelompok_id', $kelompok_id)->delete();

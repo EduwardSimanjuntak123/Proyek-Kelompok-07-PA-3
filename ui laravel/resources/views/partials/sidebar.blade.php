@@ -2,7 +2,6 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand mt-3">
             {{-- <img src="{{ file_exists(public_path('assets/img/logovokasi.png')) ? asset('assets/img/logovokasi.png') : 'https://via.placeholder.com/300' }}" style="width: 130px"> --}}
-
             @php
                 $dashboardRoute = '#';
                 if (session('isLoggin')) {
@@ -40,6 +39,7 @@
         @if (session('isLoggin'))
 
             <ul class="sidebar-menu">
+
 
                 @if (session('role') == 'Dosen')
                     @php $dosenRoles = session('dosen_roles'); @endphp
@@ -124,7 +124,8 @@
                                             href="{{ route('penguji1.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
                                     <li><a class="nav-link {{ request()->routeIs('penguji1.NilaiIndividu.index') ? 'active' : '' }}"
                                             href="{{ route('penguji1.NilaiIndividu.index') }}">Nilai Individu</a></li>
-                                @elseif (in_array(4, $dosenRoles))
+                                @endif
+                                @if (in_array(4, $dosenRoles))
                                     <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiKelompok.index') ? 'active' : '' }}"
                                             href="{{ route('penguji2.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
                                     <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiIndividu.index') ? 'active' : '' }}"
@@ -164,7 +165,8 @@
                                     <li><a class="nav-link {{ request()->routeIs('pembimbing1.NilaiBimbingan.index') ? 'active' : '' }}"
                                             href="{{ route('pembimbing1.NilaiBimbingan.index') }}">Nilai Bimbingan</a>
                                     </li>
-                                @elseif (in_array(5, $dosenRoles))
+                                @endif
+                                @if (in_array(5, $dosenRoles))
                                     <li><a class="nav-link {{ request()->routeIs('pembimbing2.NilaiKelompok.index') ? 'active' : '' }}"
                                             href="{{ route('pembimbing2.NilaiKelompok.index') }}">Nilai Kelompok
                                             (Seminar)</a></li>
