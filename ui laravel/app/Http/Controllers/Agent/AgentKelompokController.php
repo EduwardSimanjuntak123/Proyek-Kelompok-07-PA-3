@@ -6,6 +6,7 @@ use App\Models\DosenRole;
 use App\Models\Dosen;
 use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
+use App\Models\Mahasiswa;
 use App\Models\pembimbing as PembimbingModel;
 use App\Models\Penguji as PengujiModel;
 use App\Models\Jadwal;
@@ -857,12 +858,14 @@ class AgentKelompokController extends Controller
             $prodi_id = session('prodi_id');
             $TM_id = session('TM_id');
 
-            // Check kelompok
+            // ===== CHECK KELOMPOK =====
+            // Count kelompok yang ada untuk KPA, prodi, dan tahun ini
             $kelompok_count = Kelompok::where('KPA_id', $KPA_id)
                 ->where('prodi_id', $prodi_id)
                 ->where('TM_id', $TM_id)
                 ->count();
             
+            // Jika ada kelompok, berarti sudah ada pembagian
             $kelompok_status = $kelompok_count > 0 ? 'success' : 'pending';
 
             // Check pembimbing

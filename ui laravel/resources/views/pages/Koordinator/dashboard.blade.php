@@ -13,15 +13,17 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>📋 Alur Verifikasi PA</h4>
+                            <h4>📋 List Task Koordinator PA</h4>
                         </div>
                         <div class="card-body">
                             <div class="verification-flow-container">
                                 {{-- Step 1: Kelompok --}}
-                                <div class="verification-step" data-step="kelompok" data-status="{{ $verification_status['kelompok'] ?? 'pending' }}">
+                                <div class="verification-step" data-step="kelompok"
+                                    data-status="{{ $verification_status['kelompok'] ?? 'pending' }}">
                                     <div class="step-circle">
                                         <span class="step-number">1</span>
-                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="3" stroke-linecap="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </div>
@@ -35,10 +37,12 @@
                                 <div class="verification-arrow">→</div>
 
                                 {{-- Step 2: Pembimbing --}}
-                                <div class="verification-step" data-step="pembimbing" data-status="{{ $verification_status['pembimbing'] ?? 'pending' }}">
+                                <div class="verification-step" data-step="pembimbing"
+                                    data-status="{{ $verification_status['pembimbing'] ?? 'pending' }}">
                                     <div class="step-circle">
                                         <span class="step-number">2</span>
-                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="3" stroke-linecap="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </div>
@@ -52,10 +56,12 @@
                                 <div class="verification-arrow">→</div>
 
                                 {{-- Step 3: Penguji --}}
-                                <div class="verification-step" data-step="penguji" data-status="{{ $verification_status['penguji'] ?? 'pending' }}">
+                                <div class="verification-step" data-step="penguji"
+                                    data-status="{{ $verification_status['penguji'] ?? 'pending' }}">
                                     <div class="step-circle">
                                         <span class="step-number">3</span>
-                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="3" stroke-linecap="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </div>
@@ -69,10 +75,12 @@
                                 <div class="verification-arrow">→</div>
 
                                 {{-- Step 4: Jadwal --}}
-                                <div class="verification-step" data-step="jadwal" data-status="{{ $verification_status['jadwal'] ?? 'pending' }}">
+                                <div class="verification-step" data-step="jadwal"
+                                    data-status="{{ $verification_status['jadwal'] ?? 'pending' }}">
                                     <div class="step-circle">
                                         <span class="step-number">4</span>
-                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                                        <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="3" stroke-linecap="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     </div>
@@ -87,11 +95,13 @@
                             <div class="verification-legend mt-4 pt-3 border-top">
                                 <div class="legend-row">
                                     <div class="legend-item">
-                                        <span class="legend-badge" style="background: #e8f1f7; border: 2px solid #4c9bc8;"></span>
+                                        <span class="legend-badge"
+                                            style="background: #e8f1f7; border: 2px solid #4c9bc8;"></span>
                                         <span>Pending - Belum diproses</span>
                                     </div>
                                     <div class="legend-item">
-                                        <span class="legend-badge" style="background: #d4f1e0; border: 2px solid #22c55e;"></span>
+                                        <span class="legend-badge"
+                                            style="background: #d4f1e0; border: 2px solid #22c55e;"></span>
                                         <span>Success - Sudah selesai</span>
                                     </div>
                                 </div>
@@ -170,13 +180,13 @@
                     </div>
                 </div>
                 <div class="container">
-                <h2 class="text-center mb-4">Kalender Jadwal Seminar</h2>
-                <div class="card shadow">
-                    <div class="card-body">
-                        <div id="calendar"></div>
+                    <h2 class="text-center mb-4">Kalender Jadwal Seminar</h2>
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <div id="calendar"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </section>
@@ -185,7 +195,7 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -296,6 +306,7 @@
                 transform: scale(0.8);
                 opacity: 0;
             }
+
             100% {
                 stroke-dasharray: 24;
                 stroke-dashoffset: 0;

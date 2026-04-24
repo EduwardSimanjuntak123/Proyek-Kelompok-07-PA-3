@@ -6,12 +6,14 @@ use App\Models\DosenRole;
 use App\Models\Jadwal;
 use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
+use App\Models\Mahasiswa;
 use App\Models\pembimbing;
 use App\Models\Penguji;
 use App\Models\Pengumuman;
 use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class dashboard_Controller extends Controller
@@ -324,14 +326,19 @@ public function BAAK(){
 /**
  * Check verification status untuk alur PA
  * Return array dengan status untuk setiap tahapan
+ * 
+ * Untuk kelompok: Cek apakah SEMUA mahasiswa sudah mendapat kelompok
+ * Bukan hanya cek apakah ada kelompok yang ada
  */
 private function checkVerificationStatus($KPA_id, $prodi_id, $TM_id) {
-    // Check kelompok
+    // ===== CHECK KELOMPOK =====
+    // Count kelompok yang ada untuk KPA, prodi, dan tahun ini
     $kelompok_count = Kelompok::where('KPA_id', $KPA_id)
         ->where('prodi_id', $prodi_id)
         ->where('TM_id', $TM_id)
         ->count();
     
+    // Jika ada kelompok, berarti sudah ada pembagian
     $kelompok_status = $kelompok_count > 0 ? 'success' : 'pending';
 
     // Check pembimbing
