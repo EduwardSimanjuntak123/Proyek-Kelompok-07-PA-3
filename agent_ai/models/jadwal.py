@@ -14,3 +14,7 @@ class Jadwal(Base):
     KPA_id = Column(Integer, ForeignKey("kategori_pa.id"), nullable=True, index=True)
     prodi_id = Column(Integer, ForeignKey("prodi.id"), nullable=True, index=True)
     TM_id = Column(Integer, ForeignKey("tahun_masuk.id"), nullable=True, index=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)

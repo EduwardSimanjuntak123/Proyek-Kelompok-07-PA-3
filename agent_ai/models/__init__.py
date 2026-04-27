@@ -21,6 +21,8 @@ from models.jadwal import Jadwal
 from models.nilai_mahasiswa import NilaiMahasiswa
 from models.role import Role
 from models.ruangan import Ruangan
+from models.pengajuan_seminar import PengajuanSeminar, StatusPengajuan
+from models.pengajuan_seminar_files import PengajuanSeminarFiles
 
 __all__ = [
     "Dosen",
@@ -40,4 +42,7 @@ __all__ = [
     "NilaiMahasiswa",
     "Role",
     "Ruangan",
+    "PengajuanSeminar",
+    "StatusPengajuan",
+    "PengajuanSeminarFiles",
 ]
