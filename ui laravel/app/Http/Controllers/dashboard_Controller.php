@@ -211,8 +211,70 @@ class dashboard_Controller extends Controller
     $TM_id = session('TM_id');
     $user_id = session('user_id');
 
-    $jumlah_kelompok = Penguji::where('user_id', $user_id)
-        ->count();
+    $kelompokIds = Penguji::where('user_id', $user_id)
+        ->whereHas('Kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+            $q->where('KPA_id', $KPA_id)
+                ->where('prodi_id', $prodi_id)
+                ->where('TM_id', $TM_id);
+        })
+        ->pluck('kelompok_id')
+        ->unique()
+        ->values();
+
+    $jumlah_kelompok = $kelompokIds->count();
+
+    $kelompokList = collect();
+    if ($kelompokIds->isNotEmpty()) {
+        $kelompokMap = Kelompok::whereIn('id', $kelompokIds)
+            ->get(['id', 'nomor_kelompok', 'status', 'TM_id', 'KPA_id', 'prodi_id'])
+            ->keyBy('id');
+
+        $anggotaRaw = KelompokMahasiswa::whereIn('kelompok_id', $kelompokIds)
+            ->get(['kelompok_id', 'user_id']);
+
+        $mahasiswaMap = Mahasiswa::whereIn('user_id', $anggotaRaw->pluck('user_id')->unique())
+            ->get(['user_id', 'nama', 'nim', 'angkatan'])
+            ->keyBy('user_id');
+
+        $jadwalMap = Jadwal::whereIn('kelompok_id', $kelompokIds)
+            ->get(['kelompok_id', 'waktu_mulai', 'waktu_selesai'])
+            ->keyBy('kelompok_id');
+
+        $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
+
+        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $jadwalMap) {
+            $kelompok = $kelompokMap->get($kelompokId);
+            $anggota = collect($anggotaPerKelompok->get($kelompokId, []))
+                ->map(function ($member) use ($mahasiswaMap) {
+                    $mahasiswa = $mahasiswaMap->get($member->user_id);
+
+                    return [
+                        'user_id' => $member->user_id,
+                        'nama' => $mahasiswa->nama ?? 'Mahasiswa tidak ditemukan',
+                        'nim' => $mahasiswa->nim ?? '-',
+                        'angkatan' => $mahasiswa->angkatan ?? '-',
+                    ];
+                })
+                ->values();
+
+            $jadwal = $jadwalMap->get($kelompokId);
+
+            return [
+                'kelompok_id' => $kelompokId,
+                'nomor_kelompok' => $kelompok->nomor_kelompok ?? $kelompokId,
+                'status_kelompok' => $kelompok->status ?? '-',
+                'jumlah_anggota' => $anggota->count(),
+                'anggota' => $anggota,
+                'jadwal' => $jadwal ? [
+                    'waktu_mulai' => $jadwal->waktu_mulai,
+                    'waktu_selesai' => $jadwal->waktu_selesai,
+                ] : null,
+            ];
+        })->sortBy(function ($item) {
+            return (int) preg_replace('/\D/', '', (string) $item['nomor_kelompok']);
+        })->values();
+    }
+
      $jumlah_pengumuman = Pengumuman::where('KPA_id', $KPA_id)
         ->where('prodi_id', $prodi_id)
         ->where('TM_id', $TM_id)
@@ -279,7 +341,7 @@ class dashboard_Controller extends Controller
             });
         }
 
-   return view('pages.Penguji.dashboard',compact('jumlah_kelompok','jumlah_pengumuman','events','jumlah_tugas','pengumuman'));
+    return view('pages.Penguji.dashboard',compact('jumlah_kelompok','jumlah_pengumuman','events','jumlah_tugas','pengumuman', 'kelompokList'));
 
 }
 public function mahasiswa(){

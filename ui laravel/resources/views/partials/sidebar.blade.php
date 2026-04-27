@@ -59,26 +59,30 @@
                                 class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
                                     class="fas fa-columns"></i>
                                 <span>Dashboard</span></a></li>
-                        <li class="nav-item {{ request()->is('tugas*') ? 'active' : '' }}"><a class="nav-link"
-                                href="{{ route('koordinator.tugas.index') }}"><i
+                        <li
+                            class="nav-item {{ request()->routeIs('koordinator.tugas.*') || request()->routeIs('tugas.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('koordinator.tugas.index') }}"><i
                                     class="fas fa-file"></i><span>Tugas</span></a></li>
                         <li class="nav-item {{ request()->is('kelompok*') ? 'active' : '' }}"><a class="nav-link"
                                 href="{{ route('kelompok.index') }}"><i class="fas fa-users"></i>
                                 <span>Kelompok</span></a></li>
-                        <li class="nav-item {{ request()->is('jadwal*') ? 'active' : '' }}"><a class="nav-link"
+                        <li class="nav-item {{ request()->routeIs('jadwal.*') ? 'active' : '' }}"><a class="nav-link"
                                 href="{{ route('jadwal.index') }}"><i class="fas fa-calendar"></i>
                                 <span>Jadwal</span></a></li>
-                        <li class="nav-item {{ request()->is('pembimbing*') ? 'active' : '' }}">
+                        <li
+                            class="nav-item {{ request()->routeIs('pembimbing.index') || request()->routeIs('pembimbing.create') || request()->routeIs('pembimbing.store') || request()->routeIs('pembimbing.edit') || request()->routeIs('pembimbing.update') || request()->routeIs('pembimbing.destroy') || request()->routeIs('pembimbing.show') || request()->routeIs('pembimbing2.*') ? 'active' : '' }}">
                             <a href="{{ route('pembimbing.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i> <span>Pembimbing</span>
                             </a>
                         </li>
-                        <li class="nav-item {{ request()->is('penguji*') ? 'active' : '' }}">
+                        <li
+                            class="nav-item {{ request()->routeIs('penguji.index') || request()->routeIs('penguji.create') || request()->routeIs('penguji.store') || request()->routeIs('penguji.edit') || request()->routeIs('penguji.update') || request()->routeIs('penguji.destroy') || request()->routeIs('penguji.show') || request()->routeIs('penguji2.*') ? 'active' : '' }}">
                             <a href="{{ route('penguji.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i> <span>Penguji</span>
                             </a>
                         </li>
-                        <li class="nav-item dropdown {{ request()->is('nilai*') ? 'active' : '' }}">
+                        <li
+                            class="nav-item dropdown {{ request()->routeIs('koordinator.NilaiAdministrasi.*') || request()->routeIs('NilaiAkhir.*') || request()->routeIs('koordinator.NilaiMatkul.*') || request()->is('NilaiAdministrasi*') || request()->is('NilaiAkhir*') || request()->is('NilaiMatkul*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
                                 <i class="fas fa-clipboard-check"></i> <span>Nilai</span>
                             </a>
@@ -104,19 +108,21 @@
                     {{--  untuk Penguji --}}
                     @if (in_array(2, $dosenRoles) || in_array(4, $dosenRoles))
                         <li class="menu-header">Penguji</li>
-                        <li class="nav-item {{ request()->is('dashboard/penguji*') ? 'active' : '' }}"><a
+                        <li class="nav-item {{ request()->routeIs('dashboard.penguji') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('dashboard.penguji') }}"><i class="fas fa-columns"></i>
                                 <span>Dashboard</span></a></li>
-                        <li class="nav-item {{ request()->is('penguji/tugas*') ? 'active' : '' }}"><a class="nav-link"
-                                href="{{ route('penguji.tugas.index') }}"><i class="fas fa-file"></i>
+                        <li
+                            class="nav-item {{ request()->routeIs('penguji.tugas.*') || request()->routeIs('penguji.show.submitan') || request()->routeIs('penguji.feedback.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('penguji.tugas.index') }}"><i class="fas fa-file"></i>
                                 <span>Tugas</span></a></li>
 
-                        <li class="nav-item {{ request()->is('penguji/jadwal*') ? 'active' : '' }}"><a class="nav-link"
-                                href="{{ route('penguji.jadwal.index') }}"><i class="fas fa-calendar"></i>
+                        <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}"><a
+                                class="nav-link" href="{{ route('penguji.jadwal.index') }}"><i
+                                    class="fas fa-calendar"></i>
                                 <span>Jadwal</span></a></li>
                         <li class="nav-item dropdown">
                             <a href="#"
-                                class="nav-link has-dropdown {{ request()->is('nilai*') ? 'active' : '' }}"
+                                class="nav-link has-dropdown {{ request()->routeIs('penguji1.Nilai*') || request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}"
                                 data-toggle="dropdown">
                                 <i class="fas fa-clipboard-check"></i> <span>Nilai</span>
                             </a>
@@ -203,7 +209,8 @@
                     <li
                         class="nav-item {{ request()->is('Mahasiswa/Tugas*') || request()->routeIs('Mahasiswa.tugas.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('Mahasiswa.tugas.index') }}"><i class="fas fa-file"></i>
-                            <span>Tugas</span></a></li>
+                            <span>Tugas</span></a>
+                    </li>
                     <li class="nav-item {{ request()->is('artefak*') ? 'active' : '' }}"><a class="nav-link"
                             href="{{ route('artefak.index') }}"><i class="fas fa-file"></i>
                             <span>Artefak</span></a></li>
