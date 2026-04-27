@@ -72,8 +72,72 @@ class dashboard_Controller extends Controller
     $TM_id = session('TM_id');
     $user_id = session('user_id');
 
-    $jumlah_kelompok = pembimbing::where('user_id', $user_id)
-        ->count();
+    $kelompokIds = pembimbing::where('user_id', $user_id)
+        ->whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+            $q->where('KPA_id', $KPA_id)
+                ->where('prodi_id', $prodi_id)
+                ->where('TM_id', $TM_id);
+        })
+        ->pluck('kelompok_id')
+        ->unique()
+        ->values();
+
+    $jumlah_kelompok = $kelompokIds->count();
+
+    $kelompokList = collect();
+    if ($kelompokIds->isNotEmpty()) {
+        $kelompokMap = Kelompok::whereIn('id', $kelompokIds)
+            ->get(['id', 'nomor_kelompok', 'status'])
+            ->keyBy('id');
+
+        $anggotaRaw = KelompokMahasiswa::whereIn('kelompok_id', $kelompokIds)
+            ->get(['kelompok_id', 'user_id']);
+
+        $mahasiswaMap = Mahasiswa::whereIn('user_id', $anggotaRaw->pluck('user_id')->unique())
+            ->get(['user_id', 'nama', 'nim'])
+            ->keyBy('user_id');
+
+        $bimbinganStats = DB::table('kartu_bimbingan')
+            ->select('kelompok_id', DB::raw('COUNT(*) as total_sesi'), DB::raw('MAX(tanggal_bimbingan) as terakhir_bimbingan'))
+            ->whereIn('kelompok_id', $kelompokIds)
+            ->groupBy('kelompok_id')
+            ->get()
+            ->keyBy('kelompok_id');
+
+        $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
+
+        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $bimbinganStats) {
+            $kelompok = $kelompokMap->get($kelompokId);
+            $anggota = collect($anggotaPerKelompok->get($kelompokId, []))
+                ->map(function ($member) use ($mahasiswaMap) {
+                    $mahasiswa = $mahasiswaMap->get($member->user_id);
+
+                    return [
+                        'user_id' => $member->user_id,
+                        'nama' => $mahasiswa->nama ?? 'Mahasiswa tidak ditemukan',
+                        'nim' => $mahasiswa->nim ?? '-',
+                    ];
+                })
+                ->values();
+
+            $stat = $bimbinganStats->get($kelompokId);
+            $totalSesi = (int) ($stat->total_sesi ?? 0);
+
+            return [
+                'kelompok_id' => $kelompokId,
+                'nomor_kelompok' => $kelompok->nomor_kelompok ?? $kelompokId,
+                'status_kelompok' => $kelompok->status ?? '-',
+                'jumlah_anggota' => $anggota->count(),
+                'anggota' => $anggota,
+                'total_sesi_bimbingan' => $totalSesi,
+                'terakhir_bimbingan' => $stat->terakhir_bimbingan ?? null,
+                'status_bimbingan' => $totalSesi > 0 ? 'Sudah Ada Catatan' : 'Belum Ada Catatan',
+            ];
+        })->sortBy(function ($item) {
+            return (int) preg_replace('/\D/', '', (string) $item['nomor_kelompok']);
+        })->values();
+    }
+
      $jumlah_pengumuman = Pengumuman::where('KPA_id', $KPA_id)
         ->where('prodi_id', $prodi_id)
         ->where('TM_id', $TM_id)
@@ -95,20 +159,19 @@ class dashboard_Controller extends Controller
             'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
         ];
     });
-     $token = session('token');
-        $user_id = session('user_id');
+         $token = session('token');
         $role_ids = [3,5];
-       $prodi_ids = DosenRole::where('user_id', $user_id)
+             $prodi_ids = DosenRole::where('user_id', $user_id)
                           ->where('status', 'Aktif')
-                          ->where('role_id', $role_ids)
+                                                    ->whereIn('role_id', $role_ids)
                           ->pluck('prodi_id');
         $TM_ids = DosenRole::where('user_id', $user_id)
                             ->where('status', 'Aktif')
-                            ->where('role_id', $role_ids)
+                                                        ->whereIn('role_id', $role_ids)
                           ->pluck('TM_id');
         $KPA_ids = DosenRole::where('user_id', $user_id)
                           ->where('status', 'Aktif')
-                          ->where('role_id', $role_ids)
+                                                    ->whereIn('role_id', $role_ids)
                           ->pluck('KPA_id');
         $prodi_ids = $prodi_ids->unique();
         $TM_ids = $TM_ids->unique();
@@ -139,7 +202,7 @@ class dashboard_Controller extends Controller
             });
         }
 
-   return view('pages.Pembimbing.dashboard',compact('jumlah_kelompok','jumlah_pengumuman','events','jumlah_tugas','pengumuman'));
+    return view('pages.Pembimbing.dashboard',compact('jumlah_kelompok','jumlah_pengumuman','events','jumlah_tugas','pengumuman', 'kelompokList'));
 
 }
  public function penguji() {

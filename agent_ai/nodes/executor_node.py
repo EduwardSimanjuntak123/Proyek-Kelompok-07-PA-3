@@ -1344,12 +1344,12 @@ def executor_node(state):
                 group_count = None
                 members_per_group = None
                 
-                # Check for "X orang perkelompok" pattern first
-                members_pattern = r"(\d+)\s+orang\s+perkelompok"
+                # Check for "X orang perkelompok" or "X orang per kelompok" pattern first
+                members_pattern = r"(\d+)\s+orang\s+per\s?kelompok"
                 members_match = re.search(members_pattern, prompt.lower())
                 if members_match:
                     members_per_group = int(members_match.group(1))
-                    logger.info(f"[{user_id}] 👥 Detected 'orang perkelompok' pattern: {members_per_group} members per group")
+                    logger.info(f"[{user_id}] 👥 Detected 'orang per kelompok' pattern: {members_per_group} members per group")
                     
                     # Calculate available students first
                     try:
@@ -1372,17 +1372,58 @@ def executor_node(state):
                         group_count = 5
                         logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
                 else:
-                    # Check for direct group count patterns
-                    count_patterns = [
-                        r"buat\s+(\d+)\s+kelompok",
-                        r"bagi\s+jadi\s+(\d+)\s+kelompok",
-                        r"(\d+)\s+kelompok",
-                    ]
-                    for pattern in count_patterns:
-                        match = re.search(pattern, prompt.lower())
-                        if match:
-                            group_count = int(match.group(1))
-                            break
+                    # Check for "kelompok dengan X orang" pattern
+                    kelompok_dengan_pattern = r"kelompok\s+dengan\s+(\d+)\s+orang"
+                    kelompok_dengan_match = re.search(kelompok_dengan_pattern, prompt.lower())
+                    if kelompok_dengan_match:
+                        members_per_group = int(kelompok_dengan_match.group(1))
+                        logger.info(f"[{user_id}] 👥 Detected 'kelompok dengan X orang' pattern: {members_per_group} members per group")
+                        
+                        try:
+                            grade_result = calculate_student_average_grades(
+                                prodi_id=dosen_context.get("prodi_id"),
+                                kategori_pa_id=dosen_context.get("kategori_pa"),
+                                angkatan_id=dosen_context.get("angkatan"),
+                                exclude_existing=True
+                            )
+                            if grade_result.get("status") == "success":
+                                available_students = len(grade_result.get("student_grades", []))
+                                group_count = math.ceil(available_students / members_per_group)
+                                logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
+                            else:
+                                group_count = 5
+                                logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
+                        except Exception as e:
+                            group_count = 5
+                            logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
+                    else:
+                        # IMPORTANT: Check for "X kelompok" pattern - but interpret as "X orang per kelompok" instead of "X groups"
+                        # This is more natural for class grouping contexts
+                        # Pattern: "buat X kelompok", "X kelompok", etc.
+                        num_kelompok_pattern = r"(\d+)\s+kelompok"
+                        num_kelompok_match = re.search(num_kelompok_pattern, prompt.lower())
+                        if num_kelompok_match:
+                            # Interpret as members per group (not group count)
+                            members_per_group = int(num_kelompok_match.group(1))
+                            logger.info(f"[{user_id}] 👥 Detected 'X kelompok' pattern - interpreting as {members_per_group} members per group (not {members_per_group} groups)")
+                            
+                            try:
+                                grade_result = calculate_student_average_grades(
+                                    prodi_id=dosen_context.get("prodi_id"),
+                                    kategori_pa_id=dosen_context.get("kategori_pa"),
+                                    angkatan_id=dosen_context.get("angkatan"),
+                                    exclude_existing=True
+                                )
+                                if grade_result.get("status") == "success":
+                                    available_students = len(grade_result.get("student_grades", []))
+                                    group_count = math.ceil(available_students / members_per_group)
+                                    logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
+                                else:
+                                    group_count = 5
+                                    logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
+                            except Exception as e:
+                                group_count = 5
+                                logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
                 
                 if not group_count:
                     # Default to 5 groups if not specified
@@ -1397,6 +1438,7 @@ def executor_node(state):
                     group_count=group_count,
                     angkatan_id=dosen_context.get("angkatan"),
                     exclude_existing=True,
+                    randomize_ties=is_recreate_intent,
                 )
                 
                 if grouping_result.get("status") == "success":
@@ -1514,6 +1556,7 @@ def executor_node(state):
                         "kategori_pa_id": dosen_context.get("kategori_pa"),
                         "angkatan_id": dosen_context.get("angkatan"),
                         "method": "by_grades",
+                        "randomized": is_recreate_intent,
                     }
                     logger.info(f"[{user_id}] ✓ {len(groups)} kelompok berdasarkan nilai berhasil dibuat")
                 else:

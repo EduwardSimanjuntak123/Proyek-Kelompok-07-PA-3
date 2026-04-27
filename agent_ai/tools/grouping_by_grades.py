@@ -2,6 +2,7 @@
 
 import math
 import statistics
+import random
 from typing import Dict, List, Tuple
 from decimal import Decimal
 
@@ -222,7 +223,8 @@ def balance_group_by_grades(
     student_grades: List[Dict],
     group_count: int,
     class_mean: float,
-    class_std_dev: float
+    class_std_dev: float,
+    randomize_ties: bool = False,
 ) -> Dict:
     """
     Bentuk kelompok dengan menyeimbangkan nilai rata-rata kelompok.
@@ -274,16 +276,45 @@ def balance_group_by_grades(
                 "message": "Jumlah kelompok harus lebih dari 0"
             }
         
+        # Saat acak ulang, acak kandidat lebih dulu agar urutan mahasiswa dengan nilai sama tidak selalu identik.
+        # Sort Python bersifat stable, jadi shuffle sebelum sort akan jadi tie-breaker acak yang aman.
+        working_students = list(student_grades)
+        if randomize_ties:
+            random.shuffle(working_students)
+
         # Sort students by grade (descending) - highest grades first
-        sorted_students = sorted(student_grades, key=lambda x: x["average_grade"], reverse=True)
+        sorted_students = sorted(working_students, key=lambda x: x["average_grade"], reverse=True)
+
+        if randomize_ties:
+            # Acak ringan per-tier agar komposisi antar kelompok berubah,
+            # namun tetap menjaga keseimbangan karena hanya bertukar di tier nilai berdekatan.
+            tier_shuffled_students: List[Dict] = []
+            tier_size = max(2, group_count)
+            for i in range(0, len(sorted_students), tier_size):
+                tier = sorted_students[i:i + tier_size]
+                random.shuffle(tier)
+                tier_shuffled_students.extend(tier)
+            sorted_students = tier_shuffled_students
         
         # Initialize groups
         groups: List[List[Dict]] = [[] for _ in range(group_count)]
         
         # Snake/zigzag distribution: alternate direction per row
-        # This ensures high and low grades are balanced across groups
+        # This ensures high and low grades are balanced across groups.
+        # Saat acak ulang, titik awal distribusi juga diacak supaya hasil benar-benar berbeda.
+        start_offset = random.randint(0, group_count - 1) if randomize_ties else 0
+        reverse_first_row = random.choice([True, False]) if randomize_ties else False
+
         for i, student in enumerate(sorted_students):
-            group_idx = i % group_count
+            row = i // group_count
+            col = i % group_count
+
+            reverse_row = (row % 2 == 1)
+            if reverse_first_row:
+                reverse_row = not reverse_row
+
+            mapped_col = (group_count - 1 - col) if reverse_row else col
+            group_idx = (start_offset + mapped_col) % group_count
             groups[group_idx].append(student)
         
         # Calculate group statistics
@@ -344,7 +375,8 @@ def create_group_by_grades(
     kategori_pa_id: int,
     group_count: int,
     angkatan_id: int = None,
-    exclude_existing: bool = True
+    exclude_existing: bool = True,
+    randomize_ties: bool = False,
 ) -> Dict:
     """
     Bentuk kelompok berdasarkan nilai mahasiswa dengan PA category awareness.
@@ -401,7 +433,8 @@ def create_group_by_grades(
         student_grades=student_grades,
         group_count=group_count,
         class_mean=class_stats.get("mean", 0),
-        class_std_dev=class_stats.get("std_dev", 0)
+        class_std_dev=class_stats.get("std_dev", 0),
+        randomize_ties=randomize_ties,
     )
     
     if balance_result.get("status") != "success":

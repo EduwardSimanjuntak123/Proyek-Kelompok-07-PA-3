@@ -556,9 +556,14 @@
             bubble.innerHTML = `
         <div style="padding:8px">
             <b>Aksi Hasil Generate</b><br><br>
-            <button class="btn btn-sm btn-primary save-generated-groups-btn">
-                💾 Simpan ke Database
-            </button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary save-generated-groups-btn">
+                    💾 Simpan ke Database
+                </button>
+                <button type="button" class="btn btn-sm btn-warning regenerate-groups-btn">
+                    <i class="fas fa-random"></i> Acak Ulang Mahasiswa
+                </button>
+            </div>
         </div>
     `;
 
@@ -852,6 +857,13 @@
                     btn.classList.add("disabled");
                     btn.innerHTML = '<i class="fas fa-check"></i> Sudah Disimpan';
                 });
+
+                const regenerateButtons = document.querySelectorAll(".regenerate-groups-btn");
+                regenerateButtons.forEach((btn) => {
+                    btn.disabled = true;
+                    btn.classList.add("disabled");
+                    btn.innerHTML = '<i class="fas fa-check"></i> Acak Ulang Dinonaktifkan';
+                });
             } catch (error) {
                 // Update sidebar status to warning
                 updateSidebarStatus('kelompok', 'warning');
@@ -860,6 +872,38 @@
                 isSavingGeneratedGroups = false;
             }
         }
+
+        window.__regenerateGroupsInline = async function(event) {
+            if (event && typeof event.preventDefault === "function") {
+                event.preventDefault();
+            }
+            if (event && typeof event.stopPropagation === "function") {
+                event.stopPropagation();
+            }
+            if (event && typeof event.stopImmediatePropagation === "function") {
+                event.stopImmediatePropagation();
+            }
+
+            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload.groups.length === 0) {
+                Swal.fire("Tidak ada data", "Generate kelompok terlebih dahulu sebelum acak ulang.", "warning");
+                return;
+            }
+
+            const input = document.getElementById("userInput");
+            const basePrompt = latestGroupingMeta?.prompt || latestUserPrompt || "buat kelompok mahasiswa";
+            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') || /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
+
+            const regeneratePrompt = isByGrades ?
+                `${basePrompt} dan acak ulang komposisi mahasiswa antar kelompok` :
+                `${basePrompt} dan acak ulang mahasiswa`;
+
+            if (input) {
+                input.value = regeneratePrompt;
+            }
+            if (typeof window.sendMessage === 'function') {
+                window.sendMessage();
+            }
+        };
 
         function switchToChat() {
             document.getElementById("landingView").style.display = "none";
@@ -1444,6 +1488,16 @@
                     event.preventDefault();
                     event.stopPropagation();
                     saveGeneratedGroups();
+                    return;
+                }
+
+                const regenerateGroupsButton = event.target.closest(".regenerate-groups-btn");
+                if (regenerateGroupsButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof window.__regenerateGroupsInline === 'function') {
+                        window.__regenerateGroupsInline(event);
+                    }
                     return;
                 }
 
