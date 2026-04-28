@@ -88,12 +88,23 @@ def planner_node(state):
             state["plan"] = plan
             return state
 
-        # CHECK FOR GRADE-BASED GROUPING FIRST (before generic create_group)
-        # This must come BEFORE general create_group checks to have priority
+        # ✨ CHECK FOR HYBRID GROUPING FIRST (constraint + optional grades)
+        # Pattern: "X, Y, Z satu kelompok" or "nim1, nim2 harus satu" 
+        # OR: Presence of "harus satu" OR "satu kelompok" + create verbs
+        # THIS MUST COME BEFORE grade-based check because it's more specific!
+        hybrid_constraint_pattern = r"(?:harus\s+satu|satu\s+kelompok|satu\s+grup|harus\s+satu\s+kelompok)"
+        if any(verb in prompt_lower for verb in create_verbs) and re.search(hybrid_constraint_pattern, prompt_lower) and any(term in prompt_lower for term in group_terms):
+            plan = {"action": "create_group_hybrid"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → create_group_hybrid ✓ (constraint PRIORITY)")
+            state["plan"] = plan
+            return state
+
+        # CHECK FOR GRADE-BASED GROUPING (before generic create_group)
+        # This comes AFTER hybrid check to allow hybrid to take priority
         grade_keywords = ["berdasarkan nilai", "by grades", "nilai", "rata-rata nilai", "average grade", "grade-based", "berdasarkan nilai"]
         if ("buat" in prompt_lower or "generate" in prompt_lower or "bagi" in prompt_lower) and any(kw in prompt_lower for kw in grade_keywords) and any(term in prompt_lower for term in ["kelompok", "grup", "group"]):
             plan = {"action": "create_group_by_grades"}
-            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → create_group_by_grades ✓ (grade-based PRIORITY)")
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → create_group_by_grades ✓ (grade-based)")
             state["plan"] = plan
             return state
 
@@ -204,13 +215,14 @@ Kamu adalah AI Router - tentukan action untuk query.
 - Jika ada kata: generate penguji, assign penguji, buat penguji → generate_penguji
 - Jika ada kata: sudah ada penguji, cek penguji → check_penguji
 - Jika ada kata: nilai, grade, ipk → query_nilai
+- Jika ada kata: NIM1,NIM2 satu kelompok + nilai → create_group_hybrid
 - Jika ada kata: buat kelompok berdasarkan nilai, kelompok nilai → create_group_by_grades
 - Jika ada kata: buat kelompok, grouping → create_group
 - Jika ada kata: buat excel, export excel, spreadsheet → generate_excel
 - Lainnya: chat
 
 ## OUTPUT (JSON ONLY):
-{{"action": "check_kelompok"|"delete_kelompok"|"query_dosen"|"query_dosen_role"|"query_mahasiswa"|"query_kelompok"|"query_anggota_kelompok"|"query_matakuliah"|"query_prodi"|"query_roles"|"query_kategori_pa"|"query_tahun_ajaran"|"query_ruangan"|"query_jadwal"|"query_nilai"|"query_pembimbing"|"query_penguji"|"generate_pembimbing"|"check_pembimbing"|"generate_penguji"|"check_penguji"|"create_group"|"create_group_by_grades"|"generate_excel"|"chat"}}
+{{"action": "check_kelompok"|"delete_kelompok"|"query_dosen"|"query_dosen_role"|"query_mahasiswa"|"query_kelompok"|"query_anggota_kelompok"|"query_matakuliah"|"query_prodi"|"query_roles"|"query_kategori_pa"|"query_tahun_ajaran"|"query_ruangan"|"query_jadwal"|"query_nilai"|"query_pembimbing"|"query_penguji"|"generate_pembimbing"|"check_pembimbing"|"generate_penguji"|"check_penguji"|"create_group"|"create_group_hybrid"|"create_group_by_grades"|"generate_excel"|"chat"}}
 """
         
         planner_messages = [{

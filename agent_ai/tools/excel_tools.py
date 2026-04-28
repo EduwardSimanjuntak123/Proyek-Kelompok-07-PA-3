@@ -69,6 +69,12 @@ def generate_excel_by_context(prodi_id=None, kategori_pa_id=None, tahun_ajaran_i
             for c in range(1, 8):
                 worksheet.cell(row=r, column=c).value = None
         
+        # ✅ Pastikan header kolom F dan G ada (untuk penguji)
+        if worksheet['F1'].value is None:
+            worksheet['F1'].value = 'Penguji 1'
+        if worksheet['G1'].value is None:
+            worksheet['G1'].value = 'Penguji 2'
+        
         # Query kelompok sesuai context
         query = session.query(Kelompok)
         
@@ -101,8 +107,9 @@ def generate_excel_by_context(prodi_id=None, kategori_pa_id=None, tahun_ajaran_i
             bottom=Side(style='thin')
         )
         
-        has_col_f = 'F' in [cell.column_letter for cell in worksheet[1]]
-        has_col_g = 'G' in [cell.column_letter for cell in worksheet[1]]
+        # ✅ Kolom F dan G sekarang selalu ada (kita setup di atas)
+        has_col_f = True
+        has_col_g = True
 
         def _write_cell(col, row_num, value, align='left'):
             cell = worksheet[f'{col}{row_num}']
@@ -150,26 +157,35 @@ def generate_excel_by_context(prodi_id=None, kategori_pa_id=None, tahun_ajaran_i
             if not pembimbing_2_name:
                 pembimbing_2_name = "Belum diassign"
 
+            # ✅ Ambil penguji dengan POLA SAMA seperti pembimbing
+            penguji_1 = session.query(Penguji, Dosen).join(
+                Dosen, Penguji.user_id == Dosen.user_id
+            ).filter(
+                Penguji.kelompok_id == kelompok.id
+            ).order_by(Penguji.created_at).first()
+
             penguji_1_name = ""
+            if penguji_1:
+                penguji_1_name = penguji_1.Dosen.nama if penguji_1.Dosen else ""
+
+            penguji_2 = session.query(Penguji, Dosen).join(
+                Dosen, Penguji.user_id == Dosen.user_id
+            ).filter(
+                Penguji.kelompok_id == kelompok.id
+            ).order_by(Penguji.created_at).offset(1).first()
+
             penguji_2_name = ""
+            if penguji_2:
+                penguji_2_name = penguji_2.Dosen.nama if penguji_2.Dosen else ""
 
-            if has_col_f:
-                penguji_1 = session.query(Penguji, Dosen).join(
-                    Dosen, Penguji.user_id == Dosen.user_id
-                ).filter(
-                    Penguji.kelompok_id == kelompok.id
-                ).order_by(Penguji.created_at).first()
-                if penguji_1:
-                    penguji_1_name = penguji_1.Dosen.nama if penguji_1.Dosen else ""
+            if not penguji_1_name:
+                penguji_1_name = "Belum diassign"
+            if not penguji_2_name:
+                penguji_2_name = "Belum diassign"
 
-            if has_col_g:
-                penguji_2 = session.query(Penguji, Dosen).join(
-                    Dosen, Penguji.user_id == Dosen.user_id
-                ).filter(
-                    Penguji.kelompok_id == kelompok.id
-                ).order_by(Penguji.created_at).offset(1).first()
-                if penguji_2:
-                    penguji_2_name = penguji_2.Dosen.nama if penguji_2.Dosen else ""
+            # Track row awal kelompok untuk merging
+            group_start_row = row
+            group_end_row = row + len(anggota_list) - 1
 
             # Tulis semua anggota. Kolom metadata (C-G) hanya ditulis pada baris pertama kelompok.
             for idx, anggota in enumerate(anggota_list):
@@ -183,17 +199,37 @@ def generate_excel_by_context(prodi_id=None, kategori_pa_id=None, tahun_ajaran_i
                 _write_cell('D', row, pembimbing_1_name, align='left')
                 _write_cell('E', row, pembimbing_2_name, align='left')
 
+                # ✅ Penguji juga diisi untuk setiap baris agar mudah dibaca
+                _write_cell('F', row, penguji_1_name, align='left')
+                _write_cell('G', row, penguji_2_name, align='left')
+
                 if idx == 0:
                     # Nomor kelompok pada export dibuat urut agar bila >13 otomatis lanjut 14, 15, dst.
                     _write_cell('C', row, export_group_number, align='center')
 
-                    if has_col_f:
-                        _write_cell('F', row, penguji_1_name, align='left')
-
-                    if has_col_g:
-                        _write_cell('G', row, penguji_2_name, align='left')
-
                 row += 1
+
+            # ✅ MERGE CELLS untuk kelompok dengan multiple anggota
+            if group_start_row < group_end_row:
+                # Merge kolom C (Kelompok)
+                worksheet.merge_cells(f'C{group_start_row}:C{group_end_row}')
+                worksheet[f'C{group_start_row}'].alignment = Alignment(horizontal='center', vertical='center')
+
+                # Merge kolom D (Pembimbing 1)
+                worksheet.merge_cells(f'D{group_start_row}:D{group_end_row}')
+                worksheet[f'D{group_start_row}'].alignment = Alignment(horizontal='left', vertical='center')
+
+                # Merge kolom E (Pembimbing 2)
+                worksheet.merge_cells(f'E{group_start_row}:E{group_end_row}')
+                worksheet[f'E{group_start_row}'].alignment = Alignment(horizontal='left', vertical='center')
+
+                # ✅ Merge kolom F (Penguji 1) - selalu ada sekarang
+                worksheet.merge_cells(f'F{group_start_row}:F{group_end_row}')
+                worksheet[f'F{group_start_row}'].alignment = Alignment(horizontal='left', vertical='center')
+
+                # ✅ Merge kolom G (Penguji 2) - selalu ada sekarang
+                worksheet.merge_cells(f'G{group_start_row}:G{group_end_row}')
+                worksheet[f'G{group_start_row}'].alignment = Alignment(horizontal='left', vertical='center')
         
         # Sesuaikan lebar kolom berdasarkan konten agar lebih mudah dibaca.
         for col in worksheet.iter_cols(min_col=1, max_col=worksheet.max_column):

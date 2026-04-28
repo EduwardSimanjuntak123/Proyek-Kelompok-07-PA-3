@@ -8,6 +8,7 @@ from decimal import Decimal
 import html
 from tools.grouping import create_group
 from tools.grouping_by_grades import create_group_by_grades, calculate_student_average_grades
+from tools.grouping_hybrid import create_group_hybrid
 from tools.dosen_tools import get_dosen_by_dosen_context
 from tools.mahasiswa_tools import get_mahasiswa_by_dosen_context, get_mahasiswa_without_kelompok_by_context
 from tools.kelompok_tools import (
@@ -1176,7 +1177,7 @@ def executor_node(state):
                     min_per_group=2,
                     max_per_group=2,
                     replace_existing=True,
-                    persist=False,
+                    persist=True,
                 )
 
                 state["result"] = format_generate_penguji_result(result)
@@ -1287,6 +1288,136 @@ def executor_node(state):
                 else:
                     logger.warning(f"[{user_id}] ✗ create_group gagal: {grouping_result.get('message')}")
 
+        elif action == "create_group_hybrid":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: create_group_hybrid (constraint + auto by grades)")
+            
+            if not dosen_context:
+                state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+            else:
+                prompt = state.get("messages", [{}])[-1].get("content", "")
+                
+                # Call hybrid grouping function
+                hybrid_result = create_group_hybrid(
+                    prompt=prompt,
+                    prodi_id=dosen_context.get("prodi_id"),
+                    kategori_pa_id=dosen_context.get("kategori_pa"),
+                    angkatan_id=dosen_context.get("angkatan"),
+                    exclude_existing=True,
+                )
+                
+                # Format result for display
+                if hybrid_result.get("status") == "success":
+                    summary = hybrid_result.get("summary", {})
+                    groups = hybrid_result.get("groups", [])
+                    
+                    # Build HTML result
+                    html_result = f"""
+<div style="background:#d1fae5; border:1px solid #10b981; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#065f46;">✓ Kelompok Hybrid Berhasil Dibuat</h3>
+  <ul style="margin:0; padding-left:20px;">
+    <li><strong>Total Kelompok:</strong> {summary.get('total_groups', 0)}</li>
+    <li><strong>Anggota Terkontrol:</strong> {summary.get('constrained_members', 0)}</li>
+    <li><strong>Anggota Otomatis (By Grades):</strong> {summary.get('auto_grouped_members', 0)}</li>
+    <li><strong>Total Mahasiswa:</strong> {summary.get('total_candidates', 0)}</li>
+    <li><strong>Rata Kelas:</strong> {summary.get('rata_kelas', 0)}</li>
+    <li><strong>Jarak Deviasi:</strong> {summary.get('jarak_deviasi', 0)}</li>
+  </ul>
+"""
+                    
+                    if summary.get("constraint_errors"):
+                        html_result += f"""
+  <div style="margin-top:12px; padding:10px; background:#fee2e2; border-radius:4px; color:#7f1d1d;">
+    <strong>⚠️ Peringatan:</strong><br/>
+    {", ".join(summary.get('constraint_errors', []))}
+  </div>
+"""
+                    
+                    html_result += """
+  <div style="margin-top:12px;">
+    <strong>📋 Detail Kelompok:</strong>
+    <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:12px;">
+      <tr style="background:#e0f2fe;">
+        <th style="border:1px solid #94e2f0; padding:6px;">Kelompok</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">NIM</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Nama</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Nilai</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Rata-rata Kelompok</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Std Dev</th>
+      </tr>
+"""
+                    
+                    for group in groups:
+                        group_avg = group.get('rata_rata_kelompok', 0)
+                        group_std = group.get('std_dev_kelompok', 0)
+                        member_count = len(group["members"])
+                        
+                        for idx, member in enumerate(group["members"]):
+                            # Show group number only on first row
+                            if idx == 0:
+                                html_result += f"""
+      <tr>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>{group['group_number']}</strong></td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nim']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nama']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center;">{member.get('nilai', 0)}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>{group_avg}</strong></td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>±{group_std}</strong></td>
+      </tr>
+"""
+                            else:
+                                html_result += f"""
+      <tr>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nim']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nama']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center;">{member.get('nilai', 0)}</td>
+      </tr>
+"""
+                    
+                    html_result += """
+    </table>
+  </div>
+</div>
+"""
+                    
+                    state["result"] = html_result
+                    state["grouping_payload"] = {
+                        "summary": summary,
+                        "groups": groups,
+                    }
+                    state["grouping_meta"] = {
+                        "prodi_id": dosen_context.get("prodi_id"),
+                        "kategori_pa_id": dosen_context.get("kategori_pa"),
+                        "angkatan_id": dosen_context.get("angkatan"),
+                    }
+                    logger.info(f"[{user_id}] ✓ {groups.__len__()} kelompok hybrid siap (constraint: {summary.get('constrained_members')}, auto: {summary.get('auto_grouped_members')})")
+                else:
+                    error_msg = hybrid_result.get('message', 'Gagal membuat kelompok hybrid')
+                    
+                    # Check if error is due to all students already grouped or empty context
+                    if "Tidak ada mahasiswa" in error_msg or hybrid_result.get("status") == "empty":
+                        escaped_prompt = html.escape(prompt)
+                        error_html = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Semua Mahasiswa Sudah Dalam Kelompok</h3>
+  <p style="margin:0 0 12px 0;">{error_msg}</p>
+  <p style="margin:0 0 12px 0; color:#374151;">Untuk membuat kelompok baru, perlu menghapus kelompok yang sudah ada terlebih dahulu.</p>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button type="button" class="btn btn-danger confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
+      <i class="fas fa-trash"></i> Hapus Kelompok Lama & Buat Baru
+    </button>
+    <button type="button" class="btn btn-secondary cancel-recreate" style="padding:8px 16px;">
+      Batal
+    </button>
+  </div>
+</div>
+"""
+                        state["result"] = error_html
+                        logger.warning(f"[{user_id}] ✗ Semua mahasiswa sudah dalam kelompok: {error_msg}")
+                    else:
+                        state["result"] = f"❌ {error_msg}"
+                        logger.warning(f"[{user_id}] ✗ create_group_hybrid gagal: {error_msg}")
+
         elif action == "create_group_by_grades":
             logger.info(f"[{user_id}] ⚙️  TOOLS: create_group_by_grades (buat kelompok berdasarkan nilai)")
             
@@ -1365,12 +1496,12 @@ def executor_node(state):
                             logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
                         else:
                             # Fallback to default if calculation fails
-                            group_count = 5
-                            logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
+                            group_count = 6
+                            logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 6 orang per kelompok")
                     except Exception as e:
                         # Fallback to default if error
-                        group_count = 5
-                        logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
+                        group_count = 6
+                        logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 6 orang per kelompok")
                 else:
                     # Check for "kelompok dengan X orang" pattern
                     kelompok_dengan_pattern = r"kelompok\s+dengan\s+(\d+)\s+orang"
@@ -1391,11 +1522,11 @@ def executor_node(state):
                                 group_count = math.ceil(available_students / members_per_group)
                                 logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
                             else:
-                                group_count = 5
-                                logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
+                                group_count = 6
+                                logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 6 orang per kelompok")
                         except Exception as e:
-                            group_count = 5
-                            logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
+                            group_count = 6
+                            logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 6 orang per kelompok")
                     else:
                         # IMPORTANT: Check for "X kelompok" pattern - but interpret as "X orang per kelompok" instead of "X groups"
                         # This is more natural for class grouping contexts
@@ -1426,9 +1557,9 @@ def executor_node(state):
                                 logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
                 
                 if not group_count:
-                    # Default to 5 groups if not specified
-                    group_count = 5
-                    logger.info(f"[{user_id}] ℹ️ Jumlah kelompok tidak ditentukan, menggunakan default 5 kelompok")
+                    # Default to 6 orang per kelompok if not specified
+                    group_count = 6
+                    logger.info(f"[{user_id}] ℹ️ Jumlah kelompok tidak ditentukan, menggunakan default 6 orang per kelompok")
                 
                 logger.info(f"[{user_id}] 📍 Create group by grades: prodi_id={dosen_context.get('prodi_id')}, kategori_pa_id={dosen_context.get('kategori_pa')}, group_count={group_count}")
                 
@@ -1561,8 +1692,30 @@ def executor_node(state):
                     logger.info(f"[{user_id}] ✓ {len(groups)} kelompok berdasarkan nilai berhasil dibuat")
                 else:
                     error_msg = grouping_result.get("message", "Error tidak diketahui")
-                    state["result"] = f"<p style=''>Gagal membuat kelompok: {error_msg}</p>"
-                    logger.warning(f"[{user_id}] ✗ create_group_by_grades gagal: {error_msg}")
+                    
+                    # Check if error is due to all students already grouped
+                    if "Tidak ada mahasiswa pada konteks" in error_msg:
+                        escaped_prompt = html.escape(prompt)
+                        error_html = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Semua Mahasiswa Sudah Dalam Kelompok</h3>
+  <p style="margin:0 0 12px 0;">{error_msg}</p>
+  <p style="margin:0 0 12px 0; color:#374151;">Untuk membuat kelompok baru, perlu menghapus kelompok yang sudah ada terlebih dahulu.</p>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button type="button" class="btn btn-danger confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
+      <i class="fas fa-trash"></i> Hapus Kelompok Lama & Buat Baru
+    </button>
+    <button type="button" class="btn btn-secondary cancel-recreate" style="padding:8px 16px;">
+      Batal
+    </button>
+  </div>
+</div>
+"""
+                        state["result"] = error_html
+                        logger.warning(f"[{user_id}] ✗ Semua mahasiswa sudah dalam kelompok: {error_msg}")
+                    else:
+                        state["result"] = f"<p style='color:#dc2626;'><strong>❌ Gagal membuat kelompok:</strong> {error_msg}</p>"
+                        logger.warning(f"[{user_id}] ✗ create_group_by_grades gagal: {error_msg}")
 
         elif action == "check_kelompok":
             logger.info(f"[{user_id}] ⚙️  TOOLS: check_kelompok (cek kelompok existing)")
