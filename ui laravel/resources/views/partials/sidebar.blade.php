@@ -49,7 +49,7 @@
                         <li class="menu-header">AI Assistant</li>
                         <li class="nav-item {{ request()->is('ai*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('ai.kelompok') }}">
-                                <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent"
+                                <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent"
                                     style="width: 20px; height: 20px; object-fit: contain; display: inline-block; margin-right: 8px;">
                                 <span>VokasiTera Agent </span>
                             </a>
@@ -62,7 +62,8 @@
                         <li
                             class="nav-item {{ request()->routeIs('koordinator.tugas.*') || request()->routeIs('tugas.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('koordinator.tugas.index') }}"><i
-                                    class="fas fa-file"></i><span>Tugas</span></a></li>
+                                    class="fas fa-file"></i><span>Tugas</span></a>
+                        </li>
                         <li class="nav-item {{ request()->is('kelompok*') ? 'active' : '' }}"><a class="nav-link"
                                 href="{{ route('kelompok.index') }}"><i class="fas fa-users"></i>
                                 <span>Kelompok</span></a></li>
@@ -114,7 +115,8 @@
                         <li
                             class="nav-item {{ request()->routeIs('penguji.tugas.*') || request()->routeIs('penguji.show.submitan') || request()->routeIs('penguji.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('penguji.tugas.index') }}"><i class="fas fa-file"></i>
-                                <span>Tugas</span></a></li>
+                                <span>Tugas</span></a>
+                        </li>
 
                         <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('penguji.jadwal.index') }}"><i

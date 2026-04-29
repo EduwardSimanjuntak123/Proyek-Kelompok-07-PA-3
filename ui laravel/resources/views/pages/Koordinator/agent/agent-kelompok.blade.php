@@ -21,7 +21,7 @@
             <header class="topbar">
                 <div class="topbar-brand">
                     <div class="topbar-icon">
-                        <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
+                        <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
                             style="width: 40px; height: 40px; object-fit: contain;">
                     </div>
                     <div>
@@ -184,7 +184,7 @@
             {{-- LANDING VIEW --}}
             <div class="landing-view" id="landingView">
                 <div class="landing-icon-wrap">
-                    <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
+                    <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
                         style="width: 100px; height: 100px; object-fit: contain;">
                 </div>
 
@@ -884,14 +884,16 @@
                 event.stopImmediatePropagation();
             }
 
-            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload.groups.length === 0) {
+            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload
+                .groups.length === 0) {
                 Swal.fire("Tidak ada data", "Generate kelompok terlebih dahulu sebelum acak ulang.", "warning");
                 return;
             }
 
             const input = document.getElementById("userInput");
             const basePrompt = latestGroupingMeta?.prompt || latestUserPrompt || "buat kelompok mahasiswa";
-            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') || /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
+            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') ||
+                /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
 
             const regeneratePrompt = isByGrades ?
                 `${basePrompt} dan acak ulang komposisi mahasiswa antar kelompok` :
