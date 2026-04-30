@@ -844,7 +844,21 @@
                 <strong>${data.saved_members || 0}</strong> anggota tersimpan.
                 ${(data.skipped_existing_members || 0) > 0 ? `<br><small>${data.skipped_existing_members} mahasiswa dilewati karena sudah punya kelompok.</small>` : ''}
             `,
-                    icon: "success"
+                    icon: "success",
+                    showCancelButton: true,
+                    confirmButtonText: "Lanjut Buatkan Pembimbing?",
+                    confirmButtonColor: "#3b82f6",
+                    cancelButtonText: "Tutup"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const input = document.getElementById("userInput");
+                        if (input) {
+                            input.value = "buatkan pembimbing";
+                            if (typeof window.sendMessage === 'function') {
+                                window.sendMessage();
+                            }
+                        }
+                    }
                 });
 
                 // Hindari submit ganda pada payload yang sama.
@@ -1196,6 +1210,30 @@
             }
         };
 
+        window.__continueGeneratePembimbingInline = async function(event) {
+            if (event && typeof event.preventDefault === "function") {
+                event.preventDefault();
+            }
+            if (event && typeof event.stopPropagation === "function") {
+                event.stopPropagation();
+            }
+            if (event && typeof event.stopImmediatePropagation === "function") {
+                event.stopImmediatePropagation();
+            }
+
+            try {
+                const input = document.getElementById("userInput");
+                if (input) {
+                    input.value = "buatkan pembimbing";
+                }
+                if (typeof window.sendMessage === 'function') {
+                    window.sendMessage();
+                }
+            } catch (error) {
+                Swal.fire("Error", error.message || "Gagal melanjutkan ke generate pembimbing.", "error");
+            }
+        };
+
         window.__savePengujiInline = async function(event) {
             if (event && typeof event.preventDefault === "function") {
                 event.preventDefault();
@@ -1256,6 +1294,46 @@
                 Swal.fire("Error", error.message || "Gagal validasi penguji.", "error");
             } finally {
                 isLoadingPengujiCheck = false;
+            }
+        };
+
+        window.__confirmShuffleGroupsFromInline = async function(event) {
+            if (event && typeof event.preventDefault === "function") {
+                event.preventDefault();
+            }
+            if (event && typeof event.stopPropagation === "function") {
+                event.stopPropagation();
+            }
+            if (event && typeof event.stopImmediatePropagation === "function") {
+                event.stopImmediatePropagation();
+            }
+
+            try {
+                const button = event.target.closest('.confirm-shuffle-groups');
+                const shufflePrompt = button?.dataset?.shufflePrompt || 
+                    latestUserPrompt || "buat kelompok baru diacak ulang";
+                
+                const confirm = await Swal.fire({
+                    title: "Konfirmasi Acak Ulang",
+                    html: `Apakah Anda yakin ingin diacak ulang? <br><strong>Kelompok yang sudah ada akan dihapus dan diganti dengan kelompok baru.</strong>`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Diacak Ulang",
+                    confirmButtonColor: "#f59e0b",
+                    cancelButtonText: "Batal"
+                });
+
+                if (confirm.isConfirmed) {
+                    const input = document.getElementById("userInput");
+                    if (input) {
+                        input.value = shufflePrompt;
+                    }
+                    if (typeof window.sendMessage === 'function') {
+                        window.sendMessage();
+                    }
+                }
+            } catch (error) {
+                Swal.fire("Error", error.message || "Gagal memproses acak ulang.", "error");
             }
         };
 
@@ -1477,6 +1555,29 @@
 
                 const cancelButton = event.target.closest(".cancel-recreate");
                 if (cancelButton) {
+                    const input = document.getElementById("userInput");
+                    if (input) {
+                        input.value = "";
+                        input.focus();
+                    }
+                    return;
+                }
+
+                const shuffleButton = event.target.closest(".confirm-shuffle-groups");
+                if (shuffleButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    console.log("[chatbot] delegated click matched .confirm-shuffle-groups");
+                    if (typeof window.__confirmShuffleGroupsFromInline === 'function') {
+                        window.__confirmShuffleGroupsFromInline(event);
+                    }
+                    return;
+                }
+
+                const cancelShuffleButton = event.target.closest(".cancel-shuffle");
+                if (cancelShuffleButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
                     const input = document.getElementById("userInput");
                     if (input) {
                         input.value = "";

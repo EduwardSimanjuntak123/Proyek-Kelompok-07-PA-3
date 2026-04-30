@@ -366,11 +366,34 @@ def generate_penguji_assignments_by_context(
 
             excluded = set(group_assignments[kelompok.id]) | set(pembimbing_map.get(kelompok.id, set()))
             cand = pick_next_candidate(excluded)
+            
+            # If no candidate with strict exclusion, relax the constraint (allow pembimbing as examiner)
+            if not cand:
+                excluded = set(group_assignments[kelompok.id])  # Only exclude existing penguji, allow pembimbing
+                cand = pick_next_candidate(excluded)
+            
+            # If still no candidate with capacity, pick the least loaded one (allow exceed capacity)
+            if not cand:
+                available = [
+                    c for c in candidates
+                    if c["user_id"] not in set(group_assignments[kelompok.id])
+                ]
+                if available:
+                    # Sort by load (ascending)
+                    available.sort(
+                        key=lambda c: (
+                            loads[c["user_id"]],
+                            -c["weight"],
+                            c.get("nama") or "",
+                        )
+                    )
+                    cand = available[0]
+            
             if not cand:
                 session.close()
                 return {
                     "status": "error",
-                    "message": "Tidak dapat memenuhi ketentuan wajib 2 penguji per kelompok setelah mengecualikan pembimbing kelompok.",
+                    "message": "Tidak dapat memenuhi ketentuan wajib 2 penguji per kelompok. Penguji tidak cukup.",
                 }
 
             uid = cand["user_id"]
@@ -382,6 +405,18 @@ def generate_penguji_assignments_by_context(
         if persist:
             if existing_assignments and replace_existing:
                 session.query(Penguji).filter(Penguji.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
+
+            # Query all existing DosenRoles for this context at once to avoid race conditions
+            existing_roles = session.query(DosenRole).filter(
+                DosenRole.prodi_id == prodi_id,
+                DosenRole.KPA_id == kategori_pa_id,
+                DosenRole.TM_id == angkatan_id,
+            ).all()
+            
+            existing_role_keys = set()
+            for role in existing_roles:
+                key = (role.user_id, role.role_id)
+                existing_role_keys.add(key)
 
             now = datetime.now()
             for kelompok in kelompoks:
@@ -399,17 +434,9 @@ def generate_penguji_assignments_by_context(
                     # role_id 2 = Penguji 1, role_id 4 = Penguji 2
                     role_id = 2 if idx == 0 else 4
                     
-                    # Cek apakah DosenRole sudah ada
-                    existing_role = session.query(DosenRole).filter(
-                        DosenRole.user_id == user_id,
-                        DosenRole.role_id == role_id,
-                        DosenRole.prodi_id == prodi_id,
-                        DosenRole.KPA_id == kategori_pa_id,
-                        DosenRole.TM_id == angkatan_id,
-                    ).first()
-                    
-                    # Jika belum ada, buat DosenRole baru
-                    if not existing_role:
+                    # Cek apakah DosenRole sudah ada berdasarkan set yang sudah di-query
+                    role_key = (user_id, role_id)
+                    if role_key not in existing_role_keys:
                         dosen_role_inserts.append(
                             DosenRole(
                                 user_id=user_id,
@@ -421,11 +448,23 @@ def generate_penguji_assignments_by_context(
                                 status="Aktif",
                             )
                         )
+                        # Tambah ke set untuk menghindari duplicate dalam satu batch
+                        existing_role_keys.add(role_key)
 
             session.add_all(inserts)
             if dosen_role_inserts:
                 session.add_all(dosen_role_inserts)
-            session.commit()
+            
+            try:
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                # Jika error karena duplicate, try lagi tanpa menambah role baru
+                if "Duplicate" in str(e) or "1062" in str(e):
+                    session.add_all(inserts)
+                    session.commit()
+                else:
+                    raise
 
         grouped_output = []
         for kelompok in kelompoks:
