@@ -8,11 +8,14 @@ Fitur utama:
 - Pembagian mempertimbangkan jabatan akademik dosen:
   semakin tinggi jabatan, semakin kecil beban bimbingan.
 - Query assignment pembimbing berdasarkan konteks dosen.
+- Support constraint khusus: dosen tertentu hanya pembimbing 2, dosen untuk kelompok spesifik, dll.
 """
 
 from datetime import datetime
 from math import ceil
-from typing import Dict, List, Optional
+import random
+from typing import Dict, List, Optional, Set, Tuple
+import re
 
 from sqlalchemy import func, or_
 
@@ -25,6 +28,134 @@ from models.role import Role
 
 
 DOSEN_ID_FALLBACK_OFFSET = 1000000000
+
+# Jabatan yang benar-benar dihindari sebagai kandidat pembimbing
+# Lektor kepala dan lektor tetap boleh menjadi pembimbing, tetapi kapasitasnya dibatasi melalui bobot jabatan.
+DISRECOMMENDED_POSITIONS = {"profesor", "guru besar"}
+
+
+def _is_disrecommended_position(jabatan_desc: Optional[str]) -> bool:
+    """Check apakah jabatan termasuk yang tidak disarankan untuk pembimbing."""
+    if not jabatan_desc:
+        return False
+    
+    jabatan_lower = jabatan_desc.lower().strip()
+    for pos in DISRECOMMENDED_POSITIONS:
+        if pos in jabatan_lower:
+            return True
+    return False
+
+
+def _normalize_dosen_name(nama: str) -> str:
+    """Normalize nama dosen untuk matching (case-insensitive, trim)."""
+    return nama.lower().strip()
+
+
+def _match_dosen_by_name(nama_search: str, candidates: List[Dict]) -> Optional[Dict]:
+    """
+    Find dosen candidate by nama (case-insensitive substring match).
+    Returns first match atau None.
+    """
+    search_normalized = _normalize_dosen_name(nama_search)
+    for candidate in candidates:
+        candidate_normalized = _normalize_dosen_name(candidate.get("nama", ""))
+        if search_normalized in candidate_normalized or candidate_normalized in search_normalized:
+            return candidate
+    return None
+
+
+def _extract_dosen_constraints_from_prompt(prompt: str) -> Dict:
+    """
+    Parse prompt user untuk mengekstrak constraint khusus pada dosen pembimbing.
+    
+    Examples:
+    - "Ana Muliyana, M.Pd. hanya bisa menjadi pembimbing 2"
+    - "Dr. Arnaldo Marulitua Sinaga, ST., M.InfoTech. menjadi pembimbing 1 untuk kelompok 1 dan 2"
+    
+    Returns dict dengan struktur:
+    {
+        "only_pembimbing_2": ["Nama Dosen 1", "Nama Dosen 2"],
+        "only_pembimbing_1": ["Nama Dosen 3"],
+        "kelompok_specific": {
+            "Nama Dosen 4": [1, 2, 3],  # dosen ini hanya untuk kelompok 1, 2, 3
+        },
+        "exclude_dosen": ["Nama Dosen 5"],  # dosen yang tidak ingin dipilih
+    }
+    """
+    constraints = {
+        "only_pembimbing_2": [],
+        "only_pembimbing_1": [],
+        "kelompok_specific": {},
+        "exclude_dosen": [],
+    }
+    
+    if not prompt:
+        return constraints
+    
+    prompt_lower = prompt.lower()
+
+    def _clean_name(raw_name: str) -> str:
+        cleaned = raw_name.strip()
+        cleaned = re.sub(r"^(nama\s+dosen\s+)", "", cleaned)
+        cleaned = re.sub(r"^(dr\.?\s+|prof\.?\s+)", "", cleaned)
+        if "," in cleaned:
+            cleaned = cleaned.split(",", 1)[0].strip()
+        cleaned = re.sub(r"\b(hanya|bisa|dapat|menjadi|jadi|untuk|kelompok|pembimbing)\b.*$", "", cleaned).strip()
+        cleaned = re.sub(r"\s+,\s*.*$", "", cleaned).strip()
+
+        noisy_prefixes = (
+            "buatlah", "tampilkan", "generate", "buat", "tolong", "mohon",
+            "dosen pembimbing", "pembimbing untuk", "untuk setiap", "yang dimana"
+        )
+        if cleaned.startswith(noisy_prefixes):
+            return ""
+        return cleaned
+
+    def _append_unique(target: List[str], value: str) -> None:
+        if value and value not in target:
+            target.append(value)
+
+    def _extract_name_from_prefix(prefix_text: str) -> str:
+        prefix = prefix_text.strip()
+        marker_pos = prefix.lower().rfind("nama dosen")
+        if marker_pos != -1:
+            prefix = prefix[marker_pos + len("nama dosen"):].strip()
+        return _clean_name(prefix)
+
+    # Format: "... nama dosen X hanya bisa menjadi pembimbing 2"
+    pb2_keywords = [
+        "hanya bisa menjadi pembimbing 2",
+        "hanya dapat menjadi pembimbing 2",
+    ]
+    for keyword in pb2_keywords:
+        for match in re.finditer(re.escape(keyword), prompt_lower):
+            nama = _extract_name_from_prefix(prompt_lower[:match.start()])
+            if nama and len(nama) > 2:
+                _append_unique(constraints["only_pembimbing_2"], nama)
+
+    # Normalize text for kelompok parsing
+    prompt_normalized = re.sub(r"\s+dan\s+kelompok\s+", " dan ", prompt_lower)
+
+    # Format: "... nama dosen X menjadi pembimbing 1 untuk kelompok 1 dan kelompok 2"
+    pb1_keyword = "menjadi pembimbing 1 untuk kelompok"
+    for match in re.finditer(re.escape(pb1_keyword), prompt_normalized):
+        nama = _extract_name_from_prefix(prompt_normalized[:match.start()])
+        kelompok_tail = prompt_normalized[match.end():].strip()
+        
+        # PENTING: stop at next "dan nama dosen" atau "menjadi pembimbing" untuk multipl constraint
+        next_marker_match = re.search(r"(dan\s+nama\s+dosen|menjadi\s+pembimbing)", kelompok_tail)
+        if next_marker_match:
+            kelompok_tail = kelompok_tail[:next_marker_match.start()]
+        
+        kelompok_nums = sorted(set(int(k) for k in re.findall(r"\d+", kelompok_tail)))
+        if nama and len(nama) > 2 and "buatlah dosen" not in nama and kelompok_nums:
+            constraints["kelompok_specific"][nama] = kelompok_nums
+            _append_unique(constraints["only_pembimbing_1"], nama)
+    
+    return constraints
+
+
+
 
 
 def _jabatan_rank(jabatan_desc: Optional[str]) -> int:
@@ -60,7 +191,7 @@ def _get_kelompok_by_context(session, prodi_id: int = None, kategori_pa_id: int 
     return query.order_by(Kelompok.id.asc()).all()
 
 
-def _get_candidate_pembimbing_by_context(session, prodi_id: int = None, kategori_pa_id: int = None, angkatan_id: int = None):
+def _get_candidate_pembimbing_by_context(session, prodi_id: int = None, kategori_pa_id: int = None, angkatan_id: int = None, exclude_disrecommended: bool = False, exclude_dosen_names: List[str] = None):
     # Sumber utama kandidat diambil dari tabel dosen sesuai prodi_id
     # agar tidak terbatasi oleh kombinasi KPA/TM pada dosen_roles.
     dosen_query = session.query(Dosen)
@@ -86,7 +217,21 @@ def _get_candidate_pembimbing_by_context(session, prodi_id: int = None, kategori
         roles_by_user.setdefault(uid, []).append(role_name or "")
 
     candidates = []
+    exclude_names_normalized = []
+    if exclude_dosen_names:
+        exclude_names_normalized = [_normalize_dosen_name(n) for n in exclude_dosen_names]
+    
     for dosen in dosen_rows:
+        # Filter: Skip dosen dengan jabatan yang tidak disarankan
+        if exclude_disrecommended and _is_disrecommended_position(dosen.jabatan_akademik_desc):
+            continue
+        
+        # Filter: Skip dosen yang di-exclude explicit
+        if exclude_names_normalized:
+            dosen_name_normalized = _normalize_dosen_name(dosen.nama)
+            if any(exclude_name in dosen_name_normalized or dosen_name_normalized in exclude_name for exclude_name in exclude_names_normalized):
+                continue
+        
         if dosen.user_id is not None:
             assignment_user_id = int(dosen.user_id)
         else:
@@ -410,17 +555,38 @@ def generate_pembimbing_assignments_by_context(
     max_per_group: int = 2,
     replace_existing: bool = True,
     persist: bool = True,
+    exclude_disrecommended: bool = True,
+    constraints: Dict = None,
 ) -> dict:
     """
-    Generate assignment pembimbing ke kelompok.
+    Generate assignment pembimbing ke kelompok dengan support constraints khusus.
+
+    Parameters:
+    - exclude_disrecommended: Jika True, exclude dosen dengan jabatan profesor/guru besar
+    - constraints: Dict dengan struktur:
+        {
+            "only_pembimbing_2": ["Nama Dosen"],  # dosen ini hanya bisa jadi pembimbing 2
+            "only_pembimbing_1": ["Nama Dosen"],  # dosen ini hanya bisa jadi pembimbing 1
+            "kelompok_specific": {"Nama Dosen": [1, 2]},  # dosen hanya untuk kelompok tertentu
+            "exclude_dosen": ["Nama Dosen"],  # dosen yang tidak ingin dipilih
+        }
 
     Aturan:
     - Setiap kelompok mendapat minimal 1 pembimbing.
     - Maksimal 2 pembimbing per kelompok.
     - Dosen dengan jabatan lebih tinggi cenderung membimbing lebih sedikit kelompok.
+    - Constraint khusus diterapkan jika ada.
     """
     session = SessionLocal()
     try:
+        if not constraints:
+            constraints = {
+                "only_pembimbing_2": [],
+                "only_pembimbing_1": [],
+                "kelompok_specific": {},
+                "exclude_dosen": [],
+            }
+        
         if min_per_group < 1:
             min_per_group = 1
         if max_per_group < min_per_group:
@@ -435,7 +601,15 @@ def generate_pembimbing_assignments_by_context(
                 "message": "Tidak ada kelompok pada konteks ini",
             }
 
-        candidates = _get_candidate_pembimbing_by_context(session, prodi_id, kategori_pa_id, angkatan_id)
+        # Ambil candidates dengan filter exclude_disrecommended dan exclude_dosen
+        candidates = _get_candidate_pembimbing_by_context(
+            session, 
+            prodi_id, 
+            kategori_pa_id, 
+            angkatan_id,
+            exclude_disrecommended=exclude_disrecommended,
+            exclude_dosen_names=constraints.get("exclude_dosen", [])
+        )
         if not candidates:
             session.close()
             return {
@@ -443,7 +617,51 @@ def generate_pembimbing_assignments_by_context(
                 "message": "Tidak ada dosen pembimbing kandidat pada konteks ini",
             }
 
+        # Build constraint maps
+        only_pb2_names = [_normalize_dosen_name(n) for n in constraints.get("only_pembimbing_2", [])]
+        only_pb1_names = [_normalize_dosen_name(n) for n in constraints.get("only_pembimbing_1", [])]
+        kelompok_specific_constraints = constraints.get("kelompok_specific", {})
+        
+        # Map candidate names untuk matching constraint
+        candidate_name_to_user_id: Dict[str, int] = {}
+        for c in candidates:
+            candidate_name_to_user_id[_normalize_dosen_name(c["nama"])] = c["user_id"]
+
+        explicit_requested_user_ids: Set[int] = set()
+        for raw_name in (
+            constraints.get("only_pembimbing_1", [])
+            + constraints.get("only_pembimbing_2", [])
+            + list(kelompok_specific_constraints.keys())
+        ):
+            matched = _match_dosen_by_name(raw_name, candidates)
+            if matched:
+                explicit_requested_user_ids.add(matched["user_id"])
+
+        # Map permintaan eksplisit ke user_id dan nomor kelompok target.
+        explicit_group_targets: Dict[int, Dict[int, int]] = {}
+        for raw_name, kelompok_numbers in kelompok_specific_constraints.items():
+            matched = _match_dosen_by_name(raw_name, candidates)
+            if not matched:
+                continue
+
+            user_id = matched["user_id"]
+            requires_pb1 = _normalize_dosen_name(raw_name) in only_pb1_names
+            requires_pb2 = _normalize_dosen_name(raw_name) in only_pb2_names
+            if not requires_pb1 and not requires_pb2:
+                requires_pb1 = True
+
+            for nomor in kelompok_numbers:
+                for kelompok in kelompoks:
+                    if str(kelompok.nomor_kelompok) != str(nomor):
+                        continue
+                    explicit_group_targets.setdefault(kelompok.id, {})
+                    if requires_pb1:
+                        explicit_group_targets[kelompok.id][1] = user_id
+                    if requires_pb2:
+                        explicit_group_targets[kelompok.id][2] = user_id
+
         group_ids = [k.id for k in kelompoks]
+        kelompok_id_to_nomor = {k.id: k.nomor_kelompok for k in kelompoks}
 
         existing_assignments = (
             session.query(Pembimbing)
@@ -474,20 +692,134 @@ def generate_pembimbing_assignments_by_context(
             capacities[c["user_id"]] = max(1, int(scaled))
             loads[c["user_id"]] = 0
 
-        # Pastikan total kapasitas cukup untuk minimal 1 pembimbing per kelompok.
-        while sum(capacities.values()) < total_groups:
+        # PENTING: Pastikan dosen yang ada di explicit_group_targets punya capacity cukup
+        # untuk semua kelompok yang diminta
+        for kelompok_id, positions in explicit_group_targets.items():
+            for position, user_id in positions.items():
+                # Count berapa banyak kelompok yang perlu dosen ini
+                count_assignments_for_user = 0
+                for k_id, pos_map in explicit_group_targets.items():
+                    if pos_map.get(position) == user_id:
+                        count_assignments_for_user += 1
+                
+                # Ensure capacity >= count_assignments
+                if capacities.get(user_id, 0) < count_assignments_for_user:
+                    capacities[user_id] = count_assignments_for_user
+
+        # Calculate total capacity needed including explicit slots and second pembimbing
+        explicit_slot_count = sum(len(slot_map) for slot_map in explicit_group_targets.values())
+        
+        # MINIMUM capacity: at least total_groups (1 pb per group)
+        # PLUS explicit slots for constrained dosen
+        # PLUS buffer for pb2 slots
+        min_total_capacity = total_groups
+        if max_per_group >= 2:
+            min_total_capacity += max(1, total_groups // 3)  # buffer for pb2
+        
+        # Ensure total capacity meets minimum
+        while sum(capacities.values()) < min_total_capacity:
             for c in candidates:
                 capacities[c["user_id"]] += 1
-                if sum(capacities.values()) >= total_groups:
+                if sum(capacities.values()) >= min_total_capacity:
                     break
 
-        group_assignments: Dict[int, List[int]] = {k.id: [] for k in kelompoks}
+        group_assignments: Dict[int, List[Tuple[int, int]]] = {k.id: [] for k in kelompoks}  # List of (user_id, pembimbing_position)
 
-        def pick_next_candidate(exclude_user_ids: List[int]):
-            available = [
-                c for c in candidates
-                if c["user_id"] not in exclude_user_ids and loads[c["user_id"]] < capacities[c["user_id"]]
-            ]
+        def is_pb2_only(user_id: int) -> bool:
+            """Check apakah user_id termasuk only_pembimbing_2."""
+            if user_id not in candidate_map:
+                return False
+            dosen_name_normalized = _normalize_dosen_name(candidate_map[user_id]["nama"])
+            return any(pb2_name in dosen_name_normalized or dosen_name_normalized in pb2_name for pb2_name in only_pb2_names)
+
+        def is_pb1_only(user_id: int) -> bool:
+            """Check apakah user_id termasuk only_pembimbing_1."""
+            if user_id not in candidate_map:
+                return False
+            dosen_name_normalized = _normalize_dosen_name(candidate_map[user_id]["nama"])
+            return any(pb1_name in dosen_name_normalized or dosen_name_normalized in pb1_name for pb1_name in only_pb1_names)
+
+        def is_explicit_requested(user_id: int) -> bool:
+            return user_id in explicit_requested_user_ids
+
+        def get_allowed_kelompok_for_dosen(user_id: int) -> Optional[Set[int]]:
+            """Return set kelompok nomor yang diizinkan untuk dosen, atau None jika semua."""
+            if user_id not in candidate_map:
+                return None
+            dosen_name = _normalize_dosen_name(candidate_map[user_id]["nama"])
+            for constraint_name, kelompok_list in kelompok_specific_constraints.items():
+                constraint_name_normalized = _normalize_dosen_name(constraint_name)
+                if constraint_name_normalized in dosen_name or dosen_name in constraint_name_normalized:
+                    return set(kelompok_list)
+            return None
+
+        def pick_next_candidate(exclude_user_ids: List[int], pembimbing_position: int = 1, current_kelompok_id: int = None):
+            """
+            Pick next candidate berdasarkan:
+            - pembimbing_position: 1 atau 2 (position di kelompok)
+            - exclude_user_ids: user_id yang tidak bisa dipilih
+            - current_kelompok_id: kelompok_id saat ini (untuk check constraint kelompok_specific)
+            
+            Returns candidate dict atau None.
+            """
+            def collect_available(ignore_group_specific: bool = False):
+                available = []
+                for c in candidates:
+                    user_id = c["user_id"]
+
+                    if user_id in exclude_user_ids:
+                        continue
+
+                    if loads[user_id] >= capacities[user_id]:
+                        continue
+
+                    if is_pb2_only(user_id) and pembimbing_position != 2:
+                        continue
+
+                    if is_pb1_only(user_id) and pembimbing_position != 1:
+                        continue
+
+                    # Do not recommend Lektor / Lektor Kepala as Pembimbing 2
+                    jabatan_desc = c.get("jabatan_akademik_desc") or ""
+                    jabatan_lower = jabatan_desc.lower()
+                    if pembimbing_position == 2 and ("lektor" in jabatan_lower) and not is_explicit_requested(user_id):
+                        continue
+
+                    if current_kelompok_id is not None:
+                        reserved_positions = explicit_group_targets.get(current_kelompok_id, {})
+                        reserved_user_for_position = reserved_positions.get(pembimbing_position)
+                        if reserved_user_for_position is not None and reserved_user_for_position != user_id:
+                            continue
+
+                        if user_id in explicit_requested_user_ids:
+                            allowed_kelompok = get_allowed_kelompok_for_dosen(user_id)
+                            if allowed_kelompok is not None:
+                                kelompok_nomor = kelompok_id_to_nomor.get(current_kelompok_id)
+                                if kelompok_nomor not in allowed_kelompok:
+                                    continue
+                            
+                    if current_kelompok_id is not None:
+                        reserved_positions = explicit_group_targets.get(current_kelompok_id, {})
+                        if pembimbing_position in reserved_positions and reserved_positions[pembimbing_position] == user_id:
+                            available.append(c)
+                            continue
+
+                    if exclude_disrecommended and _is_disrecommended_position(c.get("jabatan_akademik_desc")) and not is_explicit_requested(user_id):
+                        continue
+
+                    if not ignore_group_specific:
+                        allowed_kelompok = get_allowed_kelompok_for_dosen(user_id)
+                        if allowed_kelompok is not None and current_kelompok_id is not None:
+                            kelompok_nomor = kelompok_id_to_nomor.get(current_kelompok_id)
+                            if kelompok_nomor not in allowed_kelompok:
+                                continue
+
+                    available.append(c)
+                return available
+
+            available = collect_available(ignore_group_specific=False)
+            if not available:
+                available = collect_available(ignore_group_specific=True)
             if not available:
                 return None
 
@@ -501,36 +833,111 @@ def generate_pembimbing_assignments_by_context(
             )
             return available[0]
 
-        # Pass 1: minimal 1 pembimbing per kelompok.
+        # Pas 0: pasang dosen yang diminta secara eksplisit untuk kelompok tertentu.
         for kelompok in kelompoks:
-            cand = pick_next_candidate(group_assignments[kelompok.id])
+            reserved_positions = explicit_group_targets.get(kelompok.id, {})
+            for pembimbing_position, user_id in reserved_positions.items():
+                if any(existing_position == pembimbing_position for _, existing_position in group_assignments[kelompok.id]):
+                    continue
+                if loads.get(user_id, 0) >= capacities.get(user_id, 0):
+                    continue
+                group_assignments[kelompok.id].append((user_id, pembimbing_position))
+                loads[user_id] += 1
+
+        priority_groups = []
+        fallback_groups = []
+        for kelompok in kelompoks:
+            nomor = str(kelompok.nomor_kelompok)
+            has_specific_constraint = any(nomor in {str(n) for n in nums} for nums in kelompok_specific_constraints.values())
+            if has_specific_constraint:
+                priority_groups.append(kelompok)
+            else:
+                fallback_groups.append(kelompok)
+
+        random.shuffle(fallback_groups)
+        ordered_kelompoks = priority_groups + fallback_groups
+
+        # Pass 1: minimal 1 pembimbing per kelompok.
+        # Multi-level fallback untuk ensure semua kelompok ter-assign
+        pass1_failed_groups = []
+        
+        for kelompok in ordered_kelompoks:
+            if any(position == 1 for _, position in group_assignments[kelompok.id]):
+                continue
+            
+            # Level 1: Try dengan constraints
+            cand = pick_next_candidate([], pembimbing_position=1, current_kelompok_id=kelompok.id)
+            
             if not cand:
+                pass1_failed_groups.append(kelompok)
+                continue
+
+            uid = cand["user_id"]
+            group_assignments[kelompok.id].append((uid, 1))
+            loads[uid] += 1
+        
+        # Level 2: Untuk group yang gagal, try ulang dengan least loaded dosen yang paling tepat
+        for kelompok in pass1_failed_groups:
+            best_cand = None
+            best_load_ratio = float('inf')
+            
+            for c in candidates:
+                user_id = c["user_id"]
+                
+                # Skip if already assigned at position 1 to this kelompok
+                if any(uid == user_id and pos == 1 for uid, pos in group_assignments[kelompok.id]):
+                    continue
+                
+                # Skip if PB2-only dan kita butuh PB1
+                if is_pb2_only(user_id):
+                    continue
+                
+                # Calculate load ratio
+                load_ratio = loads[user_id] / max(1, capacities[user_id])
+                if load_ratio < best_load_ratio:
+                    best_load_ratio = load_ratio
+                    best_cand = c
+            
+            if best_cand:
+                uid = best_cand["user_id"]
+                group_assignments[kelompok.id].append((uid, 1))
+                loads[uid] += 1
+            else:
+                # Ultimate fallback: assign anyone who has capacity
+                for c in candidates:
+                    user_id = c["user_id"]
+                    if loads[user_id] < capacities[user_id]:
+                        if not is_pb2_only(user_id):
+                            group_assignments[kelompok.id].append((user_id, 1))
+                            loads[user_id] += 1
+                            break
+        
+        # Verify all kelompok have at least PB1
+        for kelompok in kelompoks:
+            if not any(position == 1 for _, position in group_assignments[kelompok.id]):
                 session.close()
                 return {
                     "status": "error",
-                    "message": "Kapasitas pembimbing tidak cukup untuk memenuhi minimal 1 pembimbing per kelompok",
+                    "message": f"Kapasitas pembimbing tidak cukup untuk kelompok {kelompok.nomor_kelompok}",
                 }
 
-            uid = cand["user_id"]
-            group_assignments[kelompok.id].append(uid)
-            loads[uid] += 1
-
-        # Pass 2: tambah pembimbing kedua jika kapasitas memungkinkan (OPTIONAL, tidak wajib).
-        # Jika tidak ada pembimbing dengan kapasitas, kelompok cukup dengan 1 pembimbing saja.
+        # Pass 2: tambah pembimbing kedua jika kapasitas memungkinkan dan constraint memungkinkan.
         if max_per_group >= 2 and total_candidates > 1:
-            for kelompok in kelompoks:
-                if len(group_assignments[kelompok.id]) >= 2:
+            second_pass_groups = ordered_kelompoks[:]
+            random.shuffle(second_pass_groups)
+            for kelompok in second_pass_groups:
+                if any(position == 2 for _, position in group_assignments[kelompok.id]):
                     continue
                 
-                # Try to find candidate with available capacity
-                cand = pick_next_candidate(group_assignments[kelompok.id])
+                # Ambil user_id yang sudah assigned untuk exclude
+                exclude_uids = [uid for uid, _ in group_assignments[kelompok.id]]
                 
-                # If no candidate with capacity, skip (tidak wajib pembimbing kedua)
+                cand = pick_next_candidate(exclude_uids, pembimbing_position=2, current_kelompok_id=kelompok.id)
                 if not cand:
                     continue
                 
                 uid = cand["user_id"]
-                group_assignments[kelompok.id].append(uid)
+                group_assignments[kelompok.id].append((uid, 2))
                 loads[uid] += 1
 
         inserts = []
@@ -541,7 +948,7 @@ def generate_pembimbing_assignments_by_context(
 
             now = datetime.now()
             for kelompok in kelompoks:
-                for idx, user_id in enumerate(group_assignments[kelompok.id]):
+                for user_id, pembimbing_position in group_assignments[kelompok.id]:
                     inserts.append(
                         Pembimbing(
                             user_id=user_id,
@@ -551,9 +958,9 @@ def generate_pembimbing_assignments_by_context(
                         )
                     )
                     
-                    # Tentukan role_id berdasarkan posisi pembimbing (1st atau 2nd)
+                    # Tentukan role_id berdasarkan pembimbing_position
                     # role_id 3 = Pembimbing 1, role_id 5 = Pembimbing 2
-                    role_id = 3 if idx == 0 else 5
+                    role_id = 3 if pembimbing_position == 1 else 5
                     
                     # Cek apakah DosenRole sudah ada
                     existing_role = session.query(DosenRole).filter(
@@ -586,7 +993,7 @@ def generate_pembimbing_assignments_by_context(
         grouped_output = []
         for kelompok in kelompoks:
             pembimbing_rows = []
-            for user_id in group_assignments[kelompok.id]:
+            for user_id, pembimbing_position in group_assignments[kelompok.id]:
                 c = candidate_map.get(user_id, {})
                 pembimbing_rows.append(
                     {
@@ -594,6 +1001,7 @@ def generate_pembimbing_assignments_by_context(
                         "dosen_nama": c.get("nama", "N/A"),
                         "jabatan_akademik_desc": c.get("jabatan_akademik_desc", "N/A"),
                         "role_name": c.get("role_name", "N/A"),
+                        "pembimbing_position": pembimbing_position,
                     }
                 )
 
@@ -632,6 +1040,13 @@ def generate_pembimbing_assignments_by_context(
                 "max_per_group": max_per_group,
                 "replace_existing": replace_existing,
                 "persisted": persist,
+                "exclude_disrecommended": exclude_disrecommended,
+                "constraints_applied": bool(constraints and any(
+                    constraints.get("only_pembimbing_2") or 
+                    constraints.get("only_pembimbing_1") or 
+                    constraints.get("kelompok_specific") or 
+                    constraints.get("exclude_dosen")
+                )),
             },
             "groups": grouped_output,
             "dosen_loads": dosen_loads,
@@ -640,6 +1055,7 @@ def generate_pembimbing_assignments_by_context(
                 "kategori_pa_id": kategori_pa_id,
                 "angkatan_id": angkatan_id,
             },
+            "constraints": constraints if constraints else None,
         }
     except Exception as e:
         session.rollback()

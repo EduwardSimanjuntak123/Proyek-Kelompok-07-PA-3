@@ -30,6 +30,7 @@ from tools.pembimbing_tools import (
     get_pembimbing_by_dosen_name,
     get_pembimbing_list,
     get_pembimbing_of_kelompok,
+    _extract_dosen_constraints_from_prompt,
 )
 from tools.penguji_tools import (
     check_existing_penguji_by_context,
@@ -1125,6 +1126,11 @@ def executor_node(state):
 
                 one_only = "1 pembimbing" in prompt_lower or "satu pembimbing" in prompt_lower
                 max_per_group = 1 if one_only else 2
+                
+                # Extract constraints dari prompt
+                constraints = _extract_dosen_constraints_from_prompt(prompt)
+                
+                logger.info(f"[{user_id}] 📋 Constraints extracted: {constraints}")
 
                 result = generate_pembimbing_assignments_by_context(
                     prodi_id=dosen_context.get("prodi_id"),
@@ -1134,6 +1140,8 @@ def executor_node(state):
                     max_per_group=max_per_group,
                     replace_existing=True,
                     persist=False,
+                    exclude_disrecommended=True,
+                    constraints=constraints,
                 )
                 state["result"] = format_generate_pembimbing_result(result)
                 if result.get("status") == "success":
@@ -1157,6 +1165,7 @@ def executor_node(state):
                         if existing_pembimbing_check.get("status") == "success"
                         else 0,
                         "prompt": prompt,
+                        "constraints": constraints,
                     }
                     logger.info(f"[{user_id}] ✓ generate_pembimbing preview siap disimpan")
 
@@ -1395,27 +1404,19 @@ def executor_node(state):
                     error_msg = hybrid_result.get('message', 'Gagal membuat kelompok hybrid')
                     
                     # Check if error is due to all students already grouped or empty context
-                    if "Semua mahasiswa pada konteks ini sudah memiliki kelompok" in error_msg or "Tidak ada mahasiswa" in error_msg or hybrid_result.get("status") == "empty":
-                        # Extract key attributes from original prompt (e.g., number of members)
-                        attrs = []
-                        if "5" in prompt or "lima" in prompt.lower():
-                            attrs.append("5 orang per kelompok")
-                        elif "4" in prompt or "empat" in prompt.lower():
-                            attrs.append("4 orang per kelompok")
-                        attrs_str = " dengan " + ", ".join(attrs) if attrs else ""
-                        shuffle_prompt = f"hapus kelompok lama dan buat kelompok baru diacak ulang{attrs_str}"
-                        escaped_shuffle_prompt = html.escape(shuffle_prompt)
+                    if "Tidak ada mahasiswa" in error_msg or hybrid_result.get("status") == "empty":
+                        escaped_prompt = html.escape(prompt)
                         error_html = f"""
-<div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; padding:16px; margin-bottom:16px;">
-  <h3 style="margin-top:0; color:#92400e;">⚠️ Semua Mahasiswa Sudah Dalam Kelompok</h3>
-  <p style="margin:0 0 12px 0; color:#374151;">{error_msg}</p>
-  <p style="margin:0 0 12px 0; color:#374151;">Apakah Anda ingin diacak ulang dengan kelompok baru?</p>
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Semua Mahasiswa Sudah Dalam Kelompok</h3>
+  <p style="margin:0 0 12px 0;">{error_msg}</p>
+  <p style="margin:0 0 12px 0; color:#374151;">Untuk membuat kelompok baru, perlu menghapus kelompok yang sudah ada terlebih dahulu.</p>
   <div style="display:flex; gap:8px; flex-wrap:wrap;">
-    <button type="button" class="btn btn-warning confirm-shuffle-groups" style="padding:8px 16px; cursor:pointer; pointer-events:auto; position:relative; z-index:2;" data-shuffle-prompt="{escaped_shuffle_prompt}" onclick="if(window.__confirmShuffleGroupsFromInline){{window.__confirmShuffleGroupsFromInline(event);}} return false;"> 
-      <i class="fas fa-random"></i> Ya, Diacak Ulang
+    <button type="button" class="btn btn-danger confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
+      <i class="fas fa-trash"></i> Hapus Kelompok Lama & Buat Baru
     </button>
-    <button type="button" class="btn btn-secondary cancel-shuffle" style="padding:8px 16px; cursor:pointer; pointer-events:auto; position:relative; z-index:2;" onclick="(function(){{const input=document.getElementById('userInput'); if(input){{input.value=''; input.focus();}}}})()); return false;">
-      Tidak, Batal
+    <button type="button" class="btn btn-secondary cancel-recreate" style="padding:8px 16px;">
+      Batal
     </button>
   </div>
 </div>
@@ -1455,7 +1456,7 @@ def executor_node(state):
 <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:16px; margin-bottom:16px;">
   <h3 style="margin-top:0; color:#b45309;">⚠️ Konfirmasi: Kelompok Sudah Ada</h3>
   <p>Ditemukan <strong>{existing_check.get('total', 0)}</strong> kelompok pada konteks ini.</p>
-   <p>Untuk membuat kelompok baru, harus menghapus data kelompok yang ada terlebih dahulu.</p>
+  <p>Untuk membuat kelompok baru, harus menghapus data kelompok yang ada terlebih dahulu.</p>
   <p style="margin-bottom:12px;"><strong>Pilih aksi berikut:</strong></p>
   <div style="display:flex; gap:10px;">
     <button type="button" class="btn btn-warning confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
@@ -1676,19 +1677,10 @@ def executor_node(state):
                     html_result += f"""
   </div>
   
-  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px;">
     <h4 style="margin-top:0; color:#374151;">✔️ Verifikasi Keseimbangan</h4>
     <p style="margin:0 0 8px 0;"><strong>Range Nilai Acceptable:</strong> {acceptable_range.get('min', 0)} - {acceptable_range.get('max', 0)} (Center: {acceptable_range.get('center', 0)} ± {acceptable_range.get('std_dev', 0)})</p>
     <p style="margin:0;"><strong>Status:</strong> {'✅ Semua kelompok seimbang' if group_stats.get('all_within_range') else '⚠️ Beberapa kelompok menyimpang dari range'}</p>
-  </div>
-
-  <div style="margin-top:12px; border:1px solid #bfdbfe; background:#eff6ff; border-radius:10px; padding:10px;">
-    <h6 style="margin:0 0 8px 0;">Aksi Lanjutan</h6>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button type="button" class="btn btn-sm btn-info continue-generate-pembimbing-btn" style="cursor:pointer; pointer-events:auto; position:relative; z-index:2;" onclick="if(window.__continueGeneratePembimbingInline){{window.__continueGeneratePembimbingInline(event);}} return false;">
-        <i class="fas fa-arrow-right"></i> Lanjut Buatkan Pembimbing?
-      </button>
-    </div>
   </div>
 </div>
 """
@@ -1711,29 +1703,19 @@ def executor_node(state):
                     error_msg = grouping_result.get("message", "Error tidak diketahui")
                     
                     # Check if error is due to all students already grouped
-                    if "Semua mahasiswa pada konteks ini sudah memiliki kelompok" in error_msg or "Tidak ada mahasiswa pada konteks" in error_msg:
-                        # Extract key attributes from original prompt (e.g., number of members, grading method)
-                        attrs = []
-                        if "5" in prompt or "lima" in prompt.lower():
-                            attrs.append("5 orang per kelompok")
-                        elif "4" in prompt or "empat" in prompt.lower():
-                            attrs.append("4 orang per kelompok")
-                        if "nilai" in prompt.lower() or "grade" in prompt.lower():
-                            attrs.append("berdasarkan nilai")
-                        attrs_str = " dengan " + ", ".join(attrs) if attrs else ""
-                        shuffle_prompt = f"hapus kelompok lama dan buat kelompok baru diacak ulang{attrs_str}"
-                        escaped_shuffle_prompt = html.escape(shuffle_prompt)
+                    if "Tidak ada mahasiswa pada konteks" in error_msg:
+                        escaped_prompt = html.escape(prompt)
                         error_html = f"""
-<div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; padding:16px; margin-bottom:16px;">
-  <h3 style="margin-top:0; color:#92400e;">⚠️ Semua Mahasiswa Sudah Dalam Kelompok</h3>
-  <p style="margin:0 0 12px 0; color:#374151;">{error_msg}</p>
-  <p style="margin:0 0 12px 0; color:#374151;">Apakah Anda ingin diacak ulang dengan kelompok baru?</p>
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Semua Mahasiswa Sudah Dalam Kelompok</h3>
+  <p style="margin:0 0 12px 0;">{error_msg}</p>
+  <p style="margin:0 0 12px 0; color:#374151;">Untuk membuat kelompok baru, perlu menghapus kelompok yang sudah ada terlebih dahulu.</p>
   <div style="display:flex; gap:8px; flex-wrap:wrap;">
-    <button type="button" class="btn btn-warning confirm-shuffle-groups" style="padding:8px 16px; cursor:pointer; pointer-events:auto; position:relative; z-index:2;" data-shuffle-prompt="{escaped_shuffle_prompt}" onclick="if(window.__confirmShuffleGroupsFromInline){{window.__confirmShuffleGroupsFromInline(event);}} return false;"> 
-      <i class="fas fa-random"></i> Ya, Diacak Ulang
+    <button type="button" class="btn btn-danger confirm-recreate-groups" style="padding:8px 16px;" data-recreate-prompt="{escaped_prompt}" onclick="if(window.__confirmRecreateGroupsFromInline){{window.__confirmRecreateGroupsFromInline(event);}}"> 
+      <i class="fas fa-trash"></i> Hapus Kelompok Lama & Buat Baru
     </button>
-    <button type="button" class="btn btn-secondary cancel-shuffle" style="padding:8px 16px; cursor:pointer; pointer-events:auto; position:relative; z-index:2;" onclick="(function(){{const input=document.getElementById('userInput'); if(input){{input.value=''; input.focus();}}}})()); return false;">
-      Tidak, Batal
+    <button type="button" class="btn btn-secondary cancel-recreate" style="padding:8px 16px;">
+      Batal
     </button>
   </div>
 </div>
