@@ -56,7 +56,7 @@
             {{-- VERIFICATION SIDEBAR --}}
             <aside class="verification-sidebar">
                 <div class="sidebar-header">
-                    <h3>Alur Verifikasi</h3>
+                    <h3>Alur Task Koordinator PA</h3>
                 </div>
 
                 <div class="verification-steps">
@@ -93,7 +93,7 @@
                                 <div class="step-number">2</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Verifikasi Pembimbing</div>
+                                <div class="step-title">Assign Dosen Pembimbing</div>
                                 <div class="step-subtitle">Tentukan dosen pembimbing</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -118,7 +118,7 @@
                                 <div class="step-number">3</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Verifikasi Penguji</div>
+                                <div class="step-title">Assign Dosen Penguji</div>
                                 <div class="step-subtitle">Tentukan dosen penguji</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -1310,9 +1310,9 @@
 
             try {
                 const button = event.target.closest('.confirm-shuffle-groups');
-                const shufflePrompt = button?.dataset?.shufflePrompt || 
+                const shufflePrompt = button?.dataset?.shufflePrompt ||
                     latestUserPrompt || "buat kelompok baru diacak ulang";
-                
+
                 const confirm = await Swal.fire({
                     title: "Konfirmasi Acak Ulang",
                     html: `Apakah Anda yakin ingin diacak ulang? <br><strong>Kelompok yang sudah ada akan dihapus dan diganti dengan kelompok baru.</strong>`,
@@ -1698,6 +1698,9 @@
 
             appendMessage("user", message)
             input.value = ""
+            if (typeof window.autoResizeChatInput === "function") {
+                window.autoResizeChatInput()
+            }
             input.focus()
 
             let loadingId = appendLoading()
@@ -1836,6 +1839,40 @@
         const landingView = document.getElementById("landingView");
         const chatView = document.getElementById("chatView");
 
+        function autoResizeLandingInput() {
+            if (!landingInput) return;
+
+            landingInput.style.height = "auto";
+            const maxHeight = 120;
+            const nextHeight = Math.min(landingInput.scrollHeight, maxHeight);
+            landingInput.style.height = `${nextHeight}px`;
+            landingInput.style.overflowY = landingInput.scrollHeight > maxHeight ? "auto" : "hidden";
+        }
+
+        function autoResizeChatInput() {
+            const input = document.getElementById("userInput");
+            if (!input) return;
+
+            input.style.height = "auto";
+            const maxHeight = 140;
+            const nextHeight = Math.min(input.scrollHeight, maxHeight);
+            input.style.height = `${nextHeight}px`;
+            input.style.overflowY = input.scrollHeight > maxHeight ? "auto" : "hidden";
+        }
+
+        window.autoResizeChatInput = autoResizeChatInput;
+
+        if (landingInput) {
+            autoResizeLandingInput();
+            landingInput.addEventListener("input", autoResizeLandingInput);
+        }
+
+        const chatPromptInput = document.getElementById("userInput");
+        if (chatPromptInput) {
+            autoResizeChatInput();
+            chatPromptInput.addEventListener("input", autoResizeChatInput);
+        }
+
         // Fungsi pindah dari landing ke chat
         function openChatWithMessage(message) {
             if (!message) return;
@@ -1847,6 +1884,7 @@
             const input = document.getElementById("userInput");
             if (input) {
                 input.value = message;
+                autoResizeChatInput();
             }
 
             if (typeof window.sendMessage === "function") {

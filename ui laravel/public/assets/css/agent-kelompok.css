@@ -191,6 +191,8 @@
 
 .landing-input-wrap textarea {
     flex: 1;
+    min-width: 0;
+    width: 100%;
     border: none;
     background: transparent;
     outline: none;
@@ -201,6 +203,10 @@
     line-height: 1.5;
     min-height: 22px;
     max-height: 80px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 .landing-input-wrap textarea::placeholder {
@@ -258,11 +264,6 @@
     display: flex;
     align-items: center;
     gap: 5px;
-}
-
-.chip:hover {
-    background: #4c9bc8;
-    color: #fff;
 }
 
 /* ===== CHAT VIEW ===== */
@@ -718,6 +719,7 @@
 
 #userInput {
     flex: 1;
+    min-width: 0;
     border: none;
     background: transparent;
     outline: none;
@@ -727,7 +729,11 @@
     resize: none;
     line-height: 1.5;
     min-height: 20px;
-    max-height: 100px;
+    max-height: 140px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 #userInput::placeholder {
@@ -920,8 +926,8 @@
 
 .step-line {
     position: absolute;
-    left: 20px;
-    top: 44px;
+    left: 30px;
+    top: 32px;
     width: 1px;
     height: calc(100% + 6px);
     background: #c8dce9;
