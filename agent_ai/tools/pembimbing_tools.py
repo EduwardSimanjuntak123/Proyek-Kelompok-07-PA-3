@@ -25,6 +25,7 @@ from models.dosen_role import DosenRole
 from models.kelompok import Kelompok
 from models.pembimbing import Pembimbing
 from models.role import Role
+from models.tahun_ajaran import TahunAjaran
 
 
 DOSEN_ID_FALLBACK_OFFSET = 1000000000
@@ -942,6 +943,13 @@ def generate_pembimbing_assignments_by_context(
 
         inserts = []
         dosen_role_inserts = []
+        
+        # Get active tahun_ajaran_id from database
+        active_tahun_ajaran = session.query(TahunAjaran).filter(
+            TahunAjaran.status == "Aktif"
+        ).first()
+        tahun_ajaran_id = active_tahun_ajaran.id if active_tahun_ajaran else 1
+        
         if persist:
             if existing_assignments and replace_existing:
                 session.query(Pembimbing).filter(Pembimbing.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
@@ -969,6 +977,7 @@ def generate_pembimbing_assignments_by_context(
                         DosenRole.prodi_id == prodi_id,
                         DosenRole.KPA_id == kategori_pa_id,
                         DosenRole.TM_id == angkatan_id,
+                        DosenRole.tahun_ajaran_id == tahun_ajaran_id,
                     ).first()
                     
                     # Jika belum ada, buat DosenRole baru
@@ -980,7 +989,7 @@ def generate_pembimbing_assignments_by_context(
                                 prodi_id=prodi_id,
                                 KPA_id=kategori_pa_id,
                                 TM_id=angkatan_id,
-                                tahun_ajaran_id=1,  # default tahun ajaran
+                                tahun_ajaran_id=tahun_ajaran_id,
                                 status="Aktif",
                             )
                         )
