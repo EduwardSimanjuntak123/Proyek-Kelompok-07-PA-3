@@ -555,7 +555,7 @@ def generate_pembimbing_assignments_by_context(
     min_per_group: int = 1,
     max_per_group: int = 2,
     replace_existing: bool = True,
-    persist: bool = True,
+    persist: bool = False,
     exclude_disrecommended: bool = True,
     constraints: Dict = None,
 ) -> dict:
@@ -950,6 +950,9 @@ def generate_pembimbing_assignments_by_context(
         ).first()
         tahun_ajaran_id = active_tahun_ajaran.id if active_tahun_ajaran else 1
         
+        # Track kombinasi DosenRole yang sudah ditambah (untuk avoid duplicates dalam loop)
+        added_dosen_roles = set()
+        
         if persist:
             if existing_assignments and replace_existing:
                 session.query(Pembimbing).filter(Pembimbing.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
@@ -970,7 +973,10 @@ def generate_pembimbing_assignments_by_context(
                     # role_id 3 = Pembimbing 1, role_id 5 = Pembimbing 2
                     role_id = 3 if pembimbing_position == 1 else 5
                     
-                    # Cek apakah DosenRole sudah ada
+                    # Buat kombinasi key untuk tracking
+                    role_key = (user_id, role_id, prodi_id, kategori_pa_id, angkatan_id, tahun_ajaran_id)
+                    
+                    # Cek apakah sudah ada di dosen_roles database
                     existing_role = session.query(DosenRole).filter(
                         DosenRole.user_id == user_id,
                         DosenRole.role_id == role_id,
@@ -980,8 +986,8 @@ def generate_pembimbing_assignments_by_context(
                         DosenRole.tahun_ajaran_id == tahun_ajaran_id,
                     ).first()
                     
-                    # Jika belum ada, buat DosenRole baru
-                    if not existing_role:
+                    # Jika belum ada di database DAN belum ditambah dalam loop ini
+                    if not existing_role and role_key not in added_dosen_roles:
                         dosen_role_inserts.append(
                             DosenRole(
                                 user_id=user_id,
@@ -993,6 +999,7 @@ def generate_pembimbing_assignments_by_context(
                                 status="Aktif",
                             )
                         )
+                        added_dosen_roles.add(role_key)
 
             session.add_all(inserts)
             if dosen_role_inserts:

@@ -1186,7 +1186,7 @@ def executor_node(state):
                     min_per_group=2,
                     max_per_group=2,
                     replace_existing=True,
-                    persist=True,
+                    persist=False,
                 )
 
                 state["result"] = format_generate_penguji_result(result)
