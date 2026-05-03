@@ -45,20 +45,7 @@ def question_node(state):
                                 messages[-1].get("role") == "user" and 
                                 messages[-1].get("content"))
         
-        # Jika belum ada user input, minta dari terminal (CLI mode)
-        if not last_message_is_user:
-            logger.info(f"[{user_id}] No user input in state - CLI mode detected, asking for input...")
-            user_input = input("You: ")
-            logger.debug(f"[{user_id}] User input received: {user_input[:100]}...")
-            
-            # Tambah ke messages
-            messages.append({
-                "role": "user",
-                "content": user_input
-            })
-            state["messages"] = _trim_messages(messages)
-        else:
-            logger.debug(f"[{user_id}] User input already in state - API mode")
+        logger.debug(f"[{user_id}] User input already in state - API mode")
         
         # Simpan ke memory
         logger.debug(f"[{user_id}] Saving conversation to memory...")

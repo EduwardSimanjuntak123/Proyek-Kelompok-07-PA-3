@@ -12,6 +12,7 @@ import logging
 
 from main import run_agent_chat
 from core.memory import ConversationMemory
+from core.redis_memory import get_redis_manager
 
 import logging
 import traceback
@@ -68,8 +69,29 @@ class GroupData(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "ok", "service": "agent-grouping"}
+    """Health check endpoint dengan Redis status"""
+    try:
+        redis_mem = get_redis_manager()
+        redis_stats = redis_mem.get_stats()
+        
+        return {
+            "status": "ok",
+            "service": "agent-grouping",
+            "redis": {
+                "connected": True,
+                "stats": redis_stats
+            }
+        }
+    except Exception as e:
+        logger.warning(f"Redis health check failed: {e}")
+        return {
+            "status": "ok",
+            "service": "agent-grouping",
+            "redis": {
+                "connected": False,
+                "error": str(e)
+            }
+        }
 
 
 @app.post("/agent")
@@ -77,6 +99,8 @@ async def agent_endpoint(request: GenerateGroupingRequest):
     """
     Unified endpoint untuk semua AI Agent chat
     Model-aware: bisa menjawab tentang models/schema sesuai role dosen
+    
+    Menggunakan Redis untuk fast chat context loading (1-5ms)
     
     User bebas input apapun - agent akan:
     - Jika tanya tentang model/schema/table → jawab dengan model awareness
@@ -94,6 +118,17 @@ async def agent_endpoint(request: GenerateGroupingRequest):
     try:
         logger.info(f"[{trace_id}] 📨 API Request: '{request.prompt[:50]}...'")
         
+        # Get Redis memory manager
+        redis_mem = get_redis_manager()
+        
+        # Load chat context dari Redis (fast) ⚡
+        chat_context = redis_mem.load_context(request.user_id)
+        conversation_history = chat_context.get("messages", [])[-20:]  # Last 20 messages
+        user_prefs = chat_context.get("preferences", {})
+        session_state = chat_context.get("session_state", {})
+        
+        logger.debug(f"[{trace_id}] Chat context loaded: {len(conversation_history)} messages")
+        
         # Build dosen context untuk agent
         dosen_context = []
         for dosen in request.dosen_context:
@@ -106,9 +141,16 @@ async def agent_endpoint(request: GenerateGroupingRequest):
                 "kategori_pa": dosen.kategori_pa
             })
         
-        # Load only recent conversation history to avoid context explosion
-        memory = ConversationMemory(str(request.user_id))
-        conversation_history = memory.load_conversation()[-8:]
+        # Update session state jika ada dari dosen_context
+        if dosen_context and len(dosen_context) > 0:
+            dosen = dosen_context[0]
+            session_state.update({
+                "prodi_id": dosen.get("prodi_id"),
+                "kategori_pa": dosen.get("kategori_pa"),
+                "angkatan": dosen.get("angkatan"),
+                "user_id": dosen.get("user_id")
+            })
+            redis_mem.set_session_state(request.user_id, session_state)
         
         # Call agent - dengan dosen_context untuk model awareness
         agent_result = run_agent_chat(
@@ -117,6 +159,31 @@ async def agent_endpoint(request: GenerateGroupingRequest):
             dosen_context=dosen_context,
             conversation_history=conversation_history
         )
+        
+        # Add user message ke Redis context
+        redis_mem.add_message(request.user_id, "user", request.prompt)
+        logger.debug(f"[{trace_id}] User message saved to Redis")
+        
+        # Add assistant response ke Redis context
+        assistant_response = agent_result.get("result", "")
+        redis_mem.add_message(request.user_id, "assistant", assistant_response)
+        logger.debug(f"[{trace_id}] Assistant response saved to Redis")
+        
+        # Track last action
+        action = agent_result.get("action")
+        if action:
+            redis_mem.set_last_action(request.user_id, action)
+            logger.debug(f"[{trace_id}] Last action tracked: {action}")
+        
+        # Also save to JSON file untuk backup (async process)
+        try:
+            memory = ConversationMemory(str(request.user_id))
+            # Get full history dari Redis
+            full_context = redis_mem.load_context(request.user_id)
+            memory.save_conversation(full_context.get("messages", []))
+            logger.debug(f"[{trace_id}] Conversation backed up to JSON")
+        except Exception as e:
+            logger.warning(f"[{trace_id}] JSON backup failed: {e}")
         
         logger.info(f"[{trace_id}] ✓ Respons dikirim ke Laravel")
         

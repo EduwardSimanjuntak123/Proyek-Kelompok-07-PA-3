@@ -7,3 +7,5 @@ langgraph
 openai
 pymysql
 openpyxl
+redis==5.0.0
+click==8.1.7
