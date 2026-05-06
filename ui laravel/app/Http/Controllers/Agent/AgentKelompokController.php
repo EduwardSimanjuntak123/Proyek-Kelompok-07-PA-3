@@ -453,7 +453,25 @@ class AgentKelompokController extends Controller
                 &$deletedAssignments
             ) {
                 if ($replaceExisting) {
+                    // Get semua pembimbing yang akan dihapus untuk cleanup DosenRole
+                    $existingPembimbing = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)
+                        ->pluck('user_id')
+                        ->unique()
+                        ->toArray();
+                    
+                    // Delete pembimbing records
                     $deletedAssignments = PembimbingModel::whereIn('kelompok_id', $contextKelompokIds)->delete();
+                    
+                    // ✅ Cascade delete: Remove corresponding DosenRole for pembimbing
+                    // role_id 3 = Pembimbing 1, role_id 5 = Pembimbing 2
+                    if (!empty($existingPembimbing)) {
+                        DosenRole::whereIn('user_id', $existingPembimbing)
+                            ->whereIn('role_id', [3, 5]) // Pembimbing 1 & 2
+                            ->where('prodi_id', $role->prodi_id)
+                            ->where('KPA_id', $role->KPA_id)
+                            ->where('TM_id', $role->TM_id)
+                            ->delete();
+                    }
                 }
 
                 foreach ($groupsPayload as $group) {
@@ -663,7 +681,25 @@ class AgentKelompokController extends Controller
                 &$skippedAsPembimbing
             ) {
                 if ($replaceExisting) {
+                    // Get semua penguji yang akan dihapus untuk cleanup DosenRole
+                    $existingPenguji = PengujiModel::whereIn('kelompok_id', $contextKelompokIds)
+                        ->pluck('user_id')
+                        ->unique()
+                        ->toArray();
+                    
+                    // Delete penguji records
                     $deletedAssignments = PengujiModel::whereIn('kelompok_id', $contextKelompokIds)->delete();
+                    
+                    // ✅ Cascade delete: Remove corresponding DosenRole for penguji
+                    // role_id 2 = Penguji 1, role_id 4 = Penguji 2
+                    if (!empty($existingPenguji)) {
+                        DosenRole::whereIn('user_id', $existingPenguji)
+                            ->whereIn('role_id', [2, 4]) // Penguji 1 & 2
+                            ->where('prodi_id', $role->prodi_id)
+                            ->where('KPA_id', $role->KPA_id)
+                            ->where('TM_id', $role->TM_id)
+                            ->delete();
+                    }
                 }
 
                 foreach ($groupsPayload as $group) {
