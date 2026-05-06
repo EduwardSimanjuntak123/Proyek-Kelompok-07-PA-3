@@ -68,6 +68,22 @@ def planner_node(state):
             state["plan"] = plan
             return state
 
+        # Intent khusus: jadwal seminar HARUS dicheck lebih dulu
+        # SEBELUM "query jadwal" karena generate_jadwal lebih spesifik
+        if ("buat" in prompt_lower or "generate" in prompt_lower) and ("jadwal" in prompt_lower or "seminar" in prompt_lower) and not any(term in prompt_lower for term in ["daftar", "list", "tampilkan", "lihat", "query"]):
+            plan = {"action": "generate_jadwal"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_jadwal ✓")
+            state["plan"] = plan
+            return state
+
+        # Intent khusus: save jadwal HARUS dicheck sebelum generic "jadwal" keyword
+        # SEBELUM "query jadwal" karena save_jadwal lebih spesifik untuk confirmation
+        if ("simpan" in prompt_lower or "save" in prompt_lower) and ("jadwal" in prompt_lower or "selesai" in prompt_lower):
+            plan = {"action": "save_jadwal"}
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → save_jadwal ✓")
+            state["plan"] = plan
+            return state
+
         # Intent khusus: daftar dosen pembimbing (beda dengan daftar dosen umum)
         if "dosen pembimbing" in prompt_lower or "daftar pembimbing" in prompt_lower:
             plan = {"action": "query_pembimbing"}
@@ -150,6 +166,8 @@ def planner_node(state):
             "check_pembimbing": ["sudah ada pembimbing", "apakah sudah ada pembimbing", "cek pembimbing"],
             "generate_penguji": ["generate penguji", "buat penguji", "assign penguji", "atur penguji", "pembagian penguji"],
             "check_penguji": ["sudah ada penguji", "apakah sudah ada penguji", "cek penguji"],
+            "generate_jadwal": ["buat jadwal", "generate jadwal", "jadwal seminar", "buat seminar", "atur jadwal"],
+            "save_jadwal": ["simpan jadwal", "save jadwal", "ok simpan", "ya simpan", "selesai", "konfirmasi", "yes", "ok"],
             "query_nilai": ["nilai", "grade", "ipk", "skor"],
             "generate_excel": ["buat excel", "export excel", "spreadsheet", "buatkan excel", "buat spreadsheet", "export ke excel", "unduh data excel"],
         }
@@ -214,6 +232,7 @@ Kamu adalah AI Router - tentukan action untuk query.
 - Jika ada kata: sudah ada pembimbing, cek pembimbing → check_pembimbing
 - Jika ada kata: generate penguji, assign penguji, buat penguji → generate_penguji
 - Jika ada kata: sudah ada penguji, cek penguji → check_penguji
+- Jika ada kata: buat jadwal, jadwal seminar, buat seminar → generate_jadwal
 - Jika ada kata: nilai, grade, ipk → query_nilai
 - Jika ada kata: NIM1,NIM2 satu kelompok + nilai → create_group_hybrid
 - Jika ada kata: buat kelompok berdasarkan nilai, kelompok nilai → create_group_by_grades
@@ -222,7 +241,7 @@ Kamu adalah AI Router - tentukan action untuk query.
 - Lainnya: chat
 
 ## OUTPUT (JSON ONLY):
-{{"action": "check_kelompok"|"delete_kelompok"|"query_dosen"|"query_dosen_role"|"query_mahasiswa"|"query_kelompok"|"query_anggota_kelompok"|"query_matakuliah"|"query_prodi"|"query_roles"|"query_kategori_pa"|"query_tahun_ajaran"|"query_ruangan"|"query_jadwal"|"query_nilai"|"query_pembimbing"|"query_penguji"|"generate_pembimbing"|"check_pembimbing"|"generate_penguji"|"check_penguji"|"create_group"|"create_group_hybrid"|"create_group_by_grades"|"generate_excel"|"chat"}}
+{{"action": "check_kelompok"|"delete_kelompok"|"query_dosen"|"query_dosen_role"|"query_mahasiswa"|"query_kelompok"|"query_anggota_kelompok"|"query_matakuliah"|"query_prodi"|"query_roles"|"query_kategori_pa"|"query_tahun_ajaran"|"query_ruangan"|"query_jadwal"|"query_nilai"|"query_pembimbing"|"query_penguji"|"generate_pembimbing"|"check_pembimbing"|"generate_penguji"|"check_penguji"|"generate_jadwal"|"save_jadwal"|"create_group"|"create_group_hybrid"|"create_group_by_grades"|"generate_excel"|"chat"}}
 """
         
         planner_messages = [{
