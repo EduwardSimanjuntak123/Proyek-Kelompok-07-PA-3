@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
 use Exception;
+use App\Models\Dosen;
 use App\Models\DosenRole;
 use App\Models\kategoriPA;
 use App\Models\Prodi;
@@ -20,41 +21,102 @@ use App\Http\Controllers\TahunAJaran_Controller;
 
 class ManajemenroleController extends Controller
 {
+    private function getDosenList(string|null $token): array
+    {
+        $localDosen = Dosen::select('user_id', 'nama')
+            ->orderBy('nama')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'user_id' => $item->user_id,
+                    'nama' => $item->nama,
+                ];
+            })
+            ->toArray();
+
+        try {
+            $responseDosen = Http::withHeaders([
+                'Authorization' => "Bearer $token"
+            ])->get(env('API_URL') . "library-api/dosen", ['limit' => 1000]);
+
+            if ($responseDosen->successful()) {
+                $dosen = $responseDosen->json()['data']['dosen'] ?? [];
+
+                if (!empty($dosen)) {
+                    return collect($localDosen)
+                        ->merge($dosen)
+                        ->unique('user_id')
+                        ->sortBy('nama')
+                        ->values()
+                        ->toArray();
+                }
+            }
+        } catch (Exception $e) {
+            Log::error('Error fetching dosen from API: ' . $e->getMessage());
+        }
+
+        return $localDosen;
+    }
+
+    private function getDosenName($userId, string|null $token): string
+    {
+        $dosen = Dosen::where('user_id', $userId)->first();
+
+        if ($dosen && !empty($dosen->nama)) {
+            return $dosen->nama;
+        }
+
+        $dosenApiMap = collect($this->getDosenList($token))->keyBy('user_id');
+
+        return $dosenApiMap[$userId]['nama'] ?? 'N/A';
+    }
 
     
     public function index()
     {
         $token = session('token');
+        $filterRole = request('filter_role');
         
         // Ambil data dosen_roles dengan relasi prodi, role, tahun ajaran
-        $dosenroles = DosenRole::with(['prodi', 'role', 'tahunMasuk','kategoripa','tahunAjaran'])->get();
-        // dd($dosenroles);
-        // Ambil data dosen dari API eksternal
-        $responseDosen = Http::withHeaders([
-            'Authorization' => "Bearer $token"
-        ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
+        $dosenroles = DosenRole::with(['prodi', 'role', 'tahunMasuk','kategoripa','tahunAjaran'])
+            ->when($filterRole, function ($query, $filterRole) {
+                if ($filterRole === 'koordinator') {
+                    $query->whereHas('role', function ($q) {
+                        $q->where('role_name', 'Koordinator');
+                    });
+                } elseif ($filterRole === 'penguji') {
+                    $query->whereHas('role', function ($q) {
+                        $q->where('role_name', 'like', 'Penguji%');
+                    });
+                } elseif ($filterRole === 'pembimbing') {
+                    $query->whereHas('role', function ($q) {
+                        $q->where('role_name', 'like', 'Pembimbing%');
+                    });
+                }
+            })
+            ->get();
         
-        // Cek apakah request ke API sukses
-        if ($responseDosen->successful()) {
-            $dosen_list = $responseDosen->json()['data']['dosen'] ?? [];
-            
-            // Buat map user_id => nama
-            $dosen_map = collect($dosen_list)->keyBy('user_id');
-            
-            // Tambahkan nama dosen ke setiap data dosen_roles
-            $dosenroles->transform(function ($role) use ($dosen_map) {
-                $role->nama = $dosen_map[$role->user_id]['nama'] ?? 'N/A';
-                return $role;
-            });
-        } else {
-            // Tangani jika API gagal
-            $dosenroles->each(function ($role) {
-                $role->nama = 'N/A'; // Tampilkan N/A jika API gagal
-            });
-        }
-    
+        $dosenMap = Dosen::whereIn('user_id', $dosenroles->pluck('user_id')->unique())
+            ->get()
+            ->keyBy('user_id');
+        $dosenApiMap = collect($this->getDosenList($token))->keyBy('user_id');
+
+        // Jika nama tidak ada, coba ambil dari Dosen table atau API
+        $dosenroles->transform(function ($role) use ($dosenMap, $dosenApiMap) {
+            if (empty($role->nama)) {
+                // Coba dari Dosen table
+                $dosen = $dosenMap->get($role->user_id);
+                if ($dosen) {
+                    $role->nama = $dosen->nama;
+                } else {
+                    $role->nama = $dosenApiMap[$role->user_id]['nama'] ?? 'N/A';
+                }
+            }
+            return $role;
+        });
+
         // Kembalikan view dengan data dosenroles
-        return view('pages.BAAK.Kordinator.index', compact('dosenroles'));
+        return view('pages.BAAK.Kordinator.index', compact('dosenroles', 'filterRole'));
     }
     
 
@@ -62,20 +124,14 @@ public function create()
 {
     $token = session('token');
 
-    $responseDosen = Http::withHeaders([
-        'Authorization' => "Bearer $token"
-    ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
-
-    $dosen = $responseDosen->successful()
-        ? $responseDosen->json()['data']['dosen'] ?? []
-        : [];
+    $dosen = $this->getDosenList($token);
 
     $prodi = Prodi::all();
 
     // HANYA KOORDINATOR
-    $role = Role::where('role_name','Koordinator')->first();
+    $role = Role::where('role_name', 'Koordinator')->first();
 
-    $tahun_masuk = TahunMasuk::where('Status','Aktif')->get();
+    $tahun_masuk = TahunMasuk::where('Status', 'Aktif')->get();
     $kategoripa = kategoriPA::all();
 
     $tahunAjaranAktif = TahunAJaran_Controller::getTahunAjaranAktif();
@@ -89,7 +145,8 @@ public function create()
         'tahunAjaranAktif'
     ));
 }
-    public function store(Request $request)
+
+public function store(Request $request)
     {
         // dd($request);
         // Validasi input umum
@@ -189,6 +246,7 @@ if(strtolower($role->role_name) !== 'koordinator'){
         // Simpan data
         DosenRole::create([
             'user_id'   => $validated['user_id'],
+            'nama'      => $this->getDosenName($validated['user_id'], session('token')),
             'role_id'   => $validated['role_id'],
             'prodi_id'  => $validated['prodi_id'],
             'KPA_id'  => $validated['KPA_id'],
@@ -208,13 +266,7 @@ if(strtolower($role->role_name) !== 'koordinator'){
 
     $dosenRole = DosenRole::findOrFail($id);
 
-    $responseDosen = Http::withHeaders([
-        'Authorization' => "Bearer $token"
-    ])->get(env('API_URL') . "library-api/dosen", ['limit' => 100]);
-
-    $dosen = $responseDosen->successful()
-        ? $responseDosen->json()['data']['dosen'] ?? []
-        : [];
+    $dosen = $this->getDosenList($token);
 
     $prodi = Prodi::all();
     $tahun_masuk = TahunMasuk::all();
@@ -317,6 +369,8 @@ if(strtolower($role->role_name) !== 'koordinator'){
         }
     }
 
+    $validated['nama'] = $this->getDosenName($validated['user_id'], session('token'));
+
     $dosenRole->update($validated);
 
     return redirect()->route('manajemen-role.index')
@@ -341,5 +395,5 @@ public function destroy($id)
 
     // Redirect ke halaman koordinator dengan pesan sukses
     return redirect()->route('manajemen-role.index')->with('success', 'Data berhasil dihapus.');
-}  
+}
 }  

@@ -113,20 +113,3 @@
         </div>
     </section>
 @endsection
-@push('script')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('user_id');
-            const namaInput = document.getElementById('nama_dosen');
-
-            function updateNama() {
-                const selected = select.options[select.selectedIndex];
-                const nama = selected.getAttribute('data-nama') || '';
-                namaInput.value = nama;
-            }
-
-            updateNama(); // Set nama saat load
-            select.addEventListener('change', updateNama); // Update nama saat ganti dosen
-        });
-    </script>
-@endpush

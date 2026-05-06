@@ -34,6 +34,7 @@ public function tahunAjaran()
     use HasFactory;
     protected $fillable = [
         'user_id',
+        'nama',
         'role_id',
         'prodi_id',
         'KPA_id',
