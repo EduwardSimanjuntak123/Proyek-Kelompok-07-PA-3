@@ -1143,7 +1143,38 @@ def executor_node(state):
                     exclude_disrecommended=True,
                     constraints=constraints,
                 )
-                state["result"] = format_generate_pembimbing_result(result)
+                
+                # Check if error is due to no groups or no candidates
+                if result.get("status") == "empty":
+                    error_msg = result.get("message", "")
+                    if "Tidak ada kelompok" in error_msg:
+                        state["result"] = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Tidak Ada Kelompok</h3>
+  <p style="margin:0 0 8px 0;">{error_msg}</p>
+  <p style="margin:0; color:#374151;"><strong>Solusi:</strong> Silakan buat kelompok terlebih dahulu sebelum membuat pembimbing. Gunakan perintah seperti:</p>
+  <ul style="margin:8px 0 0 20px; color:#374151;">
+    <li>"Buat 5 orang per kelompok berdasarkan nilai"</li>
+    <li>"Buatkan kelompok dengan 6 anggota"</li>
+  </ul>
+</div>
+"""
+                        logger.info(f"[{user_id}] ℹ️  Tidak ada kelompok untuk pembimbing - user perlu buat kelompok dulu")
+                    elif "dosen" in error_msg.lower() or "pembimbing" in error_msg.lower():
+                        state["result"] = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Tidak Ada Dosen Pembimbing</h3>
+  <p style="margin:0 0 8px 0;">{error_msg}</p>
+  <p style="margin:0; color:#374151;"><strong>Solusi:</strong> Silakan tambahkan dosen pembimbing yang tersedia sebelum membuat assignment pembimbing.</p>
+</div>
+"""
+                        logger.info(f"[{user_id}] ℹ️  Tidak ada dosen pembimbing kandidat")
+                    else:
+                        state["result"] = format_generate_pembimbing_result(result)
+                        logger.info(f"[{user_id}] ℹ️  Error pembimbing: {error_msg}")
+                else:
+                    state["result"] = format_generate_pembimbing_result(result)
+                    
                 if result.get("status") == "success":
                     existing_pembimbing_check = check_existing_pembimbing_by_context(
                         prodi_id=dosen_context.get("prodi_id"),
@@ -1189,7 +1220,37 @@ def executor_node(state):
                     persist=False,
                 )
 
-                state["result"] = format_generate_penguji_result(result)
+                # Check if error is due to no groups or no candidates
+                if result.get("status") == "empty":
+                    error_msg = result.get("message", "")
+                    if "Tidak ada kelompok" in error_msg:
+                        state["result"] = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Tidak Ada Kelompok</h3>
+  <p style="margin:0 0 8px 0;">{error_msg}</p>
+  <p style="margin:0; color:#374151;"><strong>Solusi:</strong> Silakan buat kelompok terlebih dahulu sebelum membuat penguji. Gunakan perintah seperti:</p>
+  <ul style="margin:8px 0 0 20px; color:#374151;">
+    <li>"Buat 5 orang per kelompok berdasarkan nilai"</li>
+    <li>"Buatkan kelompok dengan 6 anggota"</li>
+  </ul>
+</div>
+"""
+                        logger.info(f"[{user_id}] ℹ️  Tidak ada kelompok untuk penguji - user perlu buat kelompok dulu")
+                    elif "dosen" in error_msg.lower() or "penguji" in error_msg.lower():
+                        state["result"] = f"""
+<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#7f1d1d;">❌ Tidak Ada Dosen Penguji</h3>
+  <p style="margin:0 0 8px 0;">{error_msg}</p>
+  <p style="margin:0; color:#374151;"><strong>Solusi:</strong> Silakan tambahkan dosen penguji yang tersedia sebelum membuat assignment penguji.</p>
+</div>
+"""
+                        logger.info(f"[{user_id}] ℹ️  Tidak ada dosen penguji kandidat")
+                    else:
+                        state["result"] = format_generate_penguji_result(result)
+                        logger.info(f"[{user_id}] ℹ️  Error penguji: {error_msg}")
+                else:
+                    state["result"] = format_generate_penguji_result(result)
+                    
                 if result.get("status") == "success":
                     existing_penguji_check = check_existing_penguji_by_context(
                         prodi_id=dosen_context.get("prodi_id"),
@@ -1213,6 +1274,8 @@ def executor_node(state):
                         "prompt": prompt,
                     }
                     logger.info(f"[{user_id}] ✓ generate_penguji preview siap disimpan")
+
+
 
         elif action == "create_group":
             logger.info(f"[{user_id}] ⚙️  TOOLS: create_group (buat kelompok)")
@@ -1436,6 +1499,25 @@ def executor_node(state):
             else:
                 prompt = state.get("messages", [{}])[-1].get("content", "")
                 
+                # Check if this is a CONFIRMED recreate request
+                is_confirm_recreate = prompt.upper().startswith("[CONFIRM_RECREATE]")
+                if is_confirm_recreate:
+                    # Strip the marker from prompt for further processing
+                    prompt = prompt.replace("[CONFIRM_RECREATE]", "", 1).strip()
+                    logger.info(f"[{user_id}] 🔐 CONFIRM_RECREATE marker detected, proceeding to delete + recreate")
+                    
+                    # Delete existing groups for this context
+                    delete_result = delete_kelompok_by_context(
+                        prodi_id=dosen_context.get("prodi_id"),
+                        kategori_pa_id=dosen_context.get("kategori_pa"),
+                        angkatan_id=dosen_context.get("angkatan"),
+                    )
+                    
+                    if delete_result.get("status") == "success":
+                        logger.info(f"[{user_id}] ✓ Deleted {delete_result.get('count', 0)} existing groups")
+                    else:
+                        logger.warning(f"[{user_id}] ⚠️  Failed to delete groups: {delete_result.get('message')}")
+                
                 # Check if user intent is to RECREATE
                 recreate_keywords = ["acak kembali", "acak ulang", "buat ulang", "ganti"]
                 is_recreate_intent = any(kw in prompt.lower() for kw in recreate_keywords)
@@ -1447,7 +1529,7 @@ def executor_node(state):
                     angkatan_id=dosen_context.get("angkatan"),
                 )
                 
-                if is_recreate_intent and existing_check.get("status") == "success" and existing_check.get("total", 0) > 0:
+                if not is_confirm_recreate and is_recreate_intent and existing_check.get("status") == "success" and existing_check.get("total", 0) > 0:
                     logger.info(f"[{user_id}] 🔄 RECREATE INTENT DETECTED: {existing_check.get('total')} existing groups found")
                     
                     escaped_prompt = html.escape(prompt)
