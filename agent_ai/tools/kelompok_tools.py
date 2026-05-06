@@ -342,15 +342,9 @@ def check_existing_kelompok_by_context(prodi_id: int = None, kategori_pa_id: int
 
 
 def delete_kelompok_by_context(prodi_id: int = None, kategori_pa_id: int = None, angkatan_id: int = None) -> dict:
-    """Hapus kelompok lama dan anggotanya berdasarkan context dosen.
-    
-    ✅ IMPROVED: Also deletes pembimbing and penguji assignments for those kelompok.
-    This ensures DosenRole cleanup happens at the same time in the Laravel UI.
-    """
+    """Hapus kelompok lama dan anggotanya berdasarkan context dosen."""
     session = SessionLocal()
     try:
-        from models import Pembimbing, Penguji
-        
         query = session.query(Kelompok)
 
         if prodi_id:
@@ -367,28 +361,13 @@ def delete_kelompok_by_context(prodi_id: int = None, kategori_pa_id: int = None,
                 "status": "empty",
                 "deleted_kelompok": 0,
                 "deleted_members": 0,
-                "deleted_pembimbing": 0,
-                "deleted_penguji": 0,
                 "message": "Tidak ada kelompok yang perlu dihapus.",
             }
 
         kelompok_ids = [k.id for k in kelompoks]
-        
-        # ✅ Delete pembimbing and penguji assignments
-        deleted_pembimbing = session.query(Pembimbing).filter(
-            Pembimbing.kelompok_id.in_(kelompok_ids)
-        ).delete(synchronize_session=False)
-        
-        deleted_penguji = session.query(Penguji).filter(
-            Penguji.kelompok_id.in_(kelompok_ids)
-        ).delete(synchronize_session=False)
-        
-        # Delete kelompok members
         deleted_members = session.query(KelompokMahasiswa).filter(
             KelompokMahasiswa.kelompok_id.in_(kelompok_ids)
         ).delete(synchronize_session=False)
-        
-        # Delete kelompok
         deleted_kelompok = session.query(Kelompok).filter(
             Kelompok.id.in_(kelompok_ids)
         ).delete(synchronize_session=False)
@@ -400,9 +379,7 @@ def delete_kelompok_by_context(prodi_id: int = None, kategori_pa_id: int = None,
             "status": "success",
             "deleted_kelompok": deleted_kelompok,
             "deleted_members": deleted_members,
-            "deleted_pembimbing": deleted_pembimbing,
-            "deleted_penguji": deleted_penguji,
-            "message": f"Berhasil menghapus {deleted_kelompok} kelompok, {deleted_members} anggota, {deleted_pembimbing} pembimbing, dan {deleted_penguji} penguji.",
+            "message": f"Berhasil menghapus {deleted_kelompok} kelompok dan {deleted_members} anggota.",
         }
     except Exception as e:
         session.rollback()

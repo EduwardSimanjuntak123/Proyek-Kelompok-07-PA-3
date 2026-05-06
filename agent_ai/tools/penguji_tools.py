@@ -415,6 +415,52 @@ def generate_penguji_assignments_by_context(
         
         if persist:
             if existing_assignments and replace_existing:
+                # Get penguji entries before deletion to cascade delete dosen_roles
+                penguji_to_delete = session.query(Penguji).filter(
+                    Penguji.kelompok_id.in_(group_ids)
+                ).all()
+                
+                # Get tahun_ajaran_id for dosen_roles deletion
+                active_tahun_ajaran = session.query(TahunAjaran).filter(
+                    TahunAjaran.status == "Aktif"
+                ).first()
+                tahun_ajaran_id_for_delete = active_tahun_ajaran.id if active_tahun_ajaran else 1
+                
+                # For each penguji being deleted, cascade delete corresponding dosen_roles
+                for penguji in penguji_to_delete:
+                    # Get kelompok to find prodi_id, kategori_pa_id, angkatan_id
+                    kelompok = session.query(Kelompok).filter(
+                        Kelompok.id == penguji.kelompok_id
+                    ).first()
+                    
+                    if kelompok:
+                        # Get all penguji for this kelompok to determine position
+                        all_kelompok_penguji = session.query(Penguji).filter(
+                            Penguji.kelompok_id == penguji.kelompok_id
+                        ).order_by(Penguji.id).all()
+                        
+                        # Find position of this penguji (1 = first, 2 = second)
+                        position = None
+                        for idx, pg in enumerate(all_kelompok_penguji, 1):
+                            if pg.id == penguji.id:
+                                position = idx
+                                break
+                        
+                        if position:
+                            # role_id: 2 = Penguji 1, 4 = Penguji 2
+                            role_id = 2 if position == 1 else 4
+                            
+                            # Delete corresponding dosen_role
+                            session.query(DosenRole).filter(
+                                DosenRole.user_id == penguji.user_id,
+                                DosenRole.role_id == role_id,
+                                DosenRole.prodi_id == kelompok.prodi_id,
+                                DosenRole.KPA_id == kelompok.KPA_id,
+                                DosenRole.TM_id == kelompok.TM_id,
+                                DosenRole.tahun_ajaran_id == tahun_ajaran_id_for_delete,
+                            ).delete(synchronize_session=False)
+                
+                # Now delete all penguji entries
                 session.query(Penguji).filter(Penguji.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
 
             now = datetime.now()

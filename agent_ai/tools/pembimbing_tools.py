@@ -955,6 +955,52 @@ def generate_pembimbing_assignments_by_context(
         
         if persist:
             if existing_assignments and replace_existing:
+                # Get pembimbing entries before deletion to cascade delete dosen_roles
+                pembimbing_to_delete = session.query(Pembimbing).filter(
+                    Pembimbing.kelompok_id.in_(group_ids)
+                ).all()
+                
+                # Get tahun_ajaran_id for dosen_roles deletion
+                active_tahun_ajaran = session.query(TahunAjaran).filter(
+                    TahunAjaran.status == "Aktif"
+                ).first()
+                tahun_ajaran_id_for_delete = active_tahun_ajaran.id if active_tahun_ajaran else 1
+                
+                # For each pembimbing being deleted, cascade delete corresponding dosen_roles
+                for pembimbing in pembimbing_to_delete:
+                    # Get kelompok to find prodi_id, kategori_pa_id, angkatan_id
+                    kelompok = session.query(Kelompok).filter(
+                        Kelompok.id == pembimbing.kelompok_id
+                    ).first()
+                    
+                    if kelompok:
+                        # Get all pembimbing for this kelompok to determine position
+                        all_kelompok_pembimbing = session.query(Pembimbing).filter(
+                            Pembimbing.kelompok_id == pembimbing.kelompok_id
+                        ).order_by(Pembimbing.id).all()
+                        
+                        # Find position of this pembimbing (1 = first, 2 = second)
+                        position = None
+                        for idx, pb in enumerate(all_kelompok_pembimbing, 1):
+                            if pb.id == pembimbing.id:
+                                position = idx
+                                break
+                        
+                        if position:
+                            # role_id: 3 = Pembimbing 1, 5 = Pembimbing 2
+                            role_id = 3 if position == 1 else 5
+                            
+                            # Delete corresponding dosen_role
+                            session.query(DosenRole).filter(
+                                DosenRole.user_id == pembimbing.user_id,
+                                DosenRole.role_id == role_id,
+                                DosenRole.prodi_id == kelompok.prodi_id,
+                                DosenRole.KPA_id == kelompok.KPA_id,
+                                DosenRole.TM_id == kelompok.TM_id,
+                                DosenRole.tahun_ajaran_id == tahun_ajaran_id_for_delete,
+                            ).delete(synchronize_session=False)
+                
+                # Now delete all pembimbing entries
                 session.query(Pembimbing).filter(Pembimbing.kelompok_id.in_(group_ids)).delete(synchronize_session=False)
 
             now = datetime.now()
