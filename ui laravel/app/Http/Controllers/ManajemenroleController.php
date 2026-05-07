@@ -115,8 +115,20 @@ class ManajemenroleController extends Controller
             return $role;
         });
 
+        // Hitung jumlah untuk setiap filter
+        $countAll = DosenRole::count();
+        $countKoordinator = DosenRole::whereHas('role', function ($q) {
+            $q->where('role_name', 'Koordinator');
+        })->count();
+        $countPenguji = DosenRole::whereHas('role', function ($q) {
+            $q->where('role_name', 'like', 'Penguji%');
+        })->count();
+        $countPembimbing = DosenRole::whereHas('role', function ($q) {
+            $q->where('role_name', 'like', 'Pembimbing%');
+        })->count();
+
         // Kembalikan view dengan data dosenroles
-        return view('pages.BAAK.Kordinator.index', compact('dosenroles', 'filterRole'));
+        return view('pages.BAAK.Kordinator.index', compact('dosenroles', 'filterRole', 'countAll', 'countKoordinator', 'countPenguji', 'countPembimbing'));
     }
     
 

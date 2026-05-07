@@ -56,6 +56,92 @@ from tools.excel_tools import generate_excel_by_context
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+EXECUTABLE_ACTIONS = {
+    "query_dosen",
+    "query_mahasiswa",
+    "query_kelompok",
+    "query_anggota_kelompok",
+    "query_matakuliah",
+    "query_prodi",
+    "query_nilai",
+    "query_dosen_role",
+    "query_jadwal",
+    "query_kategori_pa",
+    "query_roles",
+    "query_tahun_ajaran",
+    "query_ruangan",
+    "query_pembimbing",
+    "query_penguji",
+    "check_pembimbing",
+    "check_penguji",
+    "generate_pembimbing",
+    "generate_penguji",
+    "create_group",
+    "create_group_hybrid",
+    "create_group_by_grades",
+    "check_kelompok",
+    "delete_kelompok",
+    "generate_excel",
+}
+
+
+def _infer_action_from_prompt(prompt_lower: str):
+    infer_rules = [
+        ("query_anggota_kelompok", ["anggota kelompok", "siapa anggota kelompok"]),
+        ("generate_pembimbing", ["generate pembimbing", "assign pembimbing", "buat pembimbing"]),
+        ("generate_penguji", ["generate penguji", "assign penguji", "buat penguji"]),
+        ("create_group_hybrid", ["harus satu", "satu kelompok", "satu grup"]),
+        ("create_group_by_grades", ["berdasarkan nilai", "grouping nilai", "grade-based"]),
+        ("create_group", ["buat kelompok", "bagi kelompok", "kelompokkan", "acak ulang", "buat ulang"]),
+        ("check_kelompok", ["cek kelompok", "status kelompok", "sudah ada kelompok"]),
+        ("delete_kelompok", ["hapus kelompok", "delete kelompok", "kosongkan kelompok"]),
+        ("query_pembimbing", ["dosen pembimbing", "daftar pembimbing", "siapa pembimbing"]),
+        ("query_penguji", ["dosen penguji", "daftar penguji", "siapa penguji"]),
+        ("query_dosen", ["daftar dosen", "list dosen", "siapa dosen"]),
+        ("query_mahasiswa", ["daftar mahasiswa", "list mahasiswa", "nim", "mahasiswa"]),
+        ("query_kelompok", ["daftar kelompok", "list kelompok", "data kelompok"]),
+        ("query_nilai", ["nilai", "grade", "ipk"]),
+        ("query_jadwal", ["jadwal", "schedule"]),
+        ("generate_excel", ["excel", "spreadsheet", "export excel"]),
+    ]
+
+    for action, keywords in infer_rules:
+        if any(keyword in prompt_lower for keyword in keywords):
+            return action
+
+    return None
+
+
+def _resolve_action(plan: dict, prompt: str):
+    raw_action = (plan or {}).get("action")
+    if raw_action in EXECUTABLE_ACTIONS:
+        return raw_action, "plan.action"
+
+    alias_map = {
+        "query_group": "query_kelompok",
+        "query_groups": "query_kelompok",
+        "query_students": "query_mahasiswa",
+        "query_lecturer": "query_dosen",
+        "generate_group": "create_group",
+        "grouping": "create_group",
+    }
+
+    if raw_action in alias_map and alias_map[raw_action] in EXECUTABLE_ACTIONS:
+        return alias_map[raw_action], "plan.alias"
+
+    alternatives = (plan or {}).get("alternatives") or (plan or {}).get("candidates") or []
+    for candidate in alternatives:
+        action = candidate.get("action") if isinstance(candidate, dict) else candidate
+        if action in EXECUTABLE_ACTIONS:
+            return action, "plan.candidate"
+
+    prompt_lower = (prompt or "").lower()
+    inferred = _infer_action_from_prompt(prompt_lower)
+    if inferred in EXECUTABLE_ACTIONS:
+        return inferred, "prompt.inference"
+
+    return raw_action, "unknown"
+
 
 def format_query_result(title: str, data_list: list, fields: list = None) -> str:
     """Format hasil query menjadi HTML Table"""
@@ -407,7 +493,18 @@ def executor_node(state):
         state["penguji_meta"] = None
         
         plan = state.get("plan", {})
-        action = plan.get("action")
+        prompt = state.get("messages", [{}])[-1].get("content", "")
+        prompt_lower = prompt.lower()
+        plan_params = plan.get("params", {}) if isinstance(plan, dict) else {}
+        action, action_source = _resolve_action(plan, prompt)
+        state["execution_meta"] = {
+            "action_source": action_source,
+            "resolved_action": action,
+            "planner_action": plan.get("action") if isinstance(plan, dict) else None,
+            "planner_confidence": plan.get("confidence") if isinstance(plan, dict) else None,
+        }
+        if action_source != "plan.action":
+            logger.info(f"[{user_id}] ⚙️  ACTION RESOLVER: {plan.get('action') if isinstance(plan, dict) else None} -> {action} ({action_source})")
         
         # Extract dosen context dari state (payload dari UI)
         context = state.get("context", {})
@@ -421,8 +518,6 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
-                prompt = state.get("messages", [{}])[-1].get("content", "")
-                prompt_lower = prompt.lower()
                 prodi_id = dosen_context.get("prodi_id")
                 logger.info(f"[{user_id}] 📍 Query dosen dengan context: prodi_id={prodi_id}")
 
@@ -477,13 +572,11 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
-                prompt = state.get("messages", [{}])[-1].get("content", "")
-                prompt_lower = prompt.lower()
                 prodi_id = dosen_context.get("prodi_id")
                 angkatan_id = dosen_context.get("angkatan")
                 logger.info(f"[{user_id}] 📍 Query mahasiswa dengan context: prodi_id={prodi_id}, angkatan_id={angkatan_id}")
 
-                ask_without_group = any(
+                ask_without_group = bool(plan_params.get("ask_without_group")) or any(
                     phrase in prompt_lower
                     for phrase in [
                         "belum punya kelompok",
@@ -528,12 +621,10 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
-                prompt = state.get("messages", [{}])[-1].get("content", "")
-                prompt_lower = prompt.lower()
                 prodi_id = dosen_context.get("prodi_id")
                 kategori_pa_id = dosen_context.get("kategori_pa")
                 angkatan_id = dosen_context.get("angkatan")
-                include_relations = ("pembimbing" in prompt_lower and "penguji" in prompt_lower)
+                include_relations = bool(plan_params.get("include_relations")) or ("pembimbing" in prompt_lower and "penguji" in prompt_lower)
 
                 logger.info(f"[{user_id}] 📍 Query kelompok dengan context: prodi_id={prodi_id}, kategori_pa_id={kategori_pa_id}, angkatan_id={angkatan_id}")
                 result = get_kelompok_with_anggota_by_context(
@@ -585,8 +676,7 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
-                prompt = state.get("messages", [{}])[-1].get("content", "")
-                nomor_kelompok = plan.get("nomor_kelompok")
+                nomor_kelompok = plan.get("nomor_kelompok") or plan_params.get("nomor_kelompok")
 
                 if not nomor_kelompok:
                     match = re.search(r"(?:siapa\s+|lihat\s+|tampilkan\s+|cek\s+)?anggot?a\s+kelompok\s*(?:nomor\s*)?(\d+)", prompt.lower())
@@ -1284,11 +1374,10 @@ def executor_node(state):
                 state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
                 logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
             else:
-                prompt = state.get("messages", [{}])[-1].get("content", "")
                 
                 # Check if user intent is to RECREATE (acak kembali, buat ulang, ganti)
                 recreate_keywords = ["acak kembali", "acak ulang", "buat ulang", "ganti"]
-                is_recreate_intent = any(kw in prompt.lower() for kw in recreate_keywords)
+                is_recreate_intent = bool(plan_params.get("is_recreate_intent")) or any(kw in prompt_lower for kw in recreate_keywords)
                 
                 # Cek existing groups pada konteks ini
                 existing_check = check_existing_kelompok_by_context(
@@ -1520,7 +1609,8 @@ def executor_node(state):
                 
                 # Check if user intent is to RECREATE
                 recreate_keywords = ["acak kembali", "acak ulang", "buat ulang", "ganti"]
-                is_recreate_intent = any(kw in prompt.lower() for kw in recreate_keywords)
+                local_prompt_lower = prompt.lower()
+                is_recreate_intent = bool(plan_params.get("is_recreate_intent")) or any(kw in local_prompt_lower for kw in recreate_keywords)
                 
                 # Cek existing groups pada konteks ini
                 existing_check = check_existing_kelompok_by_context(
@@ -1894,8 +1984,23 @@ def executor_node(state):
                     logger.warning(f"[{user_id}] ✗ generate_excel gagal: {error_msg}")
         
         else:
+            logger.info(f"[{user_id}] ⚠️  ACTION tidak dikenali: {action}")
+
+            fallback_attempted = state.get("_executor_fallback_attempted", False)
+            fallback_action = _infer_action_from_prompt(prompt_lower)
+            if not fallback_attempted and fallback_action and fallback_action != action:
+                logger.info(f"[{user_id}] 🔁 FALLBACK EXECUTION: retry with action={fallback_action}")
+                state["_executor_fallback_attempted"] = True
+                patched_plan = dict(plan) if isinstance(plan, dict) else {}
+                patched_plan["action"] = fallback_action
+                patched_plan.setdefault("source", "executor_fallback")
+                state["plan"] = patched_plan
+                return executor_node(state)
+
             logger.info(f"[{user_id}] 📄 CHAT: (tanpa tools / action tidak dikenali)")
             state["result"] = None
+
+        state.pop("_executor_fallback_attempted", None)
 
         return state
     
