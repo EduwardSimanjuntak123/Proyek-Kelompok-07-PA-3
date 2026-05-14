@@ -105,11 +105,22 @@
 
 
                 {{-- PAGINATION --}}
-                <div class="mt-3">
-
-                    {{ $mahasiswa->links() }}
-
-                </div>
+                @if ($mahasiswa->hasPages())
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3">
+                        <div class="text-muted small">
+                            Menampilkan
+                            <strong>{{ $mahasiswa->firstItem() ?? 0 }}</strong>
+                            sampai
+                            <strong>{{ $mahasiswa->lastItem() ?? 0 }}</strong>
+                            dari
+                            <strong>{{ $mahasiswa->total() }}</strong>
+                            hasil
+                        </div>
+                        <nav>
+                            {{ $mahasiswa->links('pagination::bootstrap-4') }}
+                        </nav>
+                    </div>
+                @endif
 
             </div>
         </div>

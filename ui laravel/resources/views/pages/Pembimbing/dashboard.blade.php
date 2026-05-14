@@ -84,9 +84,22 @@
                                                         <span
                                                             class="badge badge-light">{{ $kelompok['status_kelompok'] }}</span>
                                                     </div>
-                                                    <span
-                                                        class="badge badge-info px-3 py-2">{{ $kelompok['jumlah_anggota'] }}
-                                                        Mahasiswa</span>
+                                                    <div class="text-right">
+                                                        <span
+                                                            class="badge badge-info px-3 py-2">{{ $kelompok['jumlah_anggota'] }}
+                                                            Mahasiswa</span>
+                                                        @if ($kelompok['posisi_pembimbing'])
+                                                            <div class="mt-2">
+                                                                <span class="badge badge-warning">Pembimbing
+                                                                    {{ $kelompok['posisi_pembimbing'] }}</span>
+                                                                @if ($kelompok['jumlah_pembimbing'] > 1)
+                                                                    <small class="d-block mt-1 text-muted">dari
+                                                                        {{ $kelompok['jumlah_pembimbing'] }}
+                                                                        pembimbing</small>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
 
                                                 <div class="kelompok-meta mb-3">

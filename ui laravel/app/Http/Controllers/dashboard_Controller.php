@@ -104,9 +104,18 @@ class dashboard_Controller extends Controller
             ->get()
             ->keyBy('kelompok_id');
 
+        // Ambil data pembimbing dengan informasi posisi
+        $pembimbingMap = pembimbing::whereIn('kelompok_id', $kelompokIds)
+            ->with('Kelompok')
+            ->get()
+            ->groupBy('kelompok_id')
+            ->map(function ($pembimbingList) {
+                return $pembimbingList->sortBy('id')->values();
+            });
+
         $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
 
-        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $bimbinganStats) {
+        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $bimbinganStats, $pembimbingMap, $user_id) {
             $kelompok = $kelompokMap->get($kelompokId);
             $anggota = collect($anggotaPerKelompok->get($kelompokId, []))
                 ->map(function ($member) use ($mahasiswaMap) {
@@ -123,6 +132,16 @@ class dashboard_Controller extends Controller
             $stat = $bimbinganStats->get($kelompokId);
             $totalSesi = (int) ($stat->total_sesi ?? 0);
 
+            // Cari posisi pembimbing saat ini
+            $pembimbingList = $pembimbingMap->get($kelompokId, []);
+            $posisiPembimbing = null;
+            foreach ($pembimbingList as $index => $pembimbing) {
+                if ($pembimbing->user_id == $user_id) {
+                    $posisiPembimbing = $index + 1;
+                    break;
+                }
+            }
+
             return [
                 'kelompok_id' => $kelompokId,
                 'nomor_kelompok' => $kelompok->nomor_kelompok ?? $kelompokId,
@@ -132,6 +151,8 @@ class dashboard_Controller extends Controller
                 'total_sesi_bimbingan' => $totalSesi,
                 'terakhir_bimbingan' => $stat->terakhir_bimbingan ?? null,
                 'status_bimbingan' => $totalSesi > 0 ? 'Sudah Ada Catatan' : 'Belum Ada Catatan',
+                'posisi_pembimbing' => $posisiPembimbing,
+                'jumlah_pembimbing' => count($pembimbingList),
             ];
         })->sortBy(function ($item) {
             return (int) preg_replace('/\D/', '', (string) $item['nomor_kelompok']);
@@ -240,9 +261,18 @@ class dashboard_Controller extends Controller
             ->get(['kelompok_id', 'waktu_mulai', 'waktu_selesai'])
             ->keyBy('kelompok_id');
 
+        // Ambil data penguji dengan informasi posisi
+        $pengujiMap = Penguji::whereIn('kelompok_id', $kelompokIds)
+            ->with('Kelompok')
+            ->get()
+            ->groupBy('kelompok_id')
+            ->map(function ($pengujiList) {
+                return $pengujiList->sortBy('id')->values();
+            });
+
         $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
 
-        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $jadwalMap) {
+        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $mahasiswaMap, $jadwalMap, $pengujiMap, $user_id) {
             $kelompok = $kelompokMap->get($kelompokId);
             $anggota = collect($anggotaPerKelompok->get($kelompokId, []))
                 ->map(function ($member) use ($mahasiswaMap) {
@@ -259,6 +289,16 @@ class dashboard_Controller extends Controller
 
             $jadwal = $jadwalMap->get($kelompokId);
 
+            // Cari posisi penguji saat ini
+            $pengujiList = $pengujiMap->get($kelompokId, []);
+            $posisiPenguji = null;
+            foreach ($pengujiList as $index => $penguji) {
+                if ($penguji->user_id == $user_id) {
+                    $posisiPenguji = $index + 1;
+                    break;
+                }
+            }
+
             return [
                 'kelompok_id' => $kelompokId,
                 'nomor_kelompok' => $kelompok->nomor_kelompok ?? $kelompokId,
@@ -269,6 +309,8 @@ class dashboard_Controller extends Controller
                     'waktu_mulai' => $jadwal->waktu_mulai,
                     'waktu_selesai' => $jadwal->waktu_selesai,
                 ] : null,
+                'posisi_penguji' => $posisiPenguji,
+                'jumlah_penguji' => count($pengujiList),
             ];
         })->sortBy(function ($item) {
             return (int) preg_replace('/\D/', '', (string) $item['nomor_kelompok']);

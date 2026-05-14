@@ -7,9 +7,412 @@
 
 /*# sourceMappingURL=custom.css.map */
 
+/* =========================================
+   GLOBAL
+========================================= */
+
 .custom-section {
     position: static !important;
 }
 
 @media screen and (max-width: 768px) {
+}
+
+/* =========================================
+   DROPDOWN MENU CATEGORY
+========================================= */
+
+.dropdown-menu-category {
+    list-style: none;
+    padding: 8px 15px;
+    margin: 0;
+    pointer-events: none;
+}
+
+.dropdown-category-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 13px;
+    text-transform: none;
+    display: block;
+    padding: 5px 0;
+    margin-top: 3px;
+}
+
+.dropdown-menu .dropdown-menu-category:first-child .dropdown-category-label {
+    margin-top: 0;
+}
+
+/* =========================================
+   SIDEBAR MENU STYLE
+========================================= */
+
+/* Semua nav link */
+.sidebar-menu .nav-link {
+    background: transparent !important;
+    transition: all 0.2s ease;
+}
+
+/* Hover menu */
+.sidebar-menu .nav-link:hover {
+    background: transparent !important;
+    color: #4c9bc8 !important;
+}
+
+/* Hover icon */
+.sidebar-menu .nav-link:hover i {
+    color: #4c9bc8 !important;
+}
+
+/* Active menu */
+.sidebar-menu .nav-link.active,
+.sidebar-menu .nav-item.active > .nav-link {
+    background: transparent !important;
+    color: #4c9bc8 !important;
+}
+
+/* Active icon */
+.sidebar-menu .nav-link.active i,
+.sidebar-menu .nav-item.active > .nav-link i {
+    color: #4c9bc8 !important;
+}
+
+/* =========================================
+   SIDEBAR MULTI LEVEL DROPDOWN
+========================================= */
+
+/* Hilangkan background */
+.sidebar-menu .nav-link,
+.sidebar-menu .dropdown-menu,
+.sidebar-menu ul {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Hover */
+.sidebar-menu .nav-link:hover,
+.sidebar-menu .submenu-link:hover,
+.sidebar-menu .submenu-level-2 li a:hover {
+    color: #4c9bc8 !important;
+    background: transparent !important;
+}
+
+/* Active */
+.sidebar-menu .active {
+    color: #4c9bc8 !important;
+}
+
+/* Dropdown utama */
+.sidebar-menu .dropdown-menu {
+    display: block;
+    position: relative;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Submenu wrapper */
+.sidebar-menu .dropdown-submenu {
+    position: relative;
+}
+
+/* Link level 2 */
+.sidebar-menu .submenu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 10px 45px;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+/* Panah submenu */
+.sidebar-menu .submenu-link::after {
+    content: "›";
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Level 3 */
+.sidebar-menu .submenu-level-2 {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Link level 3 */
+.sidebar-menu .submenu-level-2 li a {
+    display: block;
+    padding: 9px 20px 9px 70px;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* Hover level 3 */
+.sidebar-menu .submenu-level-2 li a:hover {
+    color: #4c9bc8 !important;
+}
+
+/* Active level 3 */
+.sidebar-menu .submenu-level-2 li a.active {
+    color: #4c9bc8 !important;
+    font-weight: 600;
+}
+
+/* Hover menu utama */
+.sidebar-menu .nav-link:hover {
+    color: #4c9bc8 !important;
+}
+
+/* Hover icon */
+.sidebar-menu .nav-link:hover i {
+    color: #4c9bc8 !important;
+}
+
+/* Active menu utama */
+.sidebar-menu .nav-item.active > .nav-link {
+    color: #4c9bc8 !important;
+}
+
+/* Rapikan spacing */
+.sidebar-menu li {
+    list-style: none;
+}
+
+/* Hilangkan style bawaan stisla */
+.sidebar-menu .dropdown-menu::before,
+.sidebar-menu .dropdown-menu::after {
+    display: none !important;
+}
+
+/* =========================================
+   HAS DROPDOWN ICON
+========================================= */
+
+.sidebar-menu .has-dropdown::after {
+    content: "▼";
+    font-size: 10px;
+    float: right;
+    margin-top: 5px;
+    border: none !important;
+    transform: none !important;
+}
+
+/* Hover dropdown icon */
+.sidebar-menu .has-dropdown:hover::after {
+    color: #4c9bc8;
+}
+
+/* =========================================
+   REMOVE DEFAULT STISLA STYLE
+========================================= */
+
+.sidebar-menu .menu-header {
+    color: #ffffff;
+}
+
+.sidebar-menu .nav-item.dropdown.active > .nav-link {
+    background: transparent !important;
+}
+
+.sidebar-menu .nav-item.dropdown .dropdown-menu {
+    transform: none !important;
+}
+
+.sidebar-menu .nav-item.dropdown.show > .dropdown-menu {
+    display: block;
+}
+
+/* =========================================
+   SPACING
+========================================= */
+
+.sidebar-menu .dropdown-menu .dropdown-menu {
+    margin-top: 0;
+}
+
+/* Jarak submenu */
+.sidebar-menu .dropdown-menu .dropdown-menu li a {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* =========================================
+   TEXT COLOR
+========================================= */
+
+.sidebar-menu .nav-link span {
+    color: inherit;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+    .sidebar-menu .dropdown-menu .nav-link {
+        padding-left: 30px !important;
+    }
+
+    .sidebar-menu .dropdown-menu .dropdown-menu .nav-link {
+        padding-left: 50px !important;
+    }
+}
+/* =========================================
+   3 LEVEL DROPDOWN SIDEBAR
+========================================= */
+
+/* Remove default style */
+.sidebar-menu .dropdown-menu {
+    position: relative !important;
+    transform: none !important;
+    inset: auto !important;
+
+    width: 100%;
+    min-width: 100%;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    border: none !important;
+    box-shadow: none !important;
+
+    background: transparent !important;
+}
+
+/* Remove arrow bootstrap */
+.sidebar-menu .dropdown-menu::before,
+.sidebar-menu .dropdown-menu::after {
+    display: none !important;
+}
+
+/* Remove list style */
+.sidebar-menu li {
+    list-style: none;
+}
+
+/* =========================================
+   MAIN MENU
+========================================= */
+
+.sidebar-menu .nav-link {
+    background: transparent !important;
+    transition: all 0.2s ease;
+}
+
+/* Hover */
+.sidebar-menu .nav-link:hover {
+    background: transparent !important;
+    color: #4c9bc8 !important;
+}
+
+/* Hover icon */
+.sidebar-menu .nav-link:hover i {
+    color: #4c9bc8 !important;
+}
+
+/* Active */
+.sidebar-menu .nav-item.active > .nav-link {
+    color: #4c9bc8 !important;
+    background: transparent !important;
+}
+
+/* =========================================
+   LEVEL 2
+========================================= */
+
+.sidebar-menu .submenu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+
+    padding: 10px 20px 10px 45px;
+
+    color: #6c757d;
+    text-decoration: none;
+
+    transition: all 0.2s ease;
+}
+
+/* Hover level 2 */
+.sidebar-menu .submenu-toggle:hover {
+    color: #4c9bc8 !important;
+}
+
+/* Arrow */
+.sidebar-menu .submenu-toggle::after {
+    content: "›";
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* =========================================
+   LEVEL 3
+========================================= */
+
+.sidebar-menu .submenu-level {
+    display: none;
+
+    padding: 0;
+    margin: 0;
+}
+
+/* show submenu */
+.sidebar-menu .dropdown-submenu.open .submenu-level {
+    display: block;
+}
+
+/* submenu item */
+.sidebar-menu .submenu-level li a {
+    display: block;
+
+    padding: 9px 20px 9px 70px;
+
+    color: #6c757d;
+    text-decoration: none;
+
+    transition: all 0.2s ease;
+}
+
+/* Hover level 3 */
+.sidebar-menu .submenu-level li a:hover {
+    color: #4c9bc8 !important;
+}
+
+/* Active level 3 */
+.sidebar-menu .submenu-level li a.active {
+    color: #4c9bc8 !important;
+    font-weight: 600;
+}
+
+/* =========================================
+   OPEN STATE
+========================================= */
+
+.sidebar-menu .dropdown-submenu.open > .submenu-toggle {
+    color: #4c9bc8 !important;
+}
+
+/* rotate arrow */
+.sidebar-menu .dropdown-submenu.open > .submenu-toggle::after {
+    transform: rotate(90deg);
+}
+
+/* smooth arrow */
+.sidebar-menu .submenu-toggle::after {
+    transition: all 0.2s ease;
+}
+
+/* =========================================
+   SPACING
+========================================= */
+
+.sidebar-menu .level-1-menu {
+    margin-top: 5px !important;
 }
