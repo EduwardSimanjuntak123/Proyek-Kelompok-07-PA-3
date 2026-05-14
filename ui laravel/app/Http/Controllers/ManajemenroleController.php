@@ -259,6 +259,7 @@ if(strtolower($role->role_name) !== 'koordinator'){
         // Simpan data — tambahkan `nama` hanya jika kolom ada pada skema database
         $insertData = [
             'user_id'   => $validated['user_id'],
+            // 'nama'      => $this->getDosenName($validated['user_id'], session('token')),
             'role_id'   => $validated['role_id'],
             'prodi_id'  => $validated['prodi_id'],
             'KPA_id'    => $validated['KPA_id'],
