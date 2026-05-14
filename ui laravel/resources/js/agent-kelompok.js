@@ -17,6 +17,52 @@ function scrollToBottom() {
 }
 
 /**
+ * Helper function to set HTML and execute scripts
+ */
+function setHTMLWithScripts(element, html) {
+    console.log('[JADWAL] setHTMLWithScripts called');
+    
+    // First, extract script content before setting innerHTML
+    const scriptRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+    const scripts = [];
+    let match;
+    while ((match = scriptRegex.exec(html)) !== null) {
+        scripts.push(match[0]);
+    }
+    
+    // Remove scripts from HTML before setting
+    const cleanHtml = html.replace(scriptRegex, '');
+    
+    // Set the clean HTML
+    element.innerHTML = cleanHtml;
+    console.log('[JADWAL] HTML set, found ' + scripts.length + ' scripts');
+    
+    // Now execute scripts after a micro-task to ensure DOM is ready
+    Promise.resolve().then(() => {
+        scripts.forEach((scriptTag, idx) => {
+            try {
+                // Extract content between <script> tags
+                const contentMatch = /<script\b[^>]*>([\s\S]*?)<\/script>/i.exec(scriptTag);
+                if (contentMatch && contentMatch[1]) {
+                    const scriptContent = contentMatch[1];
+                    console.log('[JADWAL] Executing script ' + (idx + 1));
+                    
+                    // Create and execute script
+                    const scriptEl = document.createElement('script');
+                    scriptEl.textContent = scriptContent;
+                    document.body.appendChild(scriptEl);
+                    
+                    console.log('[JADWAL] Script ' + (idx + 1) + ' executed');
+                }
+            } catch (e) {
+                console.error('[JADWAL] Error executing script ' + (idx + 1) + ':', e);
+            }
+        });
+        console.log('[JADWAL] All scripts executed');
+    });
+}
+
+/**
  * Append message bubble to chat
  */
 function appendMessage(sender, text) {
@@ -32,7 +78,8 @@ function appendMessage(sender, text) {
     if (sender === "user") {
         bubble.textContent = text;
     } else {
-        bubble.innerHTML = text;
+        // Use helper function to set HTML and execute scripts
+        setHTMLWithScripts(bubble, text);
     }
     
     wrapper.appendChild(bubble);
@@ -238,5 +285,72 @@ window.sendMessage = function() {
             : err.message
         appendMessage("ai", "❌ Terjadi Error: " + errorMsg)
     })
+};
+
+/**
+ * Handle jadwal seminar form submission
+ */
+window.__submitJadwal = function(event) {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[${timestamp}] [JADWAL] ▶️  __submitJadwal called`);
+    
+    try {
+        event.preventDefault();
+        
+        // Get form values
+        const tanggalInput = document.getElementById("jadwal-tanggal");
+        const durasiJamInput = document.getElementById("jadwal-durasi-jam");
+        const durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+        
+        console.log(`[${timestamp}] [JADWAL] ✓ Form elements found`);
+        
+        const tanggal = tanggalInput?.value?.trim() || "";
+        const jam = parseInt(durasiJamInput?.value || "1");
+        const menit = parseInt(durasiMenitInput?.value || "50");
+        
+        // Get all selected ruangan
+        const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+        const ruanganList = [];
+        ruanganSelects.forEach((select, idx) => {
+            const ruangan_id = select.value;
+            if (ruangan_id) {
+                ruanganList.push(ruangan_id);
+            }
+        });
+        
+        console.log(`[${timestamp}] [JADWAL] Values: tanggal='${tanggal}', ruangan_list='${ruanganList.join(",")}', durasi='${jam}j ${menit}m'`);
+        
+        // Validate
+        if (!tanggal) {
+            alert("❌ Tanggal harus diisi (contoh: 15 mei 2026)");
+            return;
+        }
+        
+        if (ruanganList.length === 0) {
+            alert("❌ Minimal 1 ruangan harus dipilih");
+            return;
+        }
+        
+        // Convert jam + menit to total menit
+        const totalMenit = (jam * 60) + menit;
+        
+        // Build message in format: [jadwal] tanggal: 15 mei 2026 | ruangan: 1,2,3 | durasi: 110
+        const message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+        console.log(`[${timestamp}] [JADWAL] Message: ${message}`);
+        
+        // Set to userInput and send
+        const userInput = document.getElementById("userInput");
+        if (userInput) {
+            userInput.value = message;
+            console.log(`[${timestamp}] [JADWAL] Calling sendMessage()...`);
+            window.sendMessage();
+        } else {
+            console.error(`[${timestamp}] [JADWAL] ❌ userInput element not found`);
+            alert("❌ Error: userInput element not found");
+        }
+    } catch (error) {
+        console.error(`[${timestamp}] [JADWAL] ❌ Exception:`, error);
+        alert(`❌ Error: ${error.message}`);
+    }
 };
 

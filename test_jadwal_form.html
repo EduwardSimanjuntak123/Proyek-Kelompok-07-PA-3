@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Jadwal Seminar Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Jadwal Seminar Form</h1>
+        <div id="form-container"></div>
+    </div>
+
+    <script>
+        // Mock function to simulate __submitJadwal
+        window.__submitJadwal = function(event) {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] [JADWAL] ▶️  __submitJadwal called`);
+            
+            try {
+                event.preventDefault();
+                
+                // Get form values
+                const tanggalInput = document.getElementById("jadwal-tanggal");
+                const durasiJamInput = document.getElementById("jadwal-durasi-jam");
+                const durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+                
+                console.log(`[${timestamp}] [JADWAL] ✓ Form elements found`);
+                
+                const tanggal = tanggalInput?.value?.trim() || "";
+                const jam = parseInt(durasiJamInput?.value || "1");
+                const menit = parseInt(durasiMenitInput?.value || "50");
+                
+                // Get all selected ruangan
+                const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+                const ruanganList = [];
+                ruanganSelects.forEach((select, idx) => {
+                    const ruangan_id = select.value;
+                    if (ruangan_id) {
+                        ruanganList.push(ruangan_id);
+                    }
+                });
+                
+                console.log(`[${timestamp}] [JADWAL] Values: tanggal='${tanggal}', ruangan_list='${ruanganList.join(",")}', durasi='${jam}j ${menit}m'`);
+                
+                // Validate
+                if (!tanggal) {
+                    alert("❌ Tanggal harus diisi (contoh: 15 mei 2026)");
+                    return;
+                }
+                
+                if (ruanganList.length === 0) {
+                    alert("❌ Minimal 1 ruangan harus dipilih");
+                    return;
+                }
+                
+                // Convert jam + menit to total menit
+                const totalMenit = (jam * 60) + menit;
+                
+                // Build message
+                const message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+                console.log(`[${timestamp}] [JADWAL] Message: ${message}`);
+                
+                alert(`✅ Jadwal berhasil!\n\nTanggal: ${tanggal}\nRuangan: ${ruanganList.join(", ")}\nDurasi: ${jam}j ${menit}m (${totalMenit} menit)\n\nMessage: ${message}`);
+            } catch (error) {
+                console.error(`[${timestamp}] [JADWAL] ❌ Exception:`, error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        };
+
+        // Load form from Python (simulated with hardcoded HTML)
+        const formHTML = `
+<div style='border:1px solid #ddd; padding:16px; border-radius:4px; background:#f9f9f9;'>
+    <p style='color:#ea580c; margin:0 0 16px 0;'><strong>📅 Input Jadwal Seminar</strong></p>
+    
+    <div style='margin-bottom:12px;'>
+        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Tanggal Mulai Seminar *</label>
+        <input 
+            type='text' 
+            id='jadwal-tanggal' 
+            placeholder='Contoh: 15 mei 2026'
+            value='16 mei 2026'
+            style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
+        />
+        <small style='color:#666; display:block; margin-top:4px;'>Format: tanggal bulan tahun (contoh: 15 mei 2026, 10 juni 2026)</small>
+    </div>
+    
+    <div style='margin-bottom:12px;'>
+        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Ruangan * (Tambahkan lebih dari 1 ruangan jika perlu)</label>
+        <div id='jadwal-ruangan-container' style='border:1px solid #e0e0e0; padding:8px; border-radius:4px; background:white;'>
+            <div style='display:flex; gap:8px; margin-bottom:8px; align-items:center;' class='ruangan-row'>
+                <select 
+                    class='jadwal-ruangan-select'
+                    style='flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;'
+                >
+                    <option value=''>-- Pilih Ruangan 1 --</option>
+                    <option value='1'>Auditorium</option>
+                    <option value='2'>Ruang Rapat Vokasi Lt-2</option>
+                    <option value='3'>Ruang Seminar A</option>
+                </select>
+                <button 
+                    type='button' 
+                    class='remove-ruangan-btn'
+                    style='padding:8px 12px; background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none; min-width:40px;'
+                >
+                    ✕
+                </button>
+            </div>
+        </div>
+        <button 
+            type='button' 
+            id='add-ruangan-btn'
+            style='margin-top:8px; padding:8px 12px; background:#059669; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:13px; width:100%;'
+        >
+            + Tambah Ruangan
+        </button>
+    </div>
+    
+    <div style='margin-bottom:16px;'>
+        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Durasi</label>
+        <div style='display:flex; gap:8px; align-items:flex-end;'>
+            <div style='flex:1;'>
+                <label style='font-size:13px; color:#666;'>Jam</label>
+                <input 
+                    type='number' 
+                    id='jadwal-durasi-jam' 
+                    value='1' 
+                    min='0' 
+                    max='8'
+                    style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
+                />
+            </div>
+            <div style='flex:1;'>
+                <label style='font-size:13px; color:#666;'>Menit</label>
+                <input 
+                    type='number' 
+                    id='jadwal-durasi-menit' 
+                    value='50' 
+                    min='0' 
+                    max='59'
+                    style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
+                />
+            </div>
+        </div>
+        <small style='color:#666; display:block; margin-top:4px;'>Default: 1 jam 50 menit (110 menit total)</small>
+    </div>
+    
+    <button 
+        type='button' 
+        id='submit-jadwal-btn'
+        style='width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:14px;'
+    >
+        📤 Buat Jadwal Seminar
+    </button>
+</div>
+        `;
+
+        document.getElementById('form-container').innerHTML = formHTML;
+
+        // Initialize event listeners
+        (function() {
+            console.log('Initializing form event listeners...');
+            
+            // Setup add ruangan button
+            const addBtn = document.getElementById('add-ruangan-btn');
+            if (addBtn) {
+                console.log('Found add-ruangan-btn');
+                addBtn.addEventListener('click', function(e) {
+                    console.log('Add ruangan button clicked!');
+                    e.preventDefault();
+                    const container = document.getElementById('jadwal-ruangan-container');
+                    if (!container) return;
+                    
+                    const rowCount = container.querySelectorAll('.ruangan-row').length;
+                    const newRow = document.createElement('div');
+                    newRow.className = 'ruangan-row';
+                    newRow.style.display = 'flex';
+                    newRow.style.gap = '8px';
+                    newRow.style.marginBottom = '8px';
+                    newRow.style.alignItems = 'center';
+                    
+                    const select = document.createElement('select');
+                    select.className = 'jadwal-ruangan-select';
+                    select.style.flex = '1';
+                    select.style.padding = '8px';
+                    select.style.border = '1px solid #ccc';
+                    select.style.borderRadius = '4px';
+                    select.style.fontSize = '14px';
+                    select.innerHTML = '<option value="">-- Pilih Ruangan ' + (rowCount + 1) + ' --</option><option value="1">Auditorium</option><option value="2">Ruang Rapat Vokasi Lt-2</option><option value="3">Ruang Seminar A</option>';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'remove-ruangan-btn';
+                    removeBtn.style.padding = '8px 12px';
+                    removeBtn.style.background = '#ef4444';
+                    removeBtn.style.color = 'white';
+                    removeBtn.style.border = 'none';
+                    removeBtn.style.borderRadius = '4px';
+                    removeBtn.style.cursor = 'pointer';
+                    removeBtn.style.fontWeight = 'bold';
+                    removeBtn.style.minWidth = '40px';
+                    removeBtn.textContent = '✕';
+                    
+                    removeBtn.addEventListener('click', function(e) {
+                        console.log('Remove ruangan button clicked!');
+                        e.preventDefault();
+                        newRow.remove();
+                        updateRemoveButtons();
+                    });
+                    
+                    newRow.appendChild(select);
+                    newRow.appendChild(removeBtn);
+                    container.appendChild(newRow);
+                    
+                    updateRemoveButtons();
+                });
+            }
+            
+            function updateRemoveButtons() {
+                const container = document.getElementById('jadwal-ruangan-container');
+                if (!container) return;
+                const rows = container.querySelectorAll('.ruangan-row');
+                document.querySelectorAll('.remove-ruangan-btn').forEach((btn) => {
+                    btn.style.display = rows.length > 1 ? 'block' : 'none';
+                });
+            }
+            
+            // Setup submit button
+            const submitBtn = document.getElementById('submit-jadwal-btn');
+            if (submitBtn) {
+                console.log('Found submit-jadwal-btn');
+                submitBtn.addEventListener('click', function(e) {
+                    console.log('Submit button clicked!');
+                    e.preventDefault();
+                    if (window.__submitJadwal) {
+                        window.__submitJadwal(e);
+                    } else {
+                        alert('Error: __submitJadwal function not found');
+                    }
+                });
+            }
+            
+            // Initialize
+            updateRemoveButtons();
+            console.log('Form initialization complete!');
+        })();
+    </script>
+</body>
+</html>

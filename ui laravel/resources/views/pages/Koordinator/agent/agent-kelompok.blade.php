@@ -25,7 +25,7 @@
             <header class="topbar">
                 <div class="topbar-brand">
                     <div class="topbar-icon">
-                        <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
+                        <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
                             style="width: 40px; height: 40px; object-fit: contain;">
                     </div>
                     <div>
@@ -60,7 +60,7 @@
             {{-- VERIFICATION SIDEBAR --}}
             <aside class="verification-sidebar">
                 <div class="sidebar-header">
-                    <h3>Alur Task Koordinator PA</h3>
+                    <h3>Alur Verifikasi</h3>
                 </div>
 
                 <div class="verification-steps">
@@ -97,7 +97,7 @@
                                 <div class="step-number">2</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Assign Dosen Pembimbing</div>
+                                <div class="step-title">Verifikasi Pembimbing</div>
                                 <div class="step-subtitle">Tentukan dosen pembimbing</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -122,7 +122,7 @@
                                 <div class="step-number">3</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Assign Dosen Penguji</div>
+                                <div class="step-title">Verifikasi Penguji</div>
                                 <div class="step-subtitle">Tentukan dosen penguji</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -188,7 +188,7 @@
             {{-- LANDING VIEW --}}
             <div class="landing-view" id="landingView">
                 <div class="landing-icon-wrap">
-                    <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
+                    <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
                         style="width: 100px; height: 100px; object-fit: contain;">
                 </div>
 
@@ -897,21 +897,7 @@
                 <strong>${data.saved_members || 0}</strong> anggota tersimpan.
                 ${(data.skipped_existing_members || 0) > 0 ? `<br><small>${data.skipped_existing_members} mahasiswa dilewati karena sudah punya kelompok.</small>` : ''}
             `,
-                    icon: "success",
-                    showCancelButton: true,
-                    confirmButtonText: "Lanjut Buatkan Pembimbing?",
-                    confirmButtonColor: "#3b82f6",
-                    cancelButtonText: "Tutup"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const input = document.getElementById("userInput");
-                        if (input) {
-                            input.value = "buatkan pembimbing";
-                            if (typeof window.sendMessage === 'function') {
-                                window.sendMessage();
-                            }
-                        }
-                    }
+                    icon: "success"
                 });
 
                 // Hindari submit ganda pada payload yang sama.
@@ -951,16 +937,14 @@
                 event.stopImmediatePropagation();
             }
 
-            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload
-                .groups.length === 0) {
+            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload.groups.length === 0) {
                 Swal.fire("Tidak ada data", "Generate kelompok terlebih dahulu sebelum acak ulang.", "warning");
                 return;
             }
 
             const input = document.getElementById("userInput");
             const basePrompt = latestGroupingMeta?.prompt || latestUserPrompt || "buat kelompok mahasiswa";
-            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') ||
-                /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
+            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') || /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
 
             const regeneratePrompt = isByGrades ?
                 `${basePrompt} dan acak ulang komposisi mahasiswa antar kelompok` :
@@ -1263,30 +1247,6 @@
             }
         };
 
-        window.__continueGeneratePembimbingInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
-
-            try {
-                const input = document.getElementById("userInput");
-                if (input) {
-                    input.value = "buatkan pembimbing";
-                }
-                if (typeof window.sendMessage === 'function') {
-                    window.sendMessage();
-                }
-            } catch (error) {
-                Swal.fire("Error", error.message || "Gagal melanjutkan ke generate pembimbing.", "error");
-            }
-        };
-
         window.__savePengujiInline = async function(event) {
             if (event && typeof event.preventDefault === "function") {
                 event.preventDefault();
@@ -1347,46 +1307,6 @@
                 Swal.fire("Error", error.message || "Gagal validasi penguji.", "error");
             } finally {
                 isLoadingPengujiCheck = false;
-            }
-        };
-
-        window.__confirmShuffleGroupsFromInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
-
-            try {
-                const button = event.target.closest('.confirm-shuffle-groups');
-                const shufflePrompt = button?.dataset?.shufflePrompt ||
-                    latestUserPrompt || "buat kelompok baru diacak ulang";
-
-                const confirm = await Swal.fire({
-                    title: "Konfirmasi Acak Ulang",
-                    html: `Apakah Anda yakin ingin diacak ulang? <br><strong>Kelompok yang sudah ada akan dihapus dan diganti dengan kelompok baru.</strong>`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Ya, Diacak Ulang",
-                    confirmButtonColor: "#f59e0b",
-                    cancelButtonText: "Batal"
-                });
-
-                if (confirm.isConfirmed) {
-                    const input = document.getElementById("userInput");
-                    if (input) {
-                        input.value = shufflePrompt;
-                    }
-                    if (typeof window.sendMessage === 'function') {
-                        window.sendMessage();
-                    }
-                }
-            } catch (error) {
-                Swal.fire("Error", error.message || "Gagal memproses acak ulang.", "error");
             }
         };
 
@@ -1616,29 +1536,6 @@
                     return;
                 }
 
-                const shuffleButton = event.target.closest(".confirm-shuffle-groups");
-                if (shuffleButton) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    console.log("[chatbot] delegated click matched .confirm-shuffle-groups");
-                    if (typeof window.__confirmShuffleGroupsFromInline === 'function') {
-                        window.__confirmShuffleGroupsFromInline(event);
-                    }
-                    return;
-                }
-
-                const cancelShuffleButton = event.target.closest(".cancel-shuffle");
-                if (cancelShuffleButton) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const input = document.getElementById("userInput");
-                    if (input) {
-                        input.value = "";
-                        input.focus();
-                    }
-                    return;
-                }
-
                 const saveButton = event.target.closest(".save-generated-groups-btn");
                 if (saveButton) {
                     event.preventDefault();
@@ -1751,9 +1648,6 @@
 
             appendMessage("user", message)
             input.value = ""
-            if (typeof window.autoResizeChatInput === "function") {
-                window.autoResizeChatInput()
-            }
             input.focus()
 
             let loadingId = appendLoading()
@@ -1897,40 +1791,6 @@
         const landingView = document.getElementById("landingView");
         const chatView = document.getElementById("chatView");
 
-        function autoResizeLandingInput() {
-            if (!landingInput) return;
-
-            landingInput.style.height = "auto";
-            const maxHeight = 120;
-            const nextHeight = Math.min(landingInput.scrollHeight, maxHeight);
-            landingInput.style.height = `${nextHeight}px`;
-            landingInput.style.overflowY = landingInput.scrollHeight > maxHeight ? "auto" : "hidden";
-        }
-
-        function autoResizeChatInput() {
-            const input = document.getElementById("userInput");
-            if (!input) return;
-
-            input.style.height = "auto";
-            const maxHeight = 140;
-            const nextHeight = Math.min(input.scrollHeight, maxHeight);
-            input.style.height = `${nextHeight}px`;
-            input.style.overflowY = input.scrollHeight > maxHeight ? "auto" : "hidden";
-        }
-
-        window.autoResizeChatInput = autoResizeChatInput;
-
-        if (landingInput) {
-            autoResizeLandingInput();
-            landingInput.addEventListener("input", autoResizeLandingInput);
-        }
-
-        const chatPromptInput = document.getElementById("userInput");
-        if (chatPromptInput) {
-            autoResizeChatInput();
-            chatPromptInput.addEventListener("input", autoResizeChatInput);
-        }
-
         // Fungsi pindah dari landing ke chat
         function openChatWithMessage(message) {
             if (!message) return;
@@ -1942,7 +1802,6 @@
             const input = document.getElementById("userInput");
             if (input) {
                 input.value = message;
-                autoResizeChatInput();
             }
 
             if (typeof window.sendMessage === "function") {

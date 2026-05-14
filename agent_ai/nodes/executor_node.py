@@ -52,6 +52,7 @@ from tools.nilai_mahasiswa_tools import (
 from tools.academic_tools import get_kategori_pa_list, get_tahun_ajaran_list, get_ruangan_list
 from tools.roles_tools import get_roles_list
 from tools.excel_tools import generate_excel_by_context
+from tools.jadwal_seminar import JadwalSeminarTools
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -82,11 +83,13 @@ EXECUTABLE_ACTIONS = {
     "check_kelompok",
     "delete_kelompok",
     "generate_excel",
+    "generate_jadwal_seminar",
 }
 
 
 def _infer_action_from_prompt(prompt_lower: str):
     infer_rules = [
+        ("generate_jadwal_seminar", ["jadwal seminar", "buat jadwal", "jadwal presentasi", "schedule seminar"]),
         ("query_anggota_kelompok", ["anggota kelompok", "siapa anggota kelompok"]),
         ("generate_pembimbing", ["generate pembimbing", "assign pembimbing", "buat pembimbing"]),
         ("generate_penguji", ["generate penguji", "assign penguji", "buat penguji"]),
@@ -1982,6 +1985,91 @@ def executor_node(state):
                     error_msg = result.get("error", "Unknown error")
                     state["result"] = f"<p>❌ Gagal membuat Excel: {html.escape(error_msg)}</p>"
                     logger.warning(f"[{user_id}] ✗ generate_excel gagal: {error_msg}")
+        
+        elif action == "generate_jadwal_seminar":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: generate_jadwal_seminar (buat jadwal seminar)")
+            
+            prompt = state.get("messages", [{}])[-1].get("content", "")
+            prompt_lower = prompt.lower()
+            
+            # STEP 1: Check if this is the initial request (ask for form)
+            # Also reset if completed, so user can create another jadwal
+            if not state.get("jadwal_stage") or state.get("jadwal_stage") == "completed":
+                # User just asked for jadwal seminar, show form
+                current_stage = state.get("jadwal_stage")
+                logger.info(f"[{user_id}] ℹ️  jadwal_stage={current_stage}, showing input form")
+                form_result = JadwalSeminarTools.get_form_jadwal()
+                state["result"] = form_result.get("message")
+                state["jadwal_stage"] = "input_form"
+                state["ruangan_list"] = form_result.get("ruangan_list", [])
+                logger.info(f"[{user_id}] ✓ Jadwal form displayed")
+                return state
+            
+            # STEP 2: User submitted form, parse input dan buat jadwal
+            elif state.get("jadwal_stage") == "input_form":
+                logger.info(f"[{user_id}] ℹ️  jadwal_stage=input_form, parsing user input")
+                
+                if not dosen_context:
+                    state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                    logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+                    return state
+                
+                # Extract tanggal dari prompt (format: "[jadwal] tanggal: 15 mei 2026")
+                tanggal_match = re.search(r'tanggal[:\s]+([^|]*?)(?:\||$)', prompt_lower)
+                tanggal_str = tanggal_match.group(1).strip() if tanggal_match else None
+                
+                # Extract ruangan dari prompt (format: "[jadwal] ruangan: 1,2,3" atau "1")
+                ruangan_match = re.search(r'ruangan[:\s]*([0-9,]+)', prompt_lower)
+                ruangan_str = ruangan_match.group(1) if ruangan_match else None
+                ruangan_list = [int(r.strip()) for r in ruangan_str.split(',') if r.strip().isdigit()] if ruangan_str else []
+                
+                # Extract durasi dari prompt (format: "[jadwal] durasi: 110") atau gunakan default
+                durasi_match = re.search(r'durasi[:\s]*(\d+)', prompt_lower)
+                durasi_menit = int(durasi_match.group(1)) if durasi_match else 110
+                
+                logger.info(f"[{user_id}] Parsed: tanggal={tanggal_str}, ruangan_list={ruangan_list}, durasi={durasi_menit}")
+                
+                if not tanggal_str or not ruangan_list:
+                    state["result"] = "❌ Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi."
+                    logger.warning(f"[{user_id}] ✗ Missing required fields: tanggal={tanggal_str}, ruangan_list={ruangan_list}")
+                    return state
+                
+                # Parse tanggal
+                tanggal_mulai = JadwalSeminarTools.parse_tanggal_input(tanggal_str)
+                if not tanggal_mulai:
+                    state["result"] = f"❌ Format tanggal tidak valid: '{tanggal_str}'. Gunakan format: 15 mei 2026"
+                    logger.warning(f"[{user_id}] ✗ Failed to parse tanggal: {tanggal_str}")
+                    return state
+                
+                # Get kelompok yang sesuai dengan dosen context
+                kelompok_list = JadwalSeminarTools.get_kelompok_for_jadwal(user_id, [dosen_context])
+                if not kelompok_list:
+                    state["result"] = "❌ Tidak ada kelompok yang sesuai untuk dijadwalkan pada konteks ini."
+                    logger.warning(f"[{user_id}] ✗ No matching kelompok found")
+                    return state
+                
+                logger.info(f"[{user_id}] ✓ Found {len(kelompok_list)} kelompok to schedule")
+                
+                # Generate jadwal untuk setiap ruangan
+                result = JadwalSeminarTools.generate_jadwal_seminar(
+                    user_id=user_id,
+                    tanggal_mulai=tanggal_mulai,
+                    durasi_menit=durasi_menit,
+                    ruangan_list=ruangan_list,
+                    kelompok_list=kelompok_list,
+                    dosen_context=[dosen_context]
+                )
+                
+                state["result"] = result.get("message")
+                if result.get("success"):
+                    state["jadwal_stage"] = "completed"
+                    state["jadwal_entries"] = result.get("jadwal_entries", [])
+                    logger.info(f"[{user_id}] ✓ generate_jadwal_seminar success: {result.get('total')} entries created")
+                else:
+                    logger.warning(f"[{user_id}] ✗ generate_jadwal_seminar gagal: {result.get('message')}")
+                    state["jadwal_stage"] = None  # Reset untuk coba lagi
+                
+                return state
         
         else:
             logger.info(f"[{user_id}] ⚠️  ACTION tidak dikenali: {action}")
