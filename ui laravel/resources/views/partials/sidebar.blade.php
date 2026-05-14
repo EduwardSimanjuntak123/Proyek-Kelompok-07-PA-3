@@ -54,7 +54,7 @@
                                 <span>VokasiTera Agent </span>
                             </a>
                         </li>
-                        <li class="menu-header">Kordinator</li>
+                        <li class="menu-header">Koordinator</li>
                         <li class="nav-item {{ request()->is('dashboard/koordinator*') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('dashboard.koordinator') }}"><i
                                     class="fas fa-columns"></i>
@@ -106,43 +106,139 @@
                                 href="{{ route('pengumuman.index') }}"><i class="fas fa-bell"></i>
                                 <span>Pengumuman</span></a></li>
                     @endif
-                    {{--  untuk Penguji --}}
+                    {{-- UNTUK PENGUJI --}}
                     @if (in_array(2, $dosenRoles) || in_array(4, $dosenRoles))
+
                         <li class="menu-header">Penguji</li>
-                        <li class="nav-item {{ request()->routeIs('dashboard.penguji') ? 'active' : '' }}"><a
-                                class="nav-link" href="{{ route('dashboard.penguji') }}"><i class="fas fa-columns"></i>
-                                <span>Dashboard</span></a></li>
-                        <li
-                            class="nav-item {{ request()->routeIs('penguji.tugas.*') || request()->routeIs('penguji.show.submitan') || request()->routeIs('penguji.feedback.*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('penguji.tugas.index') }}"><i class="fas fa-file"></i>
-                                <span>Tugas</span></a>
+
+                        {{-- Dashboard --}}
+                        <li class="nav-item {{ request()->routeIs('dashboard.penguji') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('dashboard.penguji') }}">
+                                <i class="fas fa-columns"></i>
+                                <span>Dashboard</span>
+                            </a>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}"><a
-                                class="nav-link" href="{{ route('penguji.jadwal.index') }}"><i
-                                    class="fas fa-calendar"></i>
-                                <span>Jadwal</span></a></li>
-                        <li class="nav-item dropdown">
-                            <a href="#"
-                                class="nav-link has-dropdown {{ request()->routeIs('penguji1.Nilai*') || request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}"
-                                data-toggle="dropdown">
-                                <i class="fas fa-clipboard-check"></i> <span>Nilai</span>
+                        {{-- Tugas --}}
+                        <li
+                            class="nav-item
+        {{ request()->routeIs('penguji.tugas.*') ||
+        request()->routeIs('penguji.show.submitan') ||
+        request()->routeIs('penguji.feedback.*')
+            ? 'active'
+            : '' }}">
+
+                            <a class="nav-link" href="{{ route('penguji.tugas.index') }}">
+                                <i class="fas fa-file"></i>
+                                <span>Tugas</span>
                             </a>
-                            <ul class="dropdown-menu">
-                                @if (in_array(2, $dosenRoles))
-                                    <li><a class="nav-link {{ request()->routeIs('penguji1.NilaiKelompok.index') ? 'active' : '' }}"
-                                            href="{{ route('penguji1.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
-                                    <li><a class="nav-link {{ request()->routeIs('penguji1.NilaiIndividu.index') ? 'active' : '' }}"
-                                            href="{{ route('penguji1.NilaiIndividu.index') }}">Nilai Individu</a></li>
-                                @endif
-                                @if (in_array(4, $dosenRoles))
-                                    <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiKelompok.index') ? 'active' : '' }}"
-                                            href="{{ route('penguji2.NilaiKelompok.index') }}">Nilai Kelompok</a></li>
-                                    <li><a class="nav-link {{ request()->routeIs('penguji2.NilaiIndividu.index') ? 'active' : '' }}"
-                                            href="{{ route('penguji2.NilaiIndividu.index') }}">Nilai Individu</a></li>
-                                @endif
-                            </ul>
                         </li>
+
+                        {{-- Jadwal --}}
+                        <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('penguji.jadwal.index') }}">
+                                <i class="fas fa-calendar"></i>
+                                <span>Jadwal</span>
+                            </a>
+                        </li>
+
+                        {{-- =========================================
+         MENU NILAI
+    ========================================= --}}
+                        <li
+                            class="nav-item dropdown multi-level
+        {{ request()->routeIs('penguji1.Nilai*') || request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}">
+
+                            {{-- LEVEL 1 --}}
+                            <a href="#" class="nav-link has-dropdown">
+
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>Nilai</span>
+                            </a>
+
+                            {{-- LEVEL 2 WRAPPER --}}
+                            <ul class="dropdown-menu level-1-menu">
+
+                                {{-- =========================================
+                 DOSEN PENGUJI 1
+            ========================================= --}}
+                                @if (in_array(2, $dosenRoles))
+                                    <li
+                                        class="dropdown-submenu
+                    {{ request()->routeIs('penguji1.Nilai*') ? 'open' : '' }}">
+
+                                        {{-- LEVEL 2 --}}
+                                        <a href="#" class="submenu-toggle">
+
+                                            <span>Dosen Penguji 1</span>
+                                        </a>
+
+                                        {{-- LEVEL 3 --}}
+                                        <ul class="submenu-level">
+
+                                            <li>
+                                                <a href="{{ route('penguji1.NilaiIndividu.index') }}"
+                                                    class="{{ request()->routeIs('penguji1.NilaiIndividu.index') ? 'active' : '' }}">
+
+                                                    Nilai Individu
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a href="{{ route('penguji1.NilaiKelompok.index') }}"
+                                                    class="{{ request()->routeIs('penguji1.NilaiKelompok.index') ? 'active' : '' }}">
+
+                                                    Nilai Kelompok
+                                                </a>
+                                            </li>
+
+                                        </ul>
+
+                                    </li>
+                                @endif
+
+                                {{-- =========================================
+                 DOSEN PENGUJI 2
+            ========================================= --}}
+                                @if (in_array(4, $dosenRoles))
+                                    <li
+                                        class="dropdown-submenu
+                    {{ request()->routeIs('penguji2.Nilai*') ? 'open' : '' }}">
+
+                                        {{-- LEVEL 2 --}}
+                                        <a href="#" class="submenu-toggle">
+
+                                            <span>Dosen Penguji 2</span>
+                                        </a>
+
+                                        {{-- LEVEL 3 --}}
+                                        <ul class="submenu-level">
+
+                                            <li>
+                                                <a href="{{ route('penguji2.NilaiIndividu.index') }}"
+                                                    class="{{ request()->routeIs('penguji2.NilaiIndividu.index') ? 'active' : '' }}">
+
+                                                    Nilai Individu
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a href="{{ route('penguji2.NilaiKelompok.index') }}"
+                                                    class="{{ request()->routeIs('penguji2.NilaiKelompok.index') ? 'active' : '' }}">
+
+                                                    Nilai Kelompok
+                                                </a>
+                                            </li>
+
+                                        </ul>
+
+                                    </li>
+                                @endif
+
+                            </ul>
+
+                        </li>
+
                         {{-- <li ><a class="nav-link" href="{{route('penguji.pengumuman.index')}}"><i class="fas fa-bell"></i> <span>Pengumuman</span></a></li> --}}
 
                     @endif
@@ -151,26 +247,30 @@
                         <li class="menu-header">Pembimbing</li>
                         <li class="nav-item {{ request()->is('dashboard/pembimbing*') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('dashboard.pembimbing') }}"><i
-                                    class="fas fa-columns"></i> <span>Dashboard</span></a></li>
+                                    class="fas fa-columns"></i>
+                                <span>Dashboard</span></a></li>
                         <li
                             class="nav-item {{ request()->routeIs('pembimbing.tugas.*') || request()->routeIs('pembimbing.show.submitan') || request()->routeIs('pembimbing.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.tugas.index') }}"><i
-                                    class="fas fa-file"></i> <span>Tugas</span></a>
+                                    class="fas fa-file"></i>
+                                <span>Tugas</span></a>
                         </li>
                         <li
                             class="nav-item {{ request()->is('dosenpembimbing*') || request()->routeIs('pembimbing.bimbingan.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.bimbingan.index') }}"><i
-                                    class="fas fa-bullhorn"></i> <span>Bimbingan</span></a>
+                                    class="fas fa-bullhorn"></i>
+                                <span>Bimbingan</span></a>
                         </li>
                         <li class="nav-item {{ request()->routeIs('pembimbing.jadwal.*') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('pembimbing.jadwal.index') }}"><i
-                                    class="fas fa-calendar"></i> <span>Jadwal</span></a></li>
+                                    class="fas fa-calendar"></i>
+                                <span>Jadwal</span></a></li>
                         <li class="nav-item {{ request()->routeIs('PembimbingPengajuanSeminar.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('PembimbingPengajuanSeminar.index') }}"><i
                                     class="fas fa-calendar-check"></i> <span>Pengajuan Seminar</span></a>
                         </li>
                         <li
-                            class="nav-item dropdown {{ request()->is('Nilai*') || request()->routeIs('pembimbing1.Nilai*') || request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.Nilai*') || request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
 
                             <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
                                 <i class="fas fa-clipboard-check"></i> <span>Nilai</span>
@@ -253,3 +353,24 @@
         @endif
     </aside>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const submenuToggles = document.querySelectorAll(".submenu-toggle");
+
+        submenuToggles.forEach(toggle => {
+
+            toggle.addEventListener("click", function(e) {
+
+                e.preventDefault();
+
+                const parent = this.parentElement;
+
+                parent.classList.toggle("open");
+
+            });
+
+        });
+
+    });
+</script>

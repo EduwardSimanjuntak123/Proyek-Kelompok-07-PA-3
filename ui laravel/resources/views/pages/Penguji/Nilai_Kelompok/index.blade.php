@@ -8,7 +8,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
-                        <h4>List Nilai Kelompok</h4>
+                        <h4>List Nilai Kelompok Penguji 1</h4>
                     </div> 
                     <div class="card-body">
                         @include('partials.alert')

@@ -18,7 +18,7 @@ helper = get_cached_tool_helper()
 
 def enhanced_planner_node(state):
     """
-    Enhanced planner_node dengan Redis caching awareness
+    Enhanced planner_node dengan Redis caching awarenessu 
     
     Instead of just routing to tools, also:
     1. Check if we have cached results for common queries

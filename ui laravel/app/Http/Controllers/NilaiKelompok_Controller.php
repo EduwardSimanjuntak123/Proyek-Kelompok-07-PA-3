@@ -9,6 +9,16 @@ use Illuminate\Http\Request;
 
 class NilaiKelompok_Controller extends Controller
 {
+    private function filterKelompokByPengujiSlot($kelompok, string $userId, int $slot)
+    {
+        return $kelompok->filter(function ($item) use ($userId, $slot) {
+            $pengujiUrut = $item->penguji->sortBy('id')->values();
+            $pengujiSlot = $pengujiUrut->get($slot);
+
+            return $pengujiSlot && (string) $pengujiSlot->user_id === (string) $userId;
+        })->values();
+    }
+
     // untuk koordinator
     public function indexpenguji2()
 {
@@ -17,10 +27,15 @@ class NilaiKelompok_Controller extends Controller
     $KPA_id = session('KPA_id');
     $TM_id = session('TM_id');
 
-    $kelompok = Kelompok::with(['penguji','kategoriPA','prodi'])
-    ->whereHas('penguji',function ($q) use ($userId){
+    $kelompok = Kelompok::with(['penguji' => function ($query) {
+        $query->orderBy('id');
+    }, 'kategoriPA','prodi'])
+    ->whereHas('penguji', function ($q) use ($userId) {
         $q->where('user_id', $userId);
-    })->get();
+    })
+    ->get();
+
+    $kelompok = $this->filterKelompokByPengujiSlot($kelompok, $userId, 1);
 
     // ambil nilai yang sudah ada
     $nilaiKelompok = Nilai_kelompok::whereIn('kelompok_id', $kelompok->pluck('id'))
@@ -124,11 +139,15 @@ public function indexpenguji1(){
     $KPA_id = session('KPA_id');
     $TM_id = session('TM_id');
 
-
-    $kelompok = Kelompok::with(['penguji','kategoriPA','prodi'])
-    ->whereHas('penguji', function ($q) use ($userId){
+    $kelompok = Kelompok::with(['penguji' => function ($query) {
+        $query->orderBy('id');
+    }, 'kategoriPA','prodi'])
+    ->whereHas('penguji', function ($q) use ($userId) {
        $q->where('user_id',$userId);
-    })->get();
+    })
+    ->get();
+
+    $kelompok = $this->filterKelompokByPengujiSlot($kelompok, $userId, 0);
     
     // ambil nilai yang sudah ada
     $nilaiKelompok = Nilai_kelompok::whereIn('kelompok_id', $kelompok->pluck('id'))

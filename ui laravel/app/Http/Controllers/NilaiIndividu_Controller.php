@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Http;
 
 class NilaiIndividu_Controller extends Controller
 {
+    private function filterKelompokByPengujiSlot($kelompok, string $userId, int $slot)
+    {
+        return $kelompok->filter(function ($item) use ($userId, $slot) {
+            $pengujiUrut = $item->penguji->sortBy('id')->values();
+            $pengujiSlot = $pengujiUrut->get($slot);
+
+            return $pengujiSlot && (string) $pengujiSlot->user_id === (string) $userId;
+        })->values();
+    }
 
     public function indexpembimbing1()
     {
@@ -357,12 +366,15 @@ class NilaiIndividu_Controller extends Controller
         $userId = session('user_id');
         $roleId = session('role_id');
         
-        // Ambil data kelompok
-        $kelompoks = Kelompok::with(['penguji.dosenRoles', 'KelompokMahasiswa', 'nilais','kategoriPA','prodi'])
-            ->whereHas('penguji.dosenRoles', function ($query) use ($userId,$roleId) {
+        $kelompoks = Kelompok::with(['penguji' => function ($query) {
+                $query->orderBy('id');
+            }, 'KelompokMahasiswa', 'nilais','kategoriPA','prodi'])
+            ->whereHas('penguji', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
             ->get();
+
+        $kelompoks = $this->filterKelompokByPengujiSlot($kelompoks, $userId, 0);
     
         // Ambil semua mahasiswa dari API
         $response = Http::withHeaders([
@@ -523,12 +535,15 @@ class NilaiIndividu_Controller extends Controller
         $userId = session('user_id');
         $roleId = session('role_id');
         
-        // Ambil data kelompok
-        $kelompoks = Kelompok::with(['penguji.dosenRoles', 'KelompokMahasiswa', 'nilais','kategoriPA','prodi'])
-            ->whereHas('penguji.dosenRoles', function ($query) use ($userId,$roleId) {
+        $kelompoks = Kelompok::with(['penguji' => function ($query) {
+                $query->orderBy('id');
+            }, 'KelompokMahasiswa', 'nilais','kategoriPA','prodi'])
+            ->whereHas('penguji', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
             ->get();
+
+        $kelompoks = $this->filterKelompokByPengujiSlot($kelompoks, $userId, 1);
     
         // Ambil semua mahasiswa dari API
         $response = Http::withHeaders([

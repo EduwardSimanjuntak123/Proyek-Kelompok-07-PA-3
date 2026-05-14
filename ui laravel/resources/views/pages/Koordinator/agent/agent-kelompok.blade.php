@@ -1,16 +1,20 @@
 @extends('layouts.main')
 @section('title', 'AI Agent Chatbot')
 
-
+@push('css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVJkEZSMUkrQ6usKu8zIstOWilmQyTjew45OMcvL7tdNT91uUOD4XiWkN9reidYl+aRslnMl+Kw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+@endpush
 
 @section('content')
     <link rel="stylesheet" href="{{ asset('assets/css/agent-kelompok.css') }}">
 
     <section class="chatbox-container" data-ai-route="{{ route('ai.callAgent') }}"
         data-save-route="{{ route('ai.saveGroups') }}" data-save-pembimbing-route="{{ route('ai.savePembimbing') }}"
-        data-check-pembimbing-route="{{ route('ai.cekPembimbing') }}" data-save-penguji-route="{{ route('ai.savePenguji') }}"
-        data-check-penguji-route="{{ route('ai.cekPenguji') }}" data-check-route="{{ route('ai.cekKelompok') }}"
-        data-delete-route="{{ route('ai.deleteForContext') }}"
+        data-check-pembimbing-route="{{ route('ai.cekPembimbing') }}"
+        data-save-penguji-route="{{ route('ai.savePenguji') }}" data-check-penguji-route="{{ route('ai.cekPenguji') }}"
+        data-check-route="{{ route('ai.cekKelompok') }}" data-delete-route="{{ route('ai.deleteForContext') }}"
         data-kategori-pa-id="{{ request()->query('kategori_pa_id', 1) }}"
         data-prodi-id="{{ request()->query('prodi_id', 1) }}"
         data-tahun-masuk-id="{{ request()->query('tahun_masuk_id', 1) }}">
@@ -21,7 +25,7 @@
             <header class="topbar">
                 <div class="topbar-brand">
                     <div class="topbar-icon">
-                        <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
+                        <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
                             style="width: 40px; height: 40px; object-fit: contain;">
                     </div>
                     <div>
@@ -102,8 +106,8 @@
                                     <circle cx="12" cy="12" r="10" />
                                 </svg>
                                 <svg class="status-icon success-icon" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                                    style="display: none;">
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round" style="display: none;">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
                             </div>
@@ -184,7 +188,7 @@
             {{-- LANDING VIEW --}}
             <div class="landing-view" id="landingView">
                 <div class="landing-icon-wrap">
-                    <img src="{{ asset('assets/img/logoagent1.jpeg') }}" alt="VokasiTera Agent Logo"
+                    <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
                         style="width: 100px; height: 100px; object-fit: contain;">
                 </div>
 
@@ -284,37 +288,92 @@
                 </div>
             </div>
 
-            {{-- PANDUAN MODAL --}}
+            {{-- =========================
+             PANDUAN MODAL
+            ========================= --}}
             <div class="panduan-overlay" id="panduanOverlay">
+
                 <div class="panduan-modal">
-                    <h3>Panduan Penggunaan</h3>
 
-                    <div class="panduan-item">
-                        <strong>Pembagian kelompok</strong>
-                        <span>"Buat 5 kelompok" atau "6 orang per kelompok"</span>
+                    {{-- HEADER --}}
+                    <div class="panduan-header">
+                        <div class="panduan-title">
+                            <div class="title-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+
+                            <div>
+                                <h3>Panduan Penggunaan</h3>
+                                <p>Gunakan contoh perintah berikut untuk memulai</p>
+                            </div>
+                        </div>
+
+                        <button class="close-x" id="closePandauHeader">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
-                    <div class="panduan-item">
-                        <strong>Dosen pembimbing</strong>
-                        <span>"Tentukan dosen pembimbing untuk setiap kelompok"</span>
+                    {{-- CONTENT --}}
+                    <div class="panduan-content">
+
+                        <div class="panduan-card">
+                            <div class="panduan-icon blue">
+                                <i class="fas fa-users"></i>
+                            </div>
+
+                            <div class="panduan-info">
+                                <strong>Pembagian Kelompok</strong>
+                                <span>"Buat 5 kelompok"</span>
+                                <span>"6 orang per kelompok"</span>
+                            </div>
+                        </div>
+
+                        <div class="panduan-card">
+                            <div class="panduan-icon green">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+
+                            <div class="panduan-info">
+                                <strong>Dosen Pembimbing</strong>
+                                <span>"Tentukan dosen pembimbing untuk setiap kelompok"</span>
+                            </div>
+                        </div>
+
+                        <div class="panduan-card">
+                            <div class="panduan-icon orange">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+
+                            <div class="panduan-info">
+                                <strong>Dosen Penguji</strong>
+                                <span>"Tentukan dosen penguji untuk setiap kelompok"</span>
+                            </div>
+                        </div>
+
+                        <div class="panduan-card">
+                            <div class="panduan-icon purple">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+
+                            <div class="panduan-info">
+                                <strong>Gabungan Otomatis</strong>
+                                <span>"Bagi kelompok sekaligus tentukan pembimbing dan penguji"</span>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="panduan-item">
-                        <strong>Dosen penguji</strong>
-                        <span>"Tentukan dosen penguji untuk setiap kelompok"</span>
+                    {{-- FOOTER --}}
+                    <div class="panduan-footer">
+                        <button class="btn-close-modal" id="closePanduan">
+                            <i class="fas fa-check-circle"></i>
+                            Mengerti
+                        </button>
                     </div>
 
-                    <div class="panduan-item">
-                        <strong>Gabungan otomatis</strong>
-                        <span>"Bagi kelompok sekaligus tentukan pembimbing dan penguji"</span>
-                    </div>
-
-                    <button class="btn-close-modal" id="closePanduan">Tutup</button>
                 </div>
             </div>
-
         </div>
-
 
     </section>
 
@@ -683,14 +742,8 @@
             }
         }
 
-        const AI_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-    <rect x="4" y="7" width="16" height="12" rx="3" />
-    <circle cx="9" cy="13" r="1" />
-    <circle cx="15" cy="13" r="1" />
-    <path d="M9 17h6" />
-    <path d="M12 3v4" />
-    <circle cx="12" cy="2" r="1" />
-</svg>`;
+        const AI_ICON =
+            `<img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo" style="width: 24px; height: 24px; object-fit: contain;">`;
 
         const USER_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -1114,14 +1167,16 @@
                 event.stopImmediatePropagation();
             }
 
-            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload.groups.length === 0) {
+            if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload
+                .groups.length === 0) {
                 Swal.fire("Tidak ada data", "Generate kelompok terlebih dahulu sebelum acak ulang.", "warning");
                 return;
             }
 
             const input = document.getElementById("userInput");
             const basePrompt = latestGroupingMeta?.prompt || latestUserPrompt || "buat kelompok mahasiswa";
-            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') || /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
+            const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') ||
+                /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
 
             const regeneratePrompt = isByGrades ?
                 `${basePrompt} dan acak ulang komposisi mahasiswa antar kelompok` :
@@ -1919,37 +1974,42 @@
             const btnHelper = document.getElementById("btnHelper")
             if (btnHelper) {
                 btnHelper.addEventListener("click", function() {
-                    Swal.fire({
-                        title: "📘 Panduan Penggunaan",
-                        width: 600,
-                        html: `
-                    <div style="text-align:left">
-                        <b>📌 Anda bebas bertanya apapun!</b><br><br>
+                    const panduanOverlay = document.getElementById("panduanOverlay")
+                    if (panduanOverlay) {
+                        panduanOverlay.classList.add("active")
+                    }
+                })
+            }
 
-                        <div class="alert alert-light" style="border-left: 3px solid #007bff;">
-                            <strong>🎯 Instruksi pembagian kelompok:</strong><br>
-                            "Buat 5 kelompok", "Buat kelompok isi 4 orang", "Bagi jadi 6 kelompok maksimal 4 orang"
-                        </div>
+            // Close panduan modal - header close button
+            const closePandauHeader = document.getElementById("closePandauHeader")
+            if (closePandauHeader) {
+                closePandauHeader.addEventListener("click", function() {
+                    const panduanOverlay = document.getElementById("panduanOverlay")
+                    if (panduanOverlay) {
+                        panduanOverlay.classList.remove("active")
+                    }
+                })
+            }
 
-                        <div class="alert alert-light" style="border-left: 3px solid #28a745;">
-                            <strong>🎯 Aturan lanjutan:</strong><br>
-                            "Buat 4 kelompok minimal 3 orang", "Buat kelompok berdasarkan NIM (tanpa acak)"
-                        </div>
+            // Close panduan modal - footer close button
+            const closePanduan = document.getElementById("closePanduan")
+            if (closePanduan) {
+                closePanduan.addEventListener("click", function() {
+                    const panduanOverlay = document.getElementById("panduanOverlay")
+                    if (panduanOverlay) {
+                        panduanOverlay.classList.remove("active")
+                    }
+                })
+            }
 
-                        <div class="alert alert-light" style="border-left: 3px solid #17a2b8;">
-                            <strong>🎯 Query data:</strong><br>
-                            "Daftar kelompok", "Daftar mahasiswa", "Daftar dosen"
-                        </div>
-
-                        <div class="alert alert-light" style="border-left: 3px solid #ffc107;">
-                            <strong>🎯 Percakapan umum:</strong><br>
-                            Tanyakan pertanyaan apapun yang Anda inginkan!
-                        </div>
-                    </div>
-                `,
-                        confirmButtonText: "Tutup",
-                        confirmButtonColor: "#007bff"
-                    })
+            // Close panduan modal when clicking overlay
+            const panduanOverlay = document.getElementById("panduanOverlay")
+            if (panduanOverlay) {
+                panduanOverlay.addEventListener("click", function(e) {
+                    if (e.target === panduanOverlay) {
+                        panduanOverlay.classList.remove("active")
+                    }
                 })
             }
 

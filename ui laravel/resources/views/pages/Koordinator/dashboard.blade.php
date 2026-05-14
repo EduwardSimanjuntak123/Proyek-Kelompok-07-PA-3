@@ -4,7 +4,7 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h1>Dashboard Kordinator</h1>
+            <h1>Dashboard Koordinator</h1>
         </div>
 
         <div class="section-body">
@@ -47,7 +47,7 @@
                                         </svg>
                                     </div>
                                     <div class="step-label">
-                                        <p class="step-title">Verifikasi Pembimbing</p>
+                                        <p class="step-title">Assign Dosen Pembimbing</p>
                                         <p class="step-desc">Tentukan dosen pembimbing</p>
                                     </div>
                                 </div>
@@ -66,7 +66,7 @@
                                         </svg>
                                     </div>
                                     <div class="step-label">
-                                        <p class="step-title">Verifikasi Penguji</p>
+                                        <p class="step-title">Assign Dosen Penguji</p>
                                         <p class="step-desc">Tentukan dosen penguji</p>
                                     </div>
                                 </div>

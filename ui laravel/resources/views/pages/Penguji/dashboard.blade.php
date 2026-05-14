@@ -85,9 +85,22 @@
                                                         <span
                                                             class="badge badge-light">{{ $kelompok['status_kelompok'] }}</span>
                                                     </div>
-                                                    <span
-                                                        class="badge badge-success px-3 py-2">{{ $kelompok['jumlah_anggota'] }}
-                                                        Mahasiswa</span>
+                                                    <div class="text-right">
+                                                        <span
+                                                            class="badge badge-success px-3 py-2">{{ $kelompok['jumlah_anggota'] }}
+                                                            Mahasiswa</span>
+                                                        @if ($kelompok['posisi_penguji'])
+                                                            <div class="mt-2">
+                                                                <span class="badge badge-info">Penguji
+                                                                    {{ $kelompok['posisi_penguji'] }}</span>
+                                                                @if ($kelompok['jumlah_penguji'] > 1)
+                                                                    <small class="d-block mt-1 text-muted">dari
+                                                                        {{ $kelompok['jumlah_penguji'] }}
+                                                                        penguji</small>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
 
                                                 <div class="penguji-meta mb-3">

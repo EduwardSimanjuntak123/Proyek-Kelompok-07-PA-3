@@ -326,7 +326,9 @@
 }
 
 .msg-av.ai-av {
-    background: #4c9bc8;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 .msg-av.user-av {
     background: #2d6a8a;
@@ -767,15 +769,20 @@
     height: 14px;
 }
 
-/* ===== PANDUAN MODAL ===== */
+/* =========================
+   PANDUAN MODAL
+========================= */
+
 .panduan-overlay {
-    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(26, 61, 82, 0.4);
-    z-index: 999;
-    align-items: center;
+    background: rgba(8, 25, 38, 0.55);
+    backdrop-filter: blur(5px);
+    display: none;
     justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
 }
 
 .panduan-overlay.active {
@@ -783,73 +790,244 @@
 }
 
 .panduan-modal {
-    background: #fff;
-    border-radius: 14px;
-    padding: 24px;
-    max-width: 460px;
-    width: 90%;
-    box-shadow: 0 8px 40px rgba(76, 155, 200, 0.2);
-    animation: modalIn 0.2s ease;
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.18),
+        0 8px 24px rgba(76, 155, 200, 0.15);
+    animation: modalFade 0.25s ease;
+    font-family: "Nunito", sans-serif;
 }
 
-@keyframes modalIn {
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes modalFade {
     from {
         opacity: 0;
-        transform: scale(0.95);
+        transform: translateY(20px) scale(0.96);
     }
+
     to {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0) scale(1);
     }
 }
 
-.panduan-modal h3 {
-    font-size: 15px;
-    font-weight: 800;
-    color: #1a3d52;
-    margin-bottom: 14px;
+/* =========================
+   HEADER
+========================= */
+
+.panduan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #edf3f7;
+    background: linear-gradient(135deg, #f7fbff, #eef7fc);
 }
 
-.panduan-item {
+.panduan-title {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.title-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #4c9bc8, #68b5df);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+    font-size: 22px;
+
+    box-shadow: 0 10px 24px rgba(76, 155, 200, 0.35);
+}
+
+.panduan-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #183446;
+}
+
+.panduan-title p {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #6f8a99;
+}
+
+/* =========================
+   CLOSE BUTTON
+========================= */
+
+.close-x {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 12px;
+    background: #f3f7fa;
+    color: #67808f;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.close-x:hover {
+    background: #e7f0f5;
+    color: #1a3d52;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.panduan-content {
+    padding: 22px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    padding: 9px 0;
-    border-bottom: 0.5px solid #d8eaf3;
+    gap: 14px;
 }
 
-.panduan-item:last-of-type {
-    border-bottom: none;
+.panduan-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 16px;
+    border-radius: 18px;
+    background: #f9fcff;
+    border: 1px solid #e7f1f7;
+    transition: 0.2s ease;
 }
 
-.panduan-item strong {
+.panduan-card:hover {
+    transform: translateY(-2px);
+    border-color: #cfe5f1;
+    box-shadow: 0 8px 20px rgba(76, 155, 200, 0.08);
+}
+
+/* =========================
+   ICON
+========================= */
+
+.panduan-icon {
+    min-width: 46px;
+    height: 46px;
+    border-radius: 14px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 18px;
+    color: white;
+}
+
+.panduan-icon.blue {
+    background: linear-gradient(135deg, #4c9bc8, #69c0ec);
+}
+
+.panduan-icon.green {
+    background: linear-gradient(135deg, #27ae60, #4cd787);
+}
+
+.panduan-icon.orange {
+    background: linear-gradient(135deg, #f39c12, #ffbc49);
+}
+
+.panduan-icon.purple {
+    background: linear-gradient(135deg, #7d5fff, #9c88ff);
+}
+
+/* =========================
+   TEXT
+========================= */
+
+.panduan-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.panduan-info strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: #183446;
+}
+
+.panduan-info span {
     font-size: 12px;
-    color: #1a2e3b;
+    color: #6c8797;
+    line-height: 1.5;
 }
 
-.panduan-item span {
-    font-size: 11px;
-    color: #6b8fa3;
-    font-style: italic;
+/* =========================
+   FOOTER
+========================= */
+
+.panduan-footer {
+    padding: 0 22px 22px;
 }
 
 .btn-close-modal {
-    margin-top: 14px;
     width: 100%;
-    font-family: "Nunito", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    background: #4c9bc8;
-    color: #fff;
     border: none;
-    border-radius: 9px;
-    padding: 10px;
+    border-radius: 14px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: "Nunito", sans-serif;
+
+    background: linear-gradient(135deg, #4c9bc8, #68b5df);
+
+    color: white;
     cursor: pointer;
-    transition: background 0.15s;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    transition: 0.2s;
 }
 
 .btn-close-modal:hover {
-    background: #3a82ab;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(76, 155, 200, 0.25);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 576px) {
+    .panduan-modal {
+        border-radius: 20px;
+    }
+
+    .panduan-header {
+        padding: 18px;
+    }
+
+    .panduan-content {
+        padding: 18px;
+    }
+
+    .panduan-card {
+        padding: 14px;
+    }
+
+    .panduan-title h3 {
+        font-size: 16px;
+    }
 }
 
 /* ===== AI THINKING ===== */
