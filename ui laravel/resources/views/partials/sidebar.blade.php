@@ -150,7 +150,7 @@
         {{ request()->routeIs('penguji1.Nilai*') || request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}">
 
                             {{-- LEVEL 1 --}}
-                            <a href="#" class="nav-link has-dropdown level-1-toggle">
+                            <a href="#" class="nav-link has-dropdown">
 
                                 <i class="fas fa-clipboard-check"></i>
                                 <span>Nilai</span>
@@ -270,7 +270,7 @@
                                     class="fas fa-calendar-check"></i> <span>Pengajuan Seminar</span></a>
                         </li>
                         <li
-                            class="nav-item dropdown {{ request()->is('Nilai*') || request()->routeIs('pembimbing1.Nilai*') || request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.Nilai*') || request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
 
                             <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
                                 <i class="fas fa-clipboard-check"></i> <span>Nilai</span>
