@@ -20,46 +20,184 @@ function scrollToBottom() {
  * Helper function to set HTML and execute scripts
  */
 function setHTMLWithScripts(element, html) {
-    console.log('[JADWAL] setHTMLWithScripts called');
-    
-    // First, extract script content before setting innerHTML
-    const scriptRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    const scripts = [];
-    let match;
-    while ((match = scriptRegex.exec(html)) !== null) {
-        scripts.push(match[0]);
-    }
-    
-    // Remove scripts from HTML before setting
-    const cleanHtml = html.replace(scriptRegex, '');
-    
-    // Set the clean HTML
-    element.innerHTML = cleanHtml;
-    console.log('[JADWAL] HTML set, found ' + scripts.length + ' scripts');
-    
-    // Now execute scripts after a micro-task to ensure DOM is ready
-    Promise.resolve().then(() => {
-        scripts.forEach((scriptTag, idx) => {
-            try {
-                // Extract content between <script> tags
-                const contentMatch = /<script\b[^>]*>([\s\S]*?)<\/script>/i.exec(scriptTag);
-                if (contentMatch && contentMatch[1]) {
-                    const scriptContent = contentMatch[1];
-                    console.log('[JADWAL] Executing script ' + (idx + 1));
-                    
-                    // Create and execute script
-                    const scriptEl = document.createElement('script');
-                    scriptEl.textContent = scriptContent;
-                    document.body.appendChild(scriptEl);
-                    
-                    console.log('[JADWAL] Script ' + (idx + 1) + ' executed');
-                }
-            } catch (e) {
-                console.error('[JADWAL] Error executing script ' + (idx + 1) + ':', e);
-            }
-        });
-        console.log('[JADWAL] All scripts executed');
+    element.innerHTML = html;
+    // Find and execute all script tags
+    const scripts = element.querySelectorAll('script');
+    scripts.forEach(script => {
+        try {
+            const newScript = document.createElement('script');
+            newScript.textContent = script.textContent;
+            element.appendChild(newScript);
+            newScript.remove(); // Remove after execution
+        } catch (e) {
+            console.error('[JADWAL] Error executing script:', e);
+        }
     });
+}
+
+/**
+ * Append jadwal form action buttons (Simpan + Buat Ulang)
+ */
+function appendJadwalFormActions(wrapper) {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[${timestamp}] [JADWAL] Appending action buttons...`);
+    
+    try {
+        const bubble = wrapper.querySelector('.chat-message-bubble');
+        if (!bubble) {
+            console.error(`[${timestamp}] [JADWAL] ❌ Bubble not found`);
+            return;
+        }
+        
+        // First, attach event listener to "+ Tambah Ruangan" button
+        const addBtn = wrapper.querySelector('#add-ruangan-btn');
+        if (addBtn) {
+            addBtn.onclick = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const container = wrapper.querySelector('#jadwal-ruangan-container');
+                const rows = container.querySelectorAll('.ruangan-row');
+                const rowCount = rows.length;
+                
+                // Create new row
+                const newRow = document.createElement('div');
+                newRow.className = 'ruangan-row';
+                newRow.style.display = 'flex';
+                newRow.style.gap = '8px';
+                newRow.style.marginBottom = '8px';
+                newRow.style.alignItems = 'center';
+                
+                // Create select element
+                const select = document.createElement('select');
+                select.className = 'jadwal-ruangan-select';
+                select.style.flex = '1';
+                select.style.padding = '8px';
+                select.style.border = '1px solid #ccc';
+                select.style.borderRadius = '4px';
+                select.style.fontSize = '14px';
+                
+                // Copy options from first select
+                const firstSelect = container.querySelector('.jadwal-ruangan-select');
+                if (firstSelect) {
+                    select.innerHTML = firstSelect.innerHTML;
+                }
+                
+                // Create remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-ruangan-btn';
+                removeBtn.style.padding = '8px 12px';
+                removeBtn.style.background = '#ef4444';
+                removeBtn.style.color = 'white';
+                removeBtn.style.border = 'none';
+                removeBtn.style.borderRadius = '4px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.style.fontWeight = 'bold';
+                removeBtn.style.minWidth = '40px';
+                removeBtn.textContent = '✕';
+                
+                removeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    newRow.remove();
+                    updateRemoveButtons();
+                };
+                
+                newRow.appendChild(select);
+                newRow.appendChild(removeBtn);
+                container.appendChild(newRow);
+                
+                updateRemoveButtons();
+                console.log(`[${timestamp}] [JADWAL] ✓ Ruangan row #${rowCount + 1} added`);
+            };
+            console.log(`[${timestamp}] [JADWAL] ✓ Add ruangan button listener attached`);
+        }
+        
+        // Helper function to update remove buttons visibility
+        function updateRemoveButtons() {
+            const container = wrapper.querySelector('#jadwal-ruangan-container');
+            const rows = container.querySelectorAll('.ruangan-row');
+            const removeBtns = container.querySelectorAll('.remove-ruangan-btn');
+            removeBtns.forEach(btn => {
+                btn.style.display = rows.length > 1 ? 'block' : 'none';
+            });
+        }
+        
+        updateRemoveButtons();
+        
+        // Create action buttons container
+        const actionsDiv = document.createElement('div');
+        actionsDiv.style.display = 'flex';
+        actionsDiv.style.gap = '8px';
+        actionsDiv.style.marginTop = '12px';
+        actionsDiv.style.flexWrap = 'wrap';
+        
+        // Simpan button
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'btn btn-sm btn-primary';
+        saveBtn.style.position = 'relative';
+        saveBtn.style.zIndex = '2';
+        saveBtn.style.cursor = 'pointer';
+        saveBtn.style.pointerEvents = 'auto';
+        saveBtn.innerHTML = '<i class="fas fa-check"></i> Simpan Jadwal Seminar';
+        
+        saveBtn.onclick = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log(`[${timestamp}] [JADWAL] Save button clicked`);
+            window.__submitJadwal(event);
+        };
+        
+        // Reset button
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'btn btn-sm btn-secondary';
+        resetBtn.style.position = 'relative';
+        resetBtn.style.zIndex = '2';
+        resetBtn.style.cursor = 'pointer';
+        resetBtn.style.pointerEvents = 'auto';
+        resetBtn.innerHTML = '<i class="fas fa-redo"></i> Buat Ulang';
+        
+        resetBtn.onclick = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log(`[${timestamp}] [JADWAL] Reset button clicked`);
+            // Reset form inputs
+            const tanggalInput = wrapper.querySelector('#jadwal-tanggal');
+            const jamInput = wrapper.querySelector('#jadwal-durasi-jam');
+            const menitInput = wrapper.querySelector('#jadwal-durasi-menit');
+            
+            if (tanggalInput) tanggalInput.value = '';
+            if (jamInput) jamInput.value = '1';
+            if (menitInput) menitInput.value = '50';
+            
+            // Reset ruangan to single select
+            const container = wrapper.querySelector('#jadwal-ruangan-container');
+            if (container) {
+                const rows = container.querySelectorAll('.ruangan-row');
+                if (rows.length > 1) {
+                    rows.forEach((row, idx) => {
+                        if (idx > 0) row.remove();
+                    });
+                }
+                // Hide remove button
+                const removeBtn = container.querySelector('.remove-ruangan-btn');
+                if (removeBtn) removeBtn.style.display = 'none';
+            }
+            
+            console.log(`[${timestamp}] [JADWAL] Form reset`);
+        };
+        
+        actionsDiv.appendChild(saveBtn);
+        actionsDiv.appendChild(resetBtn);
+        bubble.appendChild(actionsDiv);
+        
+        console.log(`[${timestamp}] [JADWAL] ✓ Action buttons appended`);
+    } catch (error) {
+        console.error(`[${timestamp}] [JADWAL] ❌ Error:`, error);
+    }
 }
 
 /**
@@ -78,8 +216,14 @@ function appendMessage(sender, text) {
     if (sender === "user") {
         bubble.textContent = text;
     } else {
-        // Use helper function to set HTML and execute scripts
-        setHTMLWithScripts(bubble, text);
+        bubble.innerHTML = text;
+        
+        // Add action buttons jika form jadwal present
+        setTimeout(() => {
+            if (text.includes('Input Jadwal Seminar')) {
+                appendJadwalFormActions(wrapper);
+            }
+        }, 50);
     }
     
     wrapper.appendChild(bubble);
@@ -182,6 +326,7 @@ window.appendMessage = appendMessage;
 window.appendLoading = appendLoading;
 window.removeLoading = removeLoading;
 window.attachRecommendationListeners = attachRecommendationListeners;
+window.appendJadwalFormActions = appendJadwalFormActions;
 
 /**
  * Initialize chatbot

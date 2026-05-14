@@ -100,9 +100,13 @@ def _score_action_candidates(prompt_lower: str) -> List[Tuple[str, int]]:
             "keywords": ["generate penguji", "assign penguji", "buat penguji", "pembagian penguji"],
             "requires": ["penguji"],
         },
-        "generate_jadwal": {
-            "keywords": ["buat jadwal", "generate jadwal", "jadwal seminar", "atur jadwal"],
+        "generate_jadwal_seminar": {
+            "keywords": ["jadwal seminar", "buat jadwal", "generate jadwal", "atur jadwal", "schedule seminar"],
             "requires": ["jadwal", "seminar"],
+        },
+        "generate_jadwal": {
+            "keywords": ["buat jadwal", "generate jadwal", "jadwal presentasi", "atur jadwal"],
+            "requires": ["jadwal"],
         },
         "save_jadwal": {
             "keywords": ["simpan jadwal", "save jadwal", "ok simpan", "ya simpan", "konfirmasi"],
@@ -284,17 +288,17 @@ def planner_node(state):
             return state
 
         # Intent khusus: jadwal seminar HARUS dicheck lebih dulu
-        # SEBELUM "query jadwal" karena generate_jadwal lebih spesifik
+        # SEBELUM "query jadwal" karena generate_jadwal_seminar lebih spesifik
         if ("buat" in prompt_lower or "generate" in prompt_lower) and ("jadwal" in prompt_lower or "seminar" in prompt_lower) and not any(term in prompt_lower for term in ["daftar", "list", "tampilkan", "lihat", "query"]):
             plan = {
-                "action": "generate_jadwal",
+                "action": "generate_jadwal_seminar",
                 "confidence": 0.93,
                 "source": "rule",
-                "reason": "Generation intent for jadwal",
+                "reason": "Generation intent for jadwal seminar",
                 "params": extracted_params,
                 "alternatives": [],
             }
-            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_jadwal ✓")
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → generate_jadwal_seminar ✓")
             state["plan"] = plan
             return state
 
