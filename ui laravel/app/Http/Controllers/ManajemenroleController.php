@@ -18,6 +18,7 @@ use App\Models\TahunMasuk;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use App\Http\Controllers\TahunAJaran_Controller;
+use Illuminate\Support\Facades\Schema;
 
 class ManajemenroleController extends Controller
 {
@@ -255,18 +256,22 @@ if(strtolower($role->role_name) !== 'koordinator'){
         }
         
     
-        // Simpan data
-        DosenRole::create([
+        // Simpan data — tambahkan `nama` hanya jika kolom ada pada skema database
+        $insertData = [
             'user_id'   => $validated['user_id'],
-            'nama'      => $this->getDosenName($validated['user_id'], session('token')),
             'role_id'   => $validated['role_id'],
             'prodi_id'  => $validated['prodi_id'],
-            'KPA_id'  => $validated['KPA_id'],
-            // 'KPA_id'  => $validated['KPA_id'],
+            'KPA_id'    => $validated['KPA_id'],
             'TM_id'     => $validated['TM_id'],
-            'tahun_ajaran_id'=>$validated['tahun_ajaran_id'],
-            'status'    => $status,  // Pastikan status dikirimkan dengan benar
-        ]);
+            'tahun_ajaran_id' => $validated['tahun_ajaran_id'],
+            'status'    => $status,
+        ];
+
+        if (Schema::hasColumn('dosen_roles', 'nama')) {
+            $insertData['nama'] = $this->getDosenName($validated['user_id'], session('token'));
+        }
+
+        DosenRole::create($insertData);
     
         return redirect()->route('manajemen-role.index')->with('success', 'Data berhasil disimpan.');
     }    
@@ -381,9 +386,18 @@ if(strtolower($role->role_name) !== 'koordinator'){
         }
     }
 
-    $validated['nama'] = $this->getDosenName($validated['user_id'], session('token'));
+    // Tambahkan `nama` hanya jika kolom ada di database
+    if (Schema::hasColumn('dosen_roles', 'nama')) {
+        $validated['nama'] = $this->getDosenName($validated['user_id'], session('token'));
+    }
 
-    $dosenRole->update($validated);
+    // Pastikan kita tidak mengirimkan key yang tidak ada ke update
+    $updatePayload = collect($validated)->filter(function ($value, $key) {
+        // biarkan semua key yang valid; jika kolom `nama` tidak ada, itu sudah dihapus di atas
+        return true;
+    })->toArray();
+
+    $dosenRole->update($updatePayload);
 
     return redirect()->route('manajemen-role.index')
         ->with('success', 'Data berhasil diperbarui.');
