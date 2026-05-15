@@ -31,7 +31,7 @@ def answer_node(state):
         
         # kalau ada result dari tools → langsung jawab
         if state.get("result"):
-            logger.info(f"[{user_id}] 📊 ANSWER: Gunakan hasil dari tools")
+            logger.info(f"[{user_id}] ANSWER: Gunakan hasil dari tools")
             answer = state["result"]
             
             # Jika action adalah create_group dan berhasil, tambahkan pesan congratulations
@@ -66,7 +66,7 @@ PENTING: Hanya 1-2 kalimat singkat, jangan panjang!
                 )
                 
                 answer = congrats_msg + "\n" + answer
-                logger.info(f"[{user_id}] ✓ Pesan congratulations ditambahkan")
+                logger.info(f"[{user_id}] OK: Pesan congratulations ditambahkan")
         else:
             # Generate system prompt dengan model awareness
             system_prompt = f"""
@@ -132,10 +132,10 @@ Kategori PA: {kategori_pa}
                 {"user_question": user_msg, "ai_response": answer}
             )
 
-        logger.info(f"[{user_id}] ✓ Respons dikirim ({len(answer)} chars)")
+        logger.info(f"[{user_id}] OK: Respons dikirim ({len(answer)} chars)")
         return state
         
     except Exception as e:
-        logger.error(f"[{state.get('user_id', 'unknown')}] ❌ ERROR IN ANSWER_NODE")
+        logger.error(f"[{state.get('user_id', 'unknown')}] ERROR IN ANSWER_NODE")
         logger.error(f"Traceback:\n{traceback.format_exc()}")
         raise

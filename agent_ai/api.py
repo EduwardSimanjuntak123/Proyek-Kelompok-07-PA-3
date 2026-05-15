@@ -9,13 +9,49 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import json
 import logging
+import sys
+import traceback
+
+
+def _configure_stdio_encoding() -> None:
+    """Make stdio safer for Windows terminals with legacy codepages."""
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                # Keep default encoding if reconfigure is unsupported.
+                pass
+
+
+class Cp1252SafeFilter(logging.Filter):
+    """Prevent logging crashes on cp1252 by replacing unsupported characters."""
+
+    @staticmethod
+    def _safe_text(value):
+        if not isinstance(value, str):
+            return value
+        try:
+            return value.encode("cp1252", errors="replace").decode("cp1252")
+        except Exception:
+            return value
+
+    def filter(self, record):
+        record.msg = self._safe_text(record.msg)
+        if isinstance(record.args, tuple):
+            record.args = tuple(self._safe_text(arg) for arg in record.args)
+        elif isinstance(record.args, dict):
+            record.args = {k: self._safe_text(v) for k, v in record.args.items()}
+        return True
+
+
+_configure_stdio_encoding()
 
 from main import run_agent_chat
 from core.memory import ConversationMemory
 from core.redis_memory import get_redis_manager
 
-import logging
-import traceback
 
 # Configure logging - show DEBUG level untuk detailed flow tracking
 logging.basicConfig(
@@ -26,6 +62,10 @@ logging.basicConfig(
         logging.FileHandler('agent_api.log')  # File logging
     ]
 )
+
+for handler in logging.getLogger().handlers:
+    handler.addFilter(Cp1252SafeFilter())
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -185,7 +225,7 @@ async def agent_endpoint(request: GenerateGroupingRequest):
         except Exception as e:
             logger.warning(f"[{trace_id}] JSON backup failed: {e}")
         
-        logger.info(f"[{trace_id}] ✓ Respons dikirim ke Laravel")
+        logger.info(f"[{trace_id}] OK: Respons dikirim ke Laravel")
         
         return JSONResponse(
             status_code=200,
@@ -201,12 +241,16 @@ async def agent_endpoint(request: GenerateGroupingRequest):
                 "penguji_meta": agent_result.get("penguji_meta"),
                 "excel_file_path": agent_result.get("excel_file_path"),
                 "excel_filename": agent_result.get("excel_filename"),
+                "jadwal_stage": agent_result.get("jadwal_stage"),
+                "jadwal_entries": agent_result.get("jadwal_entries"),
+                "jadwal_meta": agent_result.get("jadwal_meta"),
+                "jadwal_actions": agent_result.get("jadwal_actions"),
                 "trace_id": trace_id
             }
         )
     
     except Exception as e:
-        logger.error(f"[{trace_id}] ❌ Error: {str(e)}")
+        logger.error(f"[{trace_id}] Error: {str(e)}")
         logger.error(f"[{trace_id}] Traceback:\n{traceback.format_exc()}")
         
         return JSONResponse(

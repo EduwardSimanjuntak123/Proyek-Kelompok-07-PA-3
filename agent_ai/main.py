@@ -82,7 +82,7 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
     
     try:
         user_id_str = str(user_id)
-        logger.info(f"[{user_id_str}] 🚀 Agent: '{prompt[:60]}...'")
+        logger.info(f"[{user_id_str}] START Agent: '{prompt[:60]}...'")
         
         # Initialize session
         session_id = str(uuid.uuid4())
@@ -122,7 +122,7 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         # Extract result
         response_text = result.get("messages", [])[-1].get("content", "Tidak ada respons") if result.get("messages") else "Tidak ada respons"
         
-        logger.info(f"[{user_id_str}] ✓ Sukses ({len(response_text)} chars)")
+        logger.info(f"[{user_id_str}] OK: Sukses ({len(response_text)} chars)")
         return {
             "result": response_text,
             "success": True,
@@ -135,11 +135,15 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
             "penguji_meta": result.get("penguji_meta"),
             "excel_file_path": result.get("excel_file_path"),
             "excel_filename": result.get("excel_filename"),
+            "jadwal_stage": result.get("jadwal_stage"),
+            "jadwal_entries": result.get("jadwal_entries"),
+            "jadwal_meta": result.get("jadwal_meta"),
+            "jadwal_actions": result.get("jadwal_actions"),
         }
     
     except Exception as e:
         user_id_str = str(user_id)
-        logger.error(f"[{user_id_str}] ❌ FATAL ERROR IN run_agent_chat")
+        logger.error(f"[{user_id_str}] FATAL ERROR IN run_agent_chat")
         logger.error(f"[{user_id_str}] Error: {str(e)}")
         logger.error(f"[{user_id_str}] Traceback:\n{traceback.format_exc()}")
         return {

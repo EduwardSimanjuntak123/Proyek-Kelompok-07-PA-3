@@ -84,6 +84,7 @@ EXECUTABLE_ACTIONS = {
     "delete_kelompok",
     "generate_excel",
     "generate_jadwal_seminar",
+    "save_jadwal",
 }
 
 
@@ -1986,15 +1987,20 @@ def executor_node(state):
                     state["result"] = f"<p>❌ Gagal membuat Excel: {html.escape(error_msg)}</p>"
                     logger.warning(f"[{user_id}] ✗ generate_excel gagal: {error_msg}")
         
-        elif action == "generate_jadwal_seminar":
-            logger.info(f"[{user_id}] ⚙️  TOOLS: generate_jadwal_seminar (buat jadwal seminar)")
+        elif action in ("generate_jadwal_seminar", "save_jadwal"):
+            logger.info(f"[{user_id}] ⚙️  TOOLS: {action} (buat jadwal seminar)")
             
             prompt = state.get("messages", [{}])[-1].get("content", "")
             prompt_lower = prompt.lower()
+            is_jadwal_submission = (
+                "[jadwal]" in prompt_lower
+                and "tanggal" in prompt_lower
+                and "ruangan" in prompt_lower
+            )
             
             # STEP 1: Check if this is the initial request (ask for form)
             # Also reset if completed, so user can create another jadwal
-            if not state.get("jadwal_stage") or state.get("jadwal_stage") == "completed":
+            if (not state.get("jadwal_stage") or state.get("jadwal_stage") == "completed") and not is_jadwal_submission and action != "save_jadwal":
                 # User just asked for jadwal seminar, show form
                 current_stage = state.get("jadwal_stage")
                 logger.info(f"[{user_id}] ℹ️  jadwal_stage={current_stage}, showing input form")
@@ -2006,8 +2012,8 @@ def executor_node(state):
                 return state
             
             # STEP 2: User submitted form, parse input dan buat jadwal
-            elif state.get("jadwal_stage") == "input_form":
-                logger.info(f"[{user_id}] ℹ️  jadwal_stage=input_form, parsing user input")
+            elif state.get("jadwal_stage") in ("input_form", "preview") or is_jadwal_submission or action == "save_jadwal":
+                logger.info(f"[{user_id}] ℹ️  parsing jadwal submission (stage={state.get('jadwal_stage')}, explicit_submit={is_jadwal_submission}, action={action})")
                 
                 if not dosen_context:
                     state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
@@ -2026,6 +2032,51 @@ def executor_node(state):
                 # Extract durasi dari prompt (format: "[jadwal] durasi: 110") atau gunakan default
                 durasi_match = re.search(r'durasi[:\s]*(\d+)', prompt_lower)
                 durasi_menit = int(durasi_match.group(1)) if durasi_match else 110
+
+                # Optional action: save / simpan / persist or acak / shuffle
+                action_match = re.search(r'action[:\s]*([a-zA-Z_]+)', prompt_lower)
+                action_str = action_match.group(1).strip().lower() if action_match else None
+                order_match = re.search(r'order[:\s]*([0-9,]+)', prompt_lower)
+                order_str = order_match.group(1) if order_match else None
+                kelompok_order = [int(item.strip()) for item in order_str.split(',') if item.strip().isdigit()] if order_str else None
+                persist = False
+                shuffle_groups = False
+                if action_str in ("save", "simpan", "persist"):
+                    persist = True
+                if action_str in ("acak", "shuffle", "random"):
+                    shuffle_groups = True
+                if action == "save_jadwal":
+                    persist = True
+                if action_str is None:
+                    # Default preview should look random so user doesn't always see kelompok 1..n in order
+                    shuffle_groups = True
+
+                # Reuse preview metadata if the user is saving or reshuffling a previewed schedule.
+                preview_meta = state.get("jadwal_meta") or {}
+                if preview_meta:
+                    if not tanggal_str:
+                        tanggal_str = preview_meta.get("tanggal")
+                    if not ruangan_list:
+                        ruangan_list = preview_meta.get("ruangan_list") or []
+                    if not durasi_menit:
+                        durasi_menit = preview_meta.get("durasi_menit") or 110
+                    if not kelompok_order:
+                        kelompok_order = preview_meta.get("kelompok_order") or None
+
+                if action == "save_jadwal" and (not tanggal_str or not ruangan_list):
+                    preview_entries = state.get("jadwal_entries") or []
+                    if preview_entries:
+                        if not tanggal_str:
+                            tanggal_str = preview_entries[0].get("tanggal")
+                        if not ruangan_list:
+                            ruangan_list = [
+                                int(entry.get("ruangan_id"))
+                                for entry in preview_entries
+                                if entry.get("ruangan_id") is not None and str(entry.get("ruangan_id")).isdigit()
+                            ]
+                            ruangan_list = list(dict.fromkeys(ruangan_list))
+                        if not kelompok_order:
+                            kelompok_order = [entry.get("kelompok_id") for entry in preview_entries if entry.get("kelompok_id")]
                 
                 logger.info(f"[{user_id}] Parsed: tanggal={tanggal_str}, ruangan_list={ruangan_list}, durasi={durasi_menit}")
                 
@@ -2057,17 +2108,34 @@ def executor_node(state):
                     durasi_menit=durasi_menit,
                     ruangan_list=ruangan_list,
                     kelompok_list=kelompok_list,
-                    dosen_context=[dosen_context]
+                    dosen_context=[dosen_context],
+                    persist=persist,
+                    shuffle_groups=shuffle_groups,
+                    kelompok_order=kelompok_order
                 )
                 
                 state["result"] = result.get("message")
                 if result.get("success"):
-                    state["jadwal_stage"] = "completed"
+                    state["jadwal_meta"] = result.get("meta")
+                    state["jadwal_actions"] = result.get("actions", state.get("jadwal_actions"))
+                    # If not persisted, mark as preview so user can review / reshuffle / save
+                    if result.get("persisted"):
+                        state["jadwal_stage"] = "completed"
+                        state["sidebar_update"] = {"step": "jadwal", "status": "success"}
+                        logger.info(f"[{user_id}] ✓ generate_jadwal_seminar persisted: {result.get('total')} entries created")
+                    else:
+                        state["jadwal_stage"] = "preview"
+                        state["sidebar_update"] = {"step": "jadwal", "status": "preview"}
+                        # Hint to frontend it can allow save/acak actions
+                        state["jadwal_actions"] = {"can_save": True, "can_acak": True}
+                        logger.info(f"[{user_id}] ✓ generate_jadwal_seminar preview: {result.get('total')} entries generated (not persisted)")
+
                     state["jadwal_entries"] = result.get("jadwal_entries", [])
-                    logger.info(f"[{user_id}] ✓ generate_jadwal_seminar success: {result.get('total')} entries created")
                 else:
                     logger.warning(f"[{user_id}] ✗ generate_jadwal_seminar gagal: {result.get('message')}")
                     state["jadwal_stage"] = None  # Reset untuk coba lagi
+                    state["jadwal_meta"] = None
+                    state["sidebar_update"] = {"step": "jadwal", "status": "warning"}
                 
                 return state
         

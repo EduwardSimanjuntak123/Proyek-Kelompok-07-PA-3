@@ -50,74 +50,104 @@ class JadwalSeminarTools:
                 ruangan_options += f"                    <option value='{ruang.id}'>{ruang.ruangan}</option>\n"
             
             html = f"""
-<div style='border:1px solid #ddd; padding:16px; border-radius:4px; background:#f9f9f9;'>
-    <p style='color:#ea580c; margin:0 0 16px 0;'><strong>📅 Input Jadwal Seminar</strong></p>
-    
-    <div style='margin-bottom:12px;'>
-        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Tanggal Mulai Seminar *</label>
-        <input 
-            type='text' 
-            id='jadwal-tanggal' 
-            placeholder='Contoh: 15 mei 2026'
-            style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
-        />
-        <small style='color:#666; display:block; margin-top:4px;'>Format: tanggal bulan tahun (contoh: 15 mei 2026, 10 juni 2026)</small>
-    </div>
-    
-    <div style='margin-bottom:12px;'>
-        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Ruangan * (Tambahkan lebih dari 1 ruangan jika perlu)</label>
-        <div id='jadwal-ruangan-container' style='border:1px solid #e0e0e0; padding:8px; border-radius:4px; background:white;'>
-            <div style='display:flex; gap:8px; margin-bottom:8px; align-items:center;' class='ruangan-row'>
-                <select 
-                    class='jadwal-ruangan-select'
-                    style='flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;'
-                >
-{ruangan_options}                </select>
-                <button 
-                    type='button' 
-                    class='remove-ruangan-btn'
-                    style='padding:8px 12px; background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; display:none; min-width:40px;'
-                >
-                    ✕
-                </button>
-            </div>
+<div style='margin:8px 0; padding:12px; border:1px solid #c7d2fe; border-radius:14px; background:linear-gradient(180deg, #eff6ff 0%, #ffffff 100%); box-shadow:0 12px 24px rgba(59,130,246,0.1);'>
+    <div style='display:flex; gap:10px; align-items:center; margin-bottom:10px;'>
+        <div style='width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #3b82f6, #1d4ed8); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; box-shadow:0 6px 16px rgba(59,130,246,0.2);'>📅</div>
+        <div>
+            <h3 style='margin:0; color:#1e3a8a; font-size:18px; font-weight:700;'>Input Jadwal Seminar</h3>
+            <p style='margin:2px 0 0 0; color:#4b5563; font-size:12px;'>Isi tanggal, pilih ruangan, dan tentukan durasi.</p>
         </div>
-        <button 
-            type='button' 
-            id='add-ruangan-btn'
-            style='margin-top:8px; padding:8px 12px; background:#059669; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:13px; width:100%;'
-        >
-            + Tambah Ruangan
-        </button>
     </div>
-    
-    <div style='margin-bottom:16px;'>
-        <label style='display:block; margin-bottom:4px; font-weight:bold;'>Durasi</label>
-        <div style='display:flex; gap:8px; align-items:flex-end;'>
-            <div style='flex:1;'>
-                <label style='font-size:13px; color:#666;'>Jam</label>
-                <input 
-                    type='number' 
-                    id='jadwal-durasi-jam' 
-                    value='1' 
-                    min='0' 
-                    max='8'
-                    style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
-                />
-            </div>
-            <div style='flex:1;'>
-                <label style='font-size:13px; color:#666;'>Menit</label>
-                <input 
-                    type='number' 
-                    id='jadwal-durasi-menit' 
-                    value='50' 
-                    min='0' 
-                    max='59'
-                    style='width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; box-sizing:border-box;'
-                />
-            </div>
+
+    <div style='background:rgba(255,255,255,0.86); border:1px solid #dbeafe; border-radius:12px; padding:12px;'>
+        <div style='margin-bottom:12px;'>
+            <label style='display:flex; align-items:center; gap:6px; margin-bottom:4px; font-weight:700; color:#1f2937; font-size:13px;'>
+                <span>📆</span>
+                <span>Tanggal Mulai Seminar *</span>
+            </label>
+            <input 
+                type='date' 
+                id='jadwal-tanggal' 
+                style='width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; box-sizing:border-box; background:#f8fbff; color:#0f172a; transition:all 0.2s ease; outline:none;'
+                onFocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'; this.style.background='#ffffff';"
+                onBlur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none'; this.style.background='#f8fbff';"
+            />
+            <small style='color:#64748b; display:block; margin-top:4px; font-size:11px;'>Pilih tanggal dari kalender.</small>
         </div>
-        <small style='color:#666; display:block; margin-top:4px;'>Default: 1 jam 50 menit (110 menit total)</small>
+
+        <div style='margin-bottom:12px;'>
+            <label style='display:flex; align-items:center; gap:6px; margin-bottom:4px; font-weight:700; color:#1f2937; font-size:13px;'>
+                <span>🏫</span>
+                <span>Ruangan * (boleh lebih dari satu)</span>
+            </label>
+            <div id='jadwal-ruangan-container' style='border:1px solid #dbeafe; padding:10px; border-radius:10px; background:linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); max-height:180px; overflow-y:auto;'>
+                <div style='display:flex; gap:6px; margin-bottom:6px; align-items:center;' class='ruangan-row'>
+                    <select 
+                        class='jadwal-ruangan-select'
+                        style='flex:1; padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:white; cursor:pointer; transition:all 0.2s ease; outline:none;'
+                    >
+{ruangan_options}                    </select>
+                    <button 
+                        type='button' 
+                        class='remove-ruangan-btn'
+                        style='padding:10px 12px; background:#ef4444; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:700; display:none; min-width:44px; box-shadow:0 6px 12px rgba(239,68,68,0.18);'
+                        onMouseOver="this.style.background='#dc2626';"
+                        onMouseOut="this.style.background='#ef4444';"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+            <button 
+                type='button' 
+                id='add-ruangan-btn'
+                style='margin-top:8px; padding:10px 12px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:700; font-size:12px; width:100%; box-shadow:0 8px 16px rgba(16,185,129,0.15); transition:transform 0.2s ease, box-shadow 0.2s ease;'
+                onMouseOver="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 12px 20px rgba(16,185,129,0.2)';"
+                onMouseOut="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 16px rgba(16,185,129,0.15)';"
+            >
+                + Tambah Ruangan
+            </button>
+        </div>
+
+        <div style='margin-bottom:10px;'>
+            <label style='display:flex; align-items:center; gap:6px; margin-bottom:4px; font-weight:700; color:#1f2937; font-size:13px;'>
+                <span>⏱️</span>
+                <span>Durasi Seminar</span>
+            </label>
+            <div style='display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;'>
+                <div style='background:#fff; border:1px solid #dbeafe; border-radius:10px; padding:8px;'>
+                    <label style='font-size:11px; color:#64748b; margin-bottom:3px; display:block;'>Jam</label>
+                    <input 
+                        type='number' 
+                        id='jadwal-durasi-jam' 
+                        value='1' 
+                        min='0' 
+                        max='8'
+                        style='width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; box-sizing:border-box; background:#f8fbff; outline:none;'
+                    />
+                </div>
+                <div style='background:#fff; border:1px solid #dbeafe; border-radius:10px; padding:8px;'>
+                    <label style='font-size:11px; color:#64748b; margin-bottom:3px; display:block;'>Menit</label>
+                    <input 
+                        type='number' 
+                        id='jadwal-durasi-menit' 
+                        value='50' 
+                        min='0' 
+                        max='59'
+                        style='width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; box-sizing:border-box; background:#f8fbff; outline:none;'
+                    />
+                </div>
+            </div>
+            <small style='color:#64748b; display:block; margin-top:4px; font-size:11px;'>Default: 1 jam 50 menit = 110 menit.</small>
+        </div>
+
+        <div style='background:#eff6ff; border:1px dashed #93c5fd; padding:10px 12px; border-radius:10px; margin-top:10px;'>
+            <p style='margin:0; font-size:12px; color:#1e3a8a; line-height:1.4;'>
+                <strong>Catatan:</strong> Pastikan tanggal dan ruangan sudah benar.
+            </p>
+        </div>
+
+        <div id='jadwal-form-actions' style='margin-top:12px; display:flex; flex-direction:column; gap:8px;'></div>
     </div>
 </div>
 """
@@ -275,14 +305,18 @@ class JadwalSeminarTools:
         durasi_menit: int,
         ruangan_list: List[int],
         kelompok_list: List[Kelompok],
-        dosen_context: List[Dict]
+        dosen_context: List[Dict],
+        persist: bool = False,
+        shuffle_groups: bool = False,
+        kelompok_order: Optional[List[int]] = None
     ) -> Dict:
         """
-        Generate dan simpan jadwal seminar ke database untuk multiple ruangan
-        
-        Distribusi: Round-robin across kelompok per ruangan
-        - Setiap ruangan mendapat jadwal untuk semua kelompok
-        - Kelompok didistribusi across time slots untuk setiap ruangan
+        Generate jadwal seminar untuk multiple ruangan dengan urutan serial
+
+        Distribusi:
+        - Setiap slot waktu hanya boleh diisi 1 kelompok total
+        - Ruangan untuk setiap kelompok bisa berbeda
+        - Jika slot pada hari itu habis, lanjut ke hari berikutnya
         
         Args:
             user_id: Koordinator user_id
@@ -310,59 +344,89 @@ class JadwalSeminarTools:
             tm_id = sample_kelompok.TM_id
             
             jadwal_entries = []
-            
-            # Generate jadwal untuk setiap ruangan
-            for ruangan_id in ruangan_list:
-                current_date = tanggal_mulai
-                slot_index = 0
-                
-                # Iterate through kelompok dan assign jadwal
-                for kelompok in kelompok_list:
-                    # Get time slot (round-robin)
-                    time_slot = JadwalSeminarTools.TIME_SLOTS[slot_index % len(JadwalSeminarTools.TIME_SLOTS)]
-                    
-                    # Parse waktu mulai dan selesai
-                    time_parts = time_slot[0].split(':')
-                    waktu_mulai = current_date.replace(hour=int(time_parts[0]), minute=int(time_parts[1]), second=0)
-                    
-                    time_parts_end = time_slot[1].split(':')
-                    waktu_selesai = current_date.replace(hour=int(time_parts_end[0]), minute=int(time_parts_end[1]), second=0)
-                    
-                    # Create jadwal entry
-                    jadwal = Jadwal(
-                        kelompok_id=kelompok.id,
-                        waktu_mulai=waktu_mulai,
-                        waktu_selesai=waktu_selesai,
-                        user_id=user_id,
-                        ruangan_id=ruangan_id,
-                        KPA_id=kpa_id,
-                        prodi_id=prodi_id,
-                        TM_id=tm_id,
-                        created_at=datetime.now(),
-                        updated_at=datetime.now()
-                    )
-                    
+
+            # Normalize ruangan list: fetch ruangan names and preserve requested order
+            ruangan_objs = session.query(Ruangan).filter(Ruangan.id.in_(ruangan_list)).all()
+            ruangan_map = {r.id: r.ruangan for r in ruangan_objs}
+            ordered_ruangan_ids = [rid for rid in ruangan_list if rid in ruangan_map]
+
+            if not ordered_ruangan_ids:
+                return {"success": False, "message": "Ruangan yang dipilih tidak ditemukan"}
+
+            R = len(ordered_ruangan_ids)
+            S = len(JadwalSeminarTools.TIME_SLOTS)
+            capacity_per_day = S
+
+            # Reorder kelompok if an explicit order is provided or shuffle is requested
+            kelompok_map = {kelompok.id: kelompok for kelompok in kelompok_list}
+            if kelompok_order:
+                ordered_kelompok_list = [kelompok_map[k_id] for k_id in kelompok_order if k_id in kelompok_map]
+                remaining_kelompok = [kelompok for kelompok in kelompok_list if kelompok.id not in set(kelompok_order)]
+                ordered_kelompok_list.extend(remaining_kelompok)
+            else:
+                ordered_kelompok_list = list(kelompok_list)
+
+            if shuffle_groups:
+                from random import shuffle as _shuffle
+                _shuffle(ordered_kelompok_list)
+
+            # Assign each kelompok exactly once, with one group per time slot total.
+            for idx, kelompok in enumerate(ordered_kelompok_list):
+                day = idx // capacity_per_day
+                within_day = idx % capacity_per_day
+                slot_index = within_day
+                room_index = idx % R
+
+                ruangan_id = ordered_ruangan_ids[room_index]
+                time_slot = JadwalSeminarTools.TIME_SLOTS[slot_index]
+
+                current_date = tanggal_mulai + timedelta(days=day)
+
+                # Parse waktu mulai dan selesai
+                time_parts = time_slot[0].split(':')
+                waktu_mulai = current_date.replace(hour=int(time_parts[0]), minute=int(time_parts[1]), second=0)
+
+                time_parts_end = time_slot[1].split(':')
+                waktu_selesai = current_date.replace(hour=int(time_parts_end[0]), minute=int(time_parts_end[1]), second=0)
+
+                # Create jadwal entry (one entry per kelompok)
+                jadwal = Jadwal(
+                    kelompok_id=kelompok.id,
+                    waktu_mulai=waktu_mulai,
+                    waktu_selesai=waktu_selesai,
+                    user_id=user_id,
+                    ruangan_id=ruangan_id,
+                    KPA_id=kpa_id,
+                    prodi_id=prodi_id,
+                    TM_id=tm_id,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now()
+                )
+
+                # Only persist to DB if requested (persist=True). Otherwise keep entries in memory for preview.
+                if persist:
                     session.add(jadwal)
-                    jadwal_entries.append({
-                        "kelompok_id": kelompok.id,
-                        "tanggal": waktu_mulai.strftime("%d %b %Y"),
-                        "waktu": f"{time_slot[0]} - {time_slot[1]}",
-                        "ruangan_id": ruangan_id
-                    })
-                    
-                    # Move to next slot
-                    slot_index += 1
-                    
-                    # If slot wraps, move to next day
-                    if slot_index % len(JadwalSeminarTools.TIME_SLOTS) == 0:
-                        current_date += timedelta(days=1)
+                jadwal_entries.append({
+                    "kelompok_id": kelompok.id,
+                    "kelompok_nomor": getattr(kelompok, "nomor_kelompok", str(kelompok.id)),
+                    "tanggal": waktu_mulai.strftime("%d %b %Y"),
+                    "waktu": f"{time_slot[0]} - {time_slot[1]}",
+                    "ruangan_id": ruangan_id,
+                    "ruangan_name": ruangan_map.get(ruangan_id, str(ruangan_id))
+                })
             
-            # Commit to database
-            session.commit()
-            logger.info(f"✓ Created {len(jadwal_entries)} jadwal entries untuk {len(ruangan_list)} ruangan")
-            
-            # Generate HTML response dengan jadwal yang dibuat
-            html = f"<p style='color:#059669; font-weight:bold;'>✅ Jadwal Seminar Berhasil Dibuat untuk {len(ruangan_list)} Ruangan!</p>"
+            # Commit to database if persisting
+            if persist:
+                session.commit()
+                logger.info(f"✓ Persisted {len(jadwal_entries)} jadwal entries untuk {len(ruangan_list)} ruangan")
+            else:
+                logger.info(f"✓ Generated {len(jadwal_entries)} jadwal entries (preview, not persisted)")
+
+            # Generate HTML response with appropriate messaging
+            if persist:
+                html = f"<p style='color:#059669; font-weight:bold;'>✅ Jadwal Seminar Berhasil Disimpan untuk {len(ruangan_list)} Ruangan!</p>"
+            else:
+                html = f"<p style='color:#0c4a6e; font-weight:bold;'>ℹ️ Preview Jadwal Seminar untuk {len(ruangan_list)} Ruangan (belum disimpan)</p>"
             html += "<table style='width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;'>"
             html += "<tr style='background:#f0f0f0; border:1px solid #ddd;'>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>No</th>"
@@ -375,21 +439,28 @@ class JadwalSeminarTools:
             for idx, entry in enumerate(jadwal_entries, 1):
                 html += f"<tr style='border:1px solid #ddd;'>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{idx}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>Kelompok {entry['kelompok_id']}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>Ruangan {entry['ruangan_id']}</td>"
+                html += f"<td style='padding:8px; border:1px solid #ddd;'>Kelompok {entry.get('kelompok_nomor', entry.get('kelompok_id'))}</td>"
+                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry.get('ruangan_name', 'Ruangan ' + str(entry.get('ruangan_id')))}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['tanggal']}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['waktu']}</td>"
                 html += f"</tr>"
-            
+
             html += "</table>"
-            html += f"<p style='margin-top:12px; color:#666;'><small>Total: {len(jadwal_entries)} jadwal dibuat ({len(ruangan_list)} ruangan × {len(kelompok_list)} kelompok)</small></p>"
-            
+            html += f"<p style='margin-top:12px; color:#666;'><small>Total: {len(jadwal_entries)} jadwal dibuat ({len(kelompok_list)} kelompok dijadwalkan, {len(ordered_ruangan_ids)} ruangan)</small></p>"
+
             session.close()
             return {
                 "success": True,
                 "message": html,
                 "total": len(jadwal_entries),
-                "jadwal_entries": jadwal_entries
+                "jadwal_entries": jadwal_entries,
+                "persisted": bool(persist),
+                "meta": {
+                    "tanggal": tanggal_mulai.strftime("%d %b %Y"),
+                    "ruangan_list": ordered_ruangan_ids,
+                    "durasi_menit": durasi_menit,
+                    "kelompok_order": [entry["kelompok_id"] for entry in jadwal_entries]
+                }
             }
         except Exception as e:
             session.rollback()

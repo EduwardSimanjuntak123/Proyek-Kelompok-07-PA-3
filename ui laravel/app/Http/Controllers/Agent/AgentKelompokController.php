@@ -167,6 +167,8 @@ class AgentKelompokController extends Controller
                 'pembimbing_meta' => $data['pembimbing_meta'] ?? null,
                 'penguji_payload' => $data['penguji_payload'] ?? null,
                 'penguji_meta' => $data['penguji_meta'] ?? null,
+                            'jadwal_stage' => $data['jadwal_stage'] ?? null,
+                            'jadwal_entries' => $data['jadwal_entries'] ?? null,
             ]);
 
         } catch (\Exception $e) {
