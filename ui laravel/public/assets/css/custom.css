@@ -190,87 +190,14 @@
 }
 
 /* =========================================
-   HAS DROPDOWN ICON
+   SIDEBAR DROPDOWN FIX
 ========================================= */
 
-.sidebar-menu .has-dropdown::after {
-    content: "▼";
-    font-size: 10px;
-    float: right;
-    margin-top: 5px;
-    border: none !important;
-    transform: none !important;
-}
-
-/* Hover dropdown icon */
-.sidebar-menu .has-dropdown:hover::after {
-    color: #4c9bc8;
-}
-
-/* =========================================
-   REMOVE DEFAULT STISLA STYLE
-========================================= */
-
-.sidebar-menu .menu-header {
-    color: #ffffff;
-}
-
-.sidebar-menu .nav-item.dropdown.active > .nav-link {
-    background: transparent !important;
-}
-
-.sidebar-menu .nav-item.dropdown .dropdown-menu {
-    transform: none !important;
-}
-
-.sidebar-menu .nav-item.dropdown.show > .dropdown-menu {
-    display: block;
-}
-
-/* =========================================
-   SPACING
-========================================= */
-
-.sidebar-menu .dropdown-menu .dropdown-menu {
-    margin-top: 0;
-}
-
-/* Jarak submenu */
-.sidebar-menu .dropdown-menu .dropdown-menu li a {
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-
-/* =========================================
-   TEXT COLOR
-========================================= */
-
-.sidebar-menu .nav-link span {
-    color: inherit;
-}
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 768px) {
-    .sidebar-menu .dropdown-menu .nav-link {
-        padding-left: 30px !important;
-    }
-
-    .sidebar-menu .dropdown-menu .dropdown-menu .nav-link {
-        padding-left: 50px !important;
-    }
-}
-/* =========================================
-   3 LEVEL DROPDOWN SIDEBAR
-========================================= */
-
-/* Remove default style */
+/* Remove default bootstrap/stisla dropdown style */
 .sidebar-menu .dropdown-menu {
     position: relative !important;
-    transform: none !important;
     inset: auto !important;
+    transform: none !important;
 
     width: 100%;
     min-width: 100%;
@@ -284,41 +211,72 @@
     background: transparent !important;
 }
 
-/* Remove arrow bootstrap */
+/* Remove bootstrap arrow */
 .sidebar-menu .dropdown-menu::before,
 .sidebar-menu .dropdown-menu::after {
     display: none !important;
 }
 
-/* Remove list style */
-.sidebar-menu li {
-    list-style: none;
-}
-
 /* =========================================
-   MAIN MENU
+   MAIN NAV LINK
 ========================================= */
 
 .sidebar-menu .nav-link {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    color: #6c757d !important;
     background: transparent !important;
+
     transition: all 0.2s ease;
 }
 
 /* Hover */
 .sidebar-menu .nav-link:hover {
-    background: transparent !important;
-    color: #4c9bc8 !important;
-}
-
-/* Hover icon */
-.sidebar-menu .nav-link:hover i {
     color: #4c9bc8 !important;
 }
 
 /* Active */
 .sidebar-menu .nav-item.active > .nav-link {
     color: #4c9bc8 !important;
-    background: transparent !important;
+}
+
+/* Icon */
+.sidebar-menu .nav-link i {
+    width: 18px;
+    margin-right: 12px;
+    text-align: center;
+}
+
+/* =========================================
+   DROPDOWN LEVEL 1
+========================================= */
+
+.sidebar-menu .has-dropdown {
+    position: relative;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between;
+}
+
+/* Arrow level 1 */
+.sidebar-menu .has-dropdown::after {
+    content: "\f105";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+
+    font-size: 12px;
+
+    position: absolute;
+    right: 20px;
+
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+
+    line-height: 1;
+    transition: transform 0.25s ease;
 }
 
 /* =========================================
@@ -340,16 +298,34 @@
     transition: all 0.2s ease;
 }
 
-/* Hover level 2 */
+/* Hover */
 .sidebar-menu .submenu-toggle:hover {
     color: #4c9bc8 !important;
 }
 
-/* Arrow */
+/* Arrow level 2 */
 .sidebar-menu .submenu-toggle::after {
-    content: "›";
-    font-size: 18px;
-    font-weight: bold;
+    content: "\f105";
+
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+
+    font-size: 11px;
+
+    transform: rotate(0deg);
+    transform-origin: center;
+
+    transition: transform 0.25s ease;
+}
+
+/* rotate saat open */
+.sidebar-menu .dropdown-submenu.open > .submenu-toggle::after {
+    transform: rotate(90deg);
+}
+
+/* Open state */
+.sidebar-menu .dropdown-submenu.open > .submenu-toggle {
+    color: #4c9bc8 !important;
 }
 
 /* =========================================
@@ -368,51 +344,82 @@
     display: block;
 }
 
-/* submenu item */
+/* level 3 link */
 .sidebar-menu .submenu-level li a {
     display: block;
 
-    padding: 9px 20px 9px 70px;
+    /* top right bottom left */
+    padding: 9px 20px 9px 95px;
 
     color: #6c757d;
     text-decoration: none;
 
+    font-size: 14px;
+
     transition: all 0.2s ease;
 }
 
-/* Hover level 3 */
+/* Hover */
 .sidebar-menu .submenu-level li a:hover {
     color: #4c9bc8 !important;
 }
 
-/* Active level 3 */
+/* Active */
 .sidebar-menu .submenu-level li a.active {
     color: #4c9bc8 !important;
     font-weight: 600;
 }
-
-/* =========================================
-   OPEN STATE
-========================================= */
-
-.sidebar-menu .dropdown-submenu.open > .submenu-toggle {
-    color: #4c9bc8 !important;
+/* Level 2 title */
+.sidebar-menu .submenu-toggle {
+    font-weight: 600;
 }
 
-/* rotate arrow */
-.sidebar-menu .dropdown-submenu.open > .submenu-toggle::after {
-    transform: rotate(90deg);
+/* Level 3 item */
+.sidebar-menu .submenu-level li a {
+    opacity: 0.9;
 }
 
-/* smooth arrow */
-.sidebar-menu .submenu-toggle::after {
-    transition: all 0.2s ease;
+/* Rapikan semua dropdown sidebar */
+.sidebar-menu .nav-item.dropdown > .nav-link {
+    min-height: 45px;
+    display: flex !important;
+    align-items: center !important;
 }
 
+/* Icon kiri */
+.sidebar-menu .nav-item.dropdown > .nav-link i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tulisan menu */
+.sidebar-menu .nav-item.dropdown > .nav-link span {
+    display: flex;
+    align-items: center;
+}
 /* =========================================
    SPACING
 ========================================= */
 
+.sidebar-menu li {
+    list-style: none;
+}
+
 .sidebar-menu .level-1-menu {
-    margin-top: 5px !important;
+    margin-top: 4px;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+    .sidebar-menu .submenu-toggle {
+        padding-left: 35px;
+    }
+
+    .sidebar-menu .submenu-level li a {
+        padding-left: 55px;
+    }
 }
