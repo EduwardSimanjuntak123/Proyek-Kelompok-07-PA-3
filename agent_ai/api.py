@@ -11,6 +11,10 @@ import json
 import logging
 import sys
 import traceback
+import time
+from datetime import datetime
+from bson import ObjectId
+from json import JSONEncoder
 
 
 def _configure_stdio_encoding() -> None:
@@ -51,6 +55,7 @@ _configure_stdio_encoding()
 from main import run_agent_chat
 from core.memory import ConversationMemory
 from core.redis_memory import get_redis_manager
+from core.mongo_memory import get_mongo_memory
 
 
 # Configure logging - show DEBUG level untuk detailed flow tracking
@@ -74,7 +79,29 @@ logging.getLogger("uvicorn").setLevel(logging.INFO)
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 logging.getLogger("fastapi").setLevel(logging.INFO)
 
+# Custom JSON encoder untuk handle MongoDB ObjectId dan datetime
+class MongoJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return super().default(o)
+
 app = FastAPI(title="Agent Grouping API", version="1.0.0")
+
+# Helper function to convert MongoDB objects for JSON serialization
+def convert_mongo_objects(obj):
+    """Recursively convert MongoDB objects to JSON-serializable types"""
+    if isinstance(obj, dict):
+        return {k: convert_mongo_objects(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_mongo_objects(item) for item in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    return obj
 
 
 class DosenContext(BaseModel):
@@ -154,12 +181,16 @@ async def agent_endpoint(request: GenerateGroupingRequest):
     """
     
     trace_id = f"user_{request.user_id}"
+    start_time = time.time()  # Track response time
     
     try:
         logger.info(f"[{trace_id}] 📨 API Request: '{request.prompt[:50]}...'")
         
-        # Get Redis memory manager
+        # Get Redis memory manager (short-term)
         redis_mem = get_redis_manager()
+        
+        # Get MongoDB memory manager (long-term)
+        mongo_mem = get_mongo_memory()
         
         # Load chat context dari Redis (fast) ⚡
         chat_context = redis_mem.load_context(request.user_id)
@@ -167,7 +198,23 @@ async def agent_endpoint(request: GenerateGroupingRequest):
         user_prefs = chat_context.get("preferences", {})
         session_state = chat_context.get("session_state", {})
         
-        logger.debug(f"[{trace_id}] Chat context loaded: {len(conversation_history)} messages")
+        logger.debug(f"[{trace_id}] Chat context loaded: {len(conversation_history)} messages from Redis")
+        
+        # Log to MongoDB: Session creation atau update
+        if not session_state.get("mongo_session_id"):
+            session_data = {
+                "user_id": request.user_id,
+                "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else [],
+                "start_time": __import__('datetime').datetime.now()
+            }
+            session_id = mongo_mem.create_session(request.user_id, session_data)
+            session_state["mongo_session_id"] = session_id
+            redis_mem.set_session_state(request.user_id, session_state)
+        else:
+            mongo_mem.update_session(request.user_id, {
+                "user_id": request.user_id,
+                "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else []
+            })
         
         # Build dosen context untuk agent
         dosen_context = []
@@ -192,6 +239,15 @@ async def agent_endpoint(request: GenerateGroupingRequest):
             })
             redis_mem.set_session_state(request.user_id, session_state)
         
+        # Log user input to MongoDB
+        mongo_mem.store_message(
+            request.user_id,
+            "user",
+            request.prompt,
+            metadata={"source": "api", "timestamp": __import__('datetime').datetime.now().isoformat()}
+        )
+        logger.debug(f"[{trace_id}] User message logged to MongoDB")
+        
         # Call agent - dengan dosen_context untuk model awareness
         agent_result = run_agent_chat(
             prompt=request.prompt,
@@ -200,20 +256,73 @@ async def agent_endpoint(request: GenerateGroupingRequest):
             conversation_history=conversation_history
         )
         
-        # Add user message ke Redis context
+        # Add user message ke Redis context (short-term)
         redis_mem.add_message(request.user_id, "user", request.prompt)
         logger.debug(f"[{trace_id}] User message saved to Redis")
         
-        # Add assistant response ke Redis context
+        # Add assistant response ke Redis context (short-term)
         assistant_response = agent_result.get("result", "")
         redis_mem.add_message(request.user_id, "assistant", assistant_response)
         logger.debug(f"[{trace_id}] Assistant response saved to Redis")
         
-        # Track last action
+        # Add assistant response to MongoDB (long-term)
+        mongo_mem.store_message(
+            request.user_id,
+            "assistant",
+            assistant_response,
+            metadata={
+                "action": agent_result.get("action"),
+                "model": "gpt-4",
+                "timestamp": __import__('datetime').datetime.now().isoformat()
+            }
+        )
+        logger.debug(f"[{trace_id}] Assistant response logged to MongoDB")
+        
+        # Log action to MongoDB
         action = agent_result.get("action")
         if action:
             redis_mem.set_last_action(request.user_id, action)
-            logger.debug(f"[{trace_id}] Last action tracked: {action}")
+            
+            # Log to MongoDB executor logs
+            mongo_mem.log_executor_action(
+                request.user_id,
+                action,
+                {
+                    "prompt": request.prompt,
+                    "action_result": agent_result.get("grouping_payload") or 
+                                    agent_result.get("pembimbing_payload") or
+                                    agent_result.get("jadwal_meta")
+                },
+                status="success"
+            )
+            logger.debug(f"[{trace_id}] Action '{action}' logged to MongoDB")
+        
+        # Record metrics to MongoDB - Response Quality
+        mongo_mem.record_metric(
+            request.user_id,
+            "response_quality",
+            1 if agent_result.get("success") else 0,
+            tags={"action": action, "timestamp": datetime.now().isoformat()}
+        )
+        
+        # Record metrics to MongoDB - Response Time (in milliseconds)
+        response_time_ms = (time.time() - start_time) * 1000
+        mongo_mem.record_metric(
+            request.user_id,
+            "response_time_ms",
+            response_time_ms,
+            tags={"action": action, "timestamp": datetime.now().isoformat()}
+        )
+        logger.debug(f"[{trace_id}] Recorded response_time_ms: {response_time_ms:.2f}ms")
+        
+        # Record action count metric for analytics
+        if action:
+            mongo_mem.record_metric(
+                request.user_id,
+                "action_count",
+                1,
+                tags={"action_type": action, "timestamp": datetime.now().isoformat()}
+            )
         
         # Also save to JSON file untuk backup (async process)
         try:
@@ -225,7 +334,7 @@ async def agent_endpoint(request: GenerateGroupingRequest):
         except Exception as e:
             logger.warning(f"[{trace_id}] JSON backup failed: {e}")
         
-        logger.info(f"[{trace_id}] OK: Respons dikirim ke Laravel")
+        logger.info(f"[{trace_id}] OK: Respons dikirim ke Laravel (Redis + MongoDB)")
         
         return JSONResponse(
             status_code=200,
@@ -308,10 +417,272 @@ async def get_conversation_history(user_id: int):
         )
 
 
+@app.get("/analytics/{user_id}")
+async def get_user_analytics(user_id: int):
+    """
+    Get comprehensive analytics untuk user (long-term insights)
+    
+    Includes:
+    - Total messages, actions, metrics
+    - Last activity timestamp
+    - Session info
+    - Average metrics (response time, quality)
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        Analytics summary
+    """
+    trace_id = f"user_{user_id}"
+    
+    try:
+        logger.info(f"[{trace_id}] 📊 Fetching analytics")
+        
+        mongo_mem = get_mongo_memory()
+        analytics = mongo_mem.get_user_analytics(user_id)
+        
+        # Add more detailed metrics
+        response_time_metrics = mongo_mem.get_metrics(user_id, "response_time_ms", days=30)
+        quality_metrics = mongo_mem.get_metrics(user_id, "response_quality", days=30)
+        action_metrics = mongo_mem.get_metrics(user_id, "action_count", days=30)
+        
+        # Calculate averages
+        avg_response_time = 0
+        if response_time_metrics:
+            avg_response_time = sum(m.get("value", 0) for m in response_time_metrics) / len(response_time_metrics)
+        
+        avg_quality = 0
+        if quality_metrics:
+            avg_quality = sum(m.get("value", 0) for m in quality_metrics) / len(quality_metrics)
+        
+        total_actions = len(action_metrics) if action_metrics else 0
+        
+        # Convert datetime to string for JSON serialization
+        last_activity = analytics.get("last_activity")
+        if last_activity and hasattr(last_activity, 'isoformat'):
+            last_activity = last_activity.isoformat()
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "user_id": user_id,
+                "total_messages": analytics.get("total_messages", 0),
+                "total_planner_actions": analytics.get("total_planner_actions", 0),
+                "total_executor_actions": analytics.get("total_executor_actions", 0),
+                "total_actions": total_actions,
+                "last_activity": last_activity,
+                "avg_response_time_ms": round(avg_response_time, 2),
+                "avg_quality_score": round(avg_quality, 2),
+                "metrics_count": {
+                    "response_time_ms": len(response_time_metrics),
+                    "response_quality": len(quality_metrics),
+                    "action_count": total_actions
+                },
+                "trace_id": trace_id
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"[{trace_id}] Analytics error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+
+@app.get("/long-term-history/{user_id}")
+async def get_long_term_history(user_id: int, days: int = 30, limit: int = 100):
+    """
+    Get full conversation history dari MongoDB (long-term)
+    
+    Args:
+        user_id: User ID
+        days: Number of days to retrieve (default 30)
+        limit: Max number of messages (default 100, max 1000)
+    
+    Returns:
+        Full conversation history
+    """
+    trace_id = f"user_{user_id}"
+    
+    try:
+        logger.info(f"[{trace_id}] 📜 Fetching long-term history ({days} days, {limit} messages)")
+        
+        mongo_mem = get_mongo_memory()
+        
+        # Get conversation history dari MongoDB
+        history = mongo_mem.get_conversation_history(user_id, days=days)
+        
+        # Limit results
+        history = history[:limit]
+        
+        # Convert MongoDB objects for JSON serialization
+        history = convert_mongo_objects(history)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "user_id": user_id,
+                "message_count": len(history),
+                "period_days": days,
+                "history": history,
+                "trace_id": trace_id
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"[{trace_id}] Long-term history error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+
+@app.get("/metrics/{user_id}/{metric_type}")
+async def get_user_metrics(user_id: int, metric_type: str, days: int = 7):
+    """
+    Get metrics untuk user (response time, quality, token count, etc)
+    
+    Args:
+        user_id: User ID
+        metric_type: Type of metric (response_time, quality_score, token_count, etc)
+        days: Retrieve metrics from last n days (default 7)
+    
+    Returns:
+        Metrics dan statistics
+    """
+    trace_id = f"user_{user_id}"
+    
+    try:
+        logger.info(f"[{trace_id}] 📈 Fetching metrics: {metric_type} ({days} days)")
+        
+        mongo_mem = get_mongo_memory()
+        
+        # Get metrics
+        metrics = mongo_mem.get_metrics(user_id, metric_type, days=days, limit=100)
+        
+        # Get statistics
+        stats = mongo_mem.get_metric_stats(user_id, metric_type, days=days)
+        
+        # Convert MongoDB objects (ObjectId, datetime) for JSON serialization
+        metrics = convert_mongo_objects(metrics)
+        stats = convert_mongo_objects(stats)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "user_id": user_id,
+                "metric_type": metric_type,
+                "period_days": days,
+                "metric_count": len(metrics),
+                "metrics": metrics,
+                "statistics": stats,
+                "trace_id": trace_id
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"[{trace_id}] Metrics error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+
+@app.get("/execution-logs/{user_id}")
+async def get_execution_logs(user_id: int, limit: int = 50):
+    """
+    Get executor logs untuk tracking apa yang sudah dilakukan agent
+    
+    Args:
+        user_id: User ID
+        limit: Max logs (default 50, max 200)
+    
+    Returns:
+        List of executor logs
+    """
+    trace_id = f"user_{user_id}"
+    
+    try:
+        logger.info(f"[{trace_id}] 🔍 Fetching execution logs")
+        
+        mongo_mem = get_mongo_memory()
+        limit = min(limit, 200)
+        
+        logs = mongo_mem.get_executor_logs(user_id, limit=limit)
+        
+        # Convert MongoDB objects for JSON serialization
+        logs = convert_mongo_objects(logs)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "user_id": user_id,
+                "log_count": len(logs),
+                "logs": logs,
+                "trace_id": trace_id
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"[{trace_id}] Execution logs error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
+
+@app.get("/mongodb-status")
+async def mongodb_status():
+    """
+    Check MongoDB connection status
+    
+    Returns:
+        MongoDB connection info
+    """
+    try:
+        mongo_mem = get_mongo_memory()
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "ok",
+                "mongodb_connected": mongo_mem.is_connected(),
+                "service": "mongodb-memory",
+                "database": "VokasiTeraDB",
+                "collections": [
+                    "sessions",
+                    "planner_logs",
+                    "executor_logs",
+                    "metrics",
+                    "memory_store",
+                    "messages"
+                ]
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"MongoDB status check error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error": str(e)
+            }
+        )
+
+
 @app.delete("/conversation-history/{user_id}")
 async def clear_conversation_history(user_id: int):
     """
     Clear conversation history untuk user tertentu
+    
+    Clears both Redis (short-term) dan MongoDB (long-term) memory
     
     Args:
         user_id: User ID dari session
@@ -327,13 +698,18 @@ async def clear_conversation_history(user_id: int):
         
         memory = ConversationMemory(str(user_id))
         memory.clear_conversation()
-        logger.debug(f"[{trace_id}] History cleared")
+        logger.debug(f"[{trace_id}] JSON history cleared")
+        
+        # Also clear Redis
+        redis_mem = get_redis_manager()
+        redis_mem.delete_context(user_id)
+        logger.debug(f"[{trace_id}] Redis context cleared")
         
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
-                "message": f"Conversation history for user {user_id} cleared"
+                "message": f"Conversation history for user {user_id} cleared (Redis + JSON)"
             }
         )
     
@@ -352,11 +728,11 @@ async def clear_conversation_history(user_id: int):
 if __name__ == "__main__":
     import uvicorn
     
-    print("Starting FastAPI server for Agent Grouping...")
+    print("Starting FastAPI server for Agent Grouping with MongoDB...")
     uvicorn.run(
         "api:app",
         host="127.0.0.1",
-        port=8001,
+        port=8002,
         reload=True,
         log_level="info"
     )

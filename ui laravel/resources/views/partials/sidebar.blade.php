@@ -54,6 +54,12 @@
                                 <span>VokasiTera Agent </span>
                             </a>
                         </li>
+                        <li class="nav-item {{ request()->routeIs('agent.analytics.*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('agent.analytics.dashboard') }}">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Agent Analytics</span>
+                            </a>
+                        </li>
                         <li class="menu-header">Koordinator</li>
                         <li class="nav-item {{ request()->is('dashboard/koordinator*') ? 'active' : '' }}"><a
                                 class="nav-link" href="{{ route('dashboard.koordinator') }}"><i

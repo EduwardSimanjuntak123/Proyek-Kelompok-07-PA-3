@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph, END
 import logging
 import traceback
 from core.state import AgentState
+from core.mongo_integration import MongoDBIntegration
 
 from nodes.question_node import question_node
 from nodes.planner_node import planner_node
@@ -84,6 +85,9 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         user_id_str = str(user_id)
         logger.info(f"[{user_id_str}] START Agent: '{prompt[:60]}...'")
         
+        # Log to MongoDB: User input
+        MongoDBIntegration.log_conversation(user_id, "user", prompt)
+        
         # Initialize session
         session_id = str(uuid.uuid4())
         
@@ -122,11 +126,20 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         # Extract result
         response_text = result.get("messages", [])[-1].get("content", "Tidak ada respons") if result.get("messages") else "Tidak ada respons"
         
+        # Log to MongoDB: Assistant response
+        action_type = (result.get("plan") or {}).get("action")
+        MongoDBIntegration.log_conversation(
+            user_id,
+            "assistant",
+            response_text,
+            metadata={"action": action_type, "success": True}
+        )
+        
         logger.info(f"[{user_id_str}] OK: Sukses ({len(response_text)} chars)")
         return {
             "result": response_text,
             "success": True,
-            "action": (result.get("plan") or {}).get("action"),
+            "action": action_type,
             "grouping_payload": result.get("grouping_payload"),
             "grouping_meta": result.get("grouping_meta"),
             "pembimbing_payload": result.get("pembimbing_payload"),
@@ -146,6 +159,15 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         logger.error(f"[{user_id_str}] FATAL ERROR IN run_agent_chat")
         logger.error(f"[{user_id_str}] Error: {str(e)}")
         logger.error(f"[{user_id_str}] Traceback:\n{traceback.format_exc()}")
+        
+        # Log error to MongoDB
+        MongoDBIntegration.log_conversation(
+            user_id,
+            "assistant",
+            f"Error: {str(e)}",
+            metadata={"error": True, "traceback": traceback.format_exc()}
+        )
+        
         return {
             "result": f"Error: {str(e)}",
             "success": False,

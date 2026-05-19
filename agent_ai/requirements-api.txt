@@ -9,3 +9,14 @@ pymysql
 openpyxl
 redis==5.0.0
 click==8.1.7
+
+# MongoDB
+pymongo
+motor
+
+# Dashboard / Monitoring
+grafana-api
+
+# Optional
+pandas
+numpy
