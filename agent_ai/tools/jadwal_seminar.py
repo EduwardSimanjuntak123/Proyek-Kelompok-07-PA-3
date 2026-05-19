@@ -63,7 +63,7 @@ class JadwalSeminarTools:
         <div style='margin-bottom:12px;'>
             <label style='display:flex; align-items:center; gap:6px; margin-bottom:4px; font-weight:700; color:#1f2937; font-size:13px;'>
                 <span>📆</span>
-                <span>Tanggal Mulai Seminar *</span>
+                <span>Tanggal Mulai Seminar <span style='color:#ef4444;'>*</span>x</span>
             </label>
             <input 
                 type='date' 
@@ -343,6 +343,22 @@ class JadwalSeminarTools:
             prodi_id = sample_kelompok.prodi_id
             tm_id = sample_kelompok.TM_id
             
+            # Get prodi, KPA, dan TM names
+            from models.kategori_pa import KategoriPA
+            from models.prodi import Prodi
+            from models.tahun_masuk import TahunMasuk
+            
+            prodi_obj = session.query(Prodi).filter(Prodi.id == prodi_id).first()
+            kpa_obj = session.query(KategoriPA).filter(KategoriPA.id == kpa_id).first()
+            tm_obj = session.query(TahunMasuk).filter(TahunMasuk.id == tm_id).first()
+            
+            prodi_name = prodi_obj.nama_prodi if prodi_obj else f"Prodi {prodi_id}"
+            kpa_name = kpa_obj.kategori_pa if kpa_obj else f"PA-{kpa_id}"
+            tm_name = tm_obj.Tahun_Masuk if tm_obj else tm_id
+            
+            # Format: "PA-3 Prodi TRPL 2023"
+            prodi_kpa_label = f"{kpa_name} {prodi_name} {tm_name}"
+            
             jadwal_entries = []
 
             # Normalize ruangan list: fetch ruangan names and preserve requested order
@@ -412,7 +428,8 @@ class JadwalSeminarTools:
                     "tanggal": waktu_mulai.strftime("%d %b %Y"),
                     "waktu": f"{time_slot[0]} - {time_slot[1]}",
                     "ruangan_id": ruangan_id,
-                    "ruangan_name": ruangan_map.get(ruangan_id, str(ruangan_id))
+                    "ruangan_name": ruangan_map.get(ruangan_id, str(ruangan_id)),
+                    "prodi_kpa": prodi_kpa_label
                 })
             
             # Commit to database if persisting
@@ -424,13 +441,14 @@ class JadwalSeminarTools:
 
             # Generate HTML response with appropriate messaging
             if persist:
-                html = f"<p style='color:#059669; font-weight:bold;'>✅ Jadwal Seminar Berhasil Disimpan untuk {len(ruangan_list)} Ruangan!</p>"
+                html = f"<p style='color:#059669; font-weight:bold;'>Jadwal Seminar Berhasil Disimpan untuk {len(ruangan_list)} Ruangan!</p>"
             else:
-                html = f"<p style='color:#0c4a6e; font-weight:bold;'>ℹ️ Preview Jadwal Seminar untuk {len(ruangan_list)} Ruangan (belum disimpan)</p>"
+                html = f"<p style='color:#0c4a6e; font-weight:bold;'>Preview Jadwal Seminar untuk {len(ruangan_list)} Ruangan (belum disimpan)</p>"
             html += "<table style='width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;'>"
             html += "<tr style='background:#f0f0f0; border:1px solid #ddd;'>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>No</th>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Kelompok</th>"
+            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Prodi & Kategori PA</th>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Ruangan</th>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Tanggal</th>"
             html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Waktu</th>"
@@ -440,6 +458,7 @@ class JadwalSeminarTools:
                 html += f"<tr style='border:1px solid #ddd;'>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{idx}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>Kelompok {entry.get('kelompok_nomor', entry.get('kelompok_id'))}</td>"
+                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry.get('prodi_kpa', '')}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry.get('ruangan_name', 'Ruangan ' + str(entry.get('ruangan_id')))}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['tanggal']}</td>"
                 html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['waktu']}</td>"
@@ -447,6 +466,28 @@ class JadwalSeminarTools:
 
             html += "</table>"
             html += f"<p style='margin-top:12px; color:#666;'><small>Total: {len(jadwal_entries)} jadwal dibuat ({len(kelompok_list)} kelompok dijadwalkan, {len(ordered_ruangan_ids)} ruangan)</small></p>"
+            
+            # Add grouped by date section
+            grouped_result = JadwalSeminarTools.format_jadwal_by_date(jadwal_entries)
+            grouped_html = grouped_result.get("html", "")
+            html += "<hr style='margin:16px 0; border:none; border-top:2px solid #ddd;'>"
+            html += grouped_html
+            
+            # Add action buttons if not persisted
+            if not persist:
+                html += """
+<div style='margin-top:16px; border:1px solid #fbbf24; background:#fef3c7; border-radius:10px; padding:12px;'>
+    <h5 style='margin:0 0 8px 0; color:#92400e; font-size:14px; font-weight:600;'>Aksi Preview Jadwal</h5>
+    <div style='display:flex; gap:8px; flex-wrap:wrap;'>
+        <button type='button' class='btn btn-sm btn-success save-jadwal-btn' style='cursor:pointer; pointer-events:auto; position:relative; z-index:2;' onclick='if(window.__saveJadwalDb){window.__saveJadwalDb(event);} return false;'>
+            Simpan ke Database
+        </button>
+        <button type='button' class='btn btn-sm btn-warning reshuffle-jadwal-btn' style='cursor:pointer; pointer-events:auto; position:relative; z-index:2;' onclick='if(window.__reshuffleJadwal){window.__reshuffleJadwal(event);} return false;'>
+            Acak Ulang
+        </button>
+    </div>
+</div>
+"""
 
             session.close()
             return {
@@ -454,6 +495,7 @@ class JadwalSeminarTools:
                 "message": html,
                 "total": len(jadwal_entries),
                 "jadwal_entries": jadwal_entries,
+                "grouped": grouped_result.get("grouped", {}),
                 "persisted": bool(persist),
                 "meta": {
                     "tanggal": tanggal_mulai.strftime("%d %b %Y"),
@@ -468,5 +510,215 @@ class JadwalSeminarTools:
             session.close()
             return {
                 "success": False,
+                "message": f"❌ Error: {str(e)}"
+            }
+
+    @staticmethod
+    def format_jadwal_by_date(jadwal_entries: List[Dict]) -> Dict:
+        """
+        Format jadwal entries dikelompokkan berdasarkan tanggal/hari
+        
+        Args:
+            jadwal_entries: List jadwal entries dari generate_jadwal_seminar
+            
+        Returns:
+            Dict with grouped jadwal, HTML preview, and metadata
+        """
+        from datetime import datetime
+        from collections import defaultdict
+        
+        # Group by tanggal
+        grouped = defaultdict(list)
+        for entry in jadwal_entries:
+            tanggal = entry['tanggal']
+            grouped[tanggal].append(entry)
+        
+        # Sort by tanggal
+        sorted_dates = sorted(grouped.keys(), key=lambda x: datetime.strptime(x, "%d %b %Y"))
+        
+        # Generate HTML dengan grouping per hari
+        html = '<div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0;">'
+        html += '<h3 style="margin:0 0 16px 0; color:#1e293b; font-size:16px; font-weight:700;">📅 Preview Jadwal Seminar Terstruktur</h3>'
+        
+        for tanggal in sorted_dates:
+            # Parse date to get day name
+            try:
+                date_obj = datetime.strptime(tanggal, "%d %b %Y")
+                hari_map = {0: "Senin", 1: "Selasa", 2: "Rabu", 3: "Kamis", 4: "Jumat", 5: "Sabtu", 6: "Minggu"}
+                hari_nama = hari_map.get(date_obj.weekday(), "Hari")
+            except:
+                hari_nama = "Hari"
+            
+            entries = grouped[tanggal]
+            html += f'<div style="margin-bottom:16px; border-left:4px solid #3b82f6; padding-left:12px;">'
+            html += f'<h4 style="margin:0 0 10px 0; color:#1e40af; font-size:14px; font-weight:700;">🗓️ {hari_nama}, {tanggal}</h4>'
+            html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">'
+            
+            for idx, entry in enumerate(entries, 1):
+                bg_color = '#f0fdf4' if idx % 2 == 0 else '#ffffff'
+                html += f'<tr style="background:{bg_color}; border-bottom:1px solid #e5e7eb;">'
+                html += f'<td style="padding:8px; width:5%;">📍</td>'
+                html += f'<td style="padding:8px; width:25%; font-weight:600;">Kelompok {entry.get("kelompok_nomor", entry.get("kelompok_id"))}</td>'
+                html += f'<td style="padding:8px; width:25%; color:#666;">⏰ {entry["waktu"]}</td>'
+                html += f'<td style="padding:8px; width:45%; color:#059669; font-weight:600;">🏢 {entry.get("ruangan_name", "Ruangan " + str(entry.get("ruangan_id")))}</td>'
+                html += f'</tr>'
+            
+            html += '</table>'
+            html += '</div>'
+        
+        html += f'<div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">'
+        html += f'<p style="margin:0; color:#64748b; font-size:12px;">📊 Total: <strong>{len(jadwal_entries)}</strong> jadwal | <strong>{len(sorted_dates)}</strong> hari | <strong>{len(set(entry.get("ruangan_id") for entry in jadwal_entries))}</strong> ruangan</p>'
+        html += '</div>'
+        html += '</div>'
+        
+        return {
+            "grouped": {tanggal: grouped[tanggal] for tanggal in sorted_dates},
+            "html": html,
+            "sorted_dates": sorted_dates,
+            "total": len(jadwal_entries),
+            "total_days": len(sorted_dates)
+        }
+
+    @staticmethod
+    def get_jadwal_kelompok_detail(kelompok_nomor: int, dosen_context: List[Dict]) -> Dict:
+        """
+        Get jadwal lengkap untuk kelompok tertentu dengan anggota, pembimbing, penguji, dan ruangan
+        
+        Args:
+            kelompok_nomor: Nomor kelompok (1, 2, 3, dst)
+            dosen_context: Dosen context untuk filter
+            
+        Returns:
+            Dict dengan detail jadwal kelompok
+        """
+        from models.kelompok import Kelompok
+        from models.kelompokMahasiswa import KelompokMahasiswa
+        from models.mahasiswa import Mahasiswa
+        from models.pembimbing import Pembimbing
+        from models.penguji import Penguji
+        from models.ruangan import Ruangan
+        
+        session = SessionLocal()
+        try:
+            # Extract konteks
+            prodi_id = dosen_context[0].get("prodi_id")
+            tm_id = dosen_context[0].get("tahun_masuk_id")
+            kpa_id = dosen_context[0].get("kategori_pa_id")
+            
+            # Find kelompok
+            kelompok = session.query(Kelompok).filter(
+                Kelompok.prodi_id == prodi_id,
+                Kelompok.TM_id == tm_id,
+                Kelompok.KPA_id == kpa_id,
+                Kelompok.nomor_kelompok == kelompok_nomor
+            ).first()
+            
+            if not kelompok:
+                return {
+                    "status": "error",
+                    "message": f"❌ Kelompok {kelompok_nomor} tidak ditemukan"
+                }
+            
+            # Get jadwal for this kelompok
+            from models.jadwal import Jadwal
+            jadwal = session.query(Jadwal).filter(
+                Jadwal.kelompok_id == kelompok.id
+            ).first()
+            
+            # Get anggota kelompok
+            anggota = session.query(KelompokMahasiswa, Mahasiswa).join(
+                Mahasiswa, KelompokMahasiswa.mahasiswa_id == Mahasiswa.id
+            ).filter(KelompokMahasiswa.kelompok_id == kelompok.id).all()
+            
+            anggota_list = []
+            for km, mhs in anggota:
+                anggota_list.append({
+                    "nim": mhs.nim,
+                    "nama": mhs.nama
+                })
+            
+            # Get pembimbing
+            pembimbing_list = session.query(Pembimbing).filter(
+                Pembimbing.kelompok_id == kelompok.id
+            ).all()
+            
+            pembimbing_names = [pb.dosen.nama if pb.dosen else "Belum ditentukan" for pb in pembimbing_list]
+            
+            # Get penguji
+            penguji_list = session.query(Penguji).filter(
+                Penguji.kelompok_id == kelompok.id
+            ).all()
+            
+            penguji_names = [pj.dosen.nama if pj.dosen else "Belum ditentukan" for pj in penguji_list]
+            
+            # Get ruangan
+            ruangan_name = "Belum dijadwalkan"
+            tanggal_jadwal = "Belum dijadwalkan"
+            waktu_jadwal = "Belum dijadwalkan"
+            
+            if jadwal:
+                ruangan = session.query(Ruangan).filter(Ruangan.id == jadwal.ruangan_id).first()
+                ruangan_name = ruangan.ruangan if ruangan else f"Ruangan {jadwal.ruangan_id}"
+                tanggal_jadwal = jadwal.waktu_mulai.strftime("%d %B %Y")
+                waktu_jadwal = f"{jadwal.waktu_mulai.strftime('%H:%M')} - {jadwal.waktu_selesai.strftime('%H:%M')}"
+            
+            # Generate HTML response
+            html = '<div style="background:#f0fdf4; border-radius:12px; padding:16px; border:2px solid #10b981;">'
+            html += f'<h3 style="margin:0 0 12px 0; color:#065f46; font-size:16px; font-weight:700;">🎓 Detail Jadwal Seminar Kelompok {kelompok_nomor}</h3>'
+            
+            # Jadwal info
+            html += '<div style="background:#dcfce7; border-left:4px solid #10b981; padding:12px; margin-bottom:12px; border-radius:6px;">'
+            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">📅 Tanggal: {tanggal_jadwal}</p>'
+            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">⏰ Waktu: {waktu_jadwal}</p>'
+            html += f'<p style="margin:0; color:#065f46; font-weight:600;">🏢 Ruangan: {ruangan_name}</p>'
+            html += '</div>'
+            
+            # Anggota kelompok
+            html += '<div style="margin-bottom:12px;">'
+            html += '<h4 style="margin:0 0 8px 0; color:#1e40af; font-size:13px; font-weight:700;">👥 Anggota Kelompok:</h4>'
+            html += '<ul style="margin:0; padding-left:20px;">'
+            for anggota in anggota_list:
+                html += f'<li style="color:#374151; margin-bottom:4px;">{anggota["nama"]} ({anggota["nim"]})</li>'
+            html += '</ul>'
+            html += '</div>'
+            
+            # Pembimbing
+            html += '<div style="margin-bottom:12px;">'
+            html += '<h4 style="margin:0 0 8px 0; color:#7c3aed; font-size:13px; font-weight:700;">👨‍🏫 Dosen Pembimbing:</h4>'
+            html += '<ul style="margin:0; padding-left:20px;">'
+            for pb_name in pembimbing_names:
+                html += f'<li style="color:#374151; margin-bottom:4px;">{pb_name}</li>'
+            html += '</ul>'
+            html += '</div>'
+            
+            # Penguji
+            html += '<div style="margin-bottom:12px;">'
+            html += '<h4 style="margin:0 0 8px 0; color:#dc2626; font-size:13px; font-weight:700;">✅ Dosen Penguji:</h4>'
+            html += '<ul style="margin:0; padding-left:20px;">'
+            for pj_name in penguji_names:
+                html += f'<li style="color:#374151; margin-bottom:4px;">{pj_name}</li>'
+            html += '</ul>'
+            html += '</div>'
+            
+            html += '</div>'
+            
+            session.close()
+            return {
+                "status": "success",
+                "message": html,
+                "kelompok_nomor": kelompok_nomor,
+                "tanggal": tanggal_jadwal,
+                "waktu": waktu_jadwal,
+                "ruangan": ruangan_name,
+                "anggota": anggota_list,
+                "pembimbing": pembimbing_names,
+                "penguji": penguji_names
+            }
+        
+        except Exception as e:
+            logger.error(f"❌ Error getting jadwal detail: {e}")
+            session.close()
+            return {
+                "status": "error",
                 "message": f"❌ Error: {str(e)}"
             }

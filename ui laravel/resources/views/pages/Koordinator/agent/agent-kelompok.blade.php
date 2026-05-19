@@ -587,8 +587,46 @@
          * @param {string} datePickerValue - ISO date format (YYYY-MM-DD)
          * @returns {string} Indonesian formatted date (DD bulan YYYY)
          */
+        /**
+         * Helper: Find jadwal form elements robustly
+         */
+        function getJadwalFormElements(formContainer) {
+            const tanggalInput = formContainer === document ? 
+                document.getElementById("jadwal-tanggal") : 
+                (formContainer?.querySelector("#jadwal-tanggal") || document.getElementById("jadwal-tanggal"));
+            const durasiJamInput = formContainer === document ? 
+                document.getElementById("jadwal-durasi-jam") : 
+                (formContainer?.querySelector("#jadwal-durasi-jam") || document.getElementById("jadwal-durasi-jam"));
+            const durasiMenitInput = formContainer === document ? 
+                document.getElementById("jadwal-durasi-menit") : 
+                (formContainer?.querySelector("#jadwal-durasi-menit") || document.getElementById("jadwal-durasi-menit"));
+            
+            return { tanggalInput, durasiJamInput, durasiMenitInput };
+        }
+        
+        /**
+         * Helper: Get ruangan list from form
+         */
+        function getJadwalRuanganList() {
+            const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+            const ruanganList = [];
+            ruanganSelects.forEach((select) => {
+                const ruangan_id = select.value;
+                if (ruangan_id) {
+                    ruanganList.push(ruangan_id);
+                }
+            });
+            return ruanganList;
+        }
+        
         function convertDatePickerToIndonesian(datePickerValue) {
-            if (!datePickerValue) return "";
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] [DATE-CONVERT] Input: '${datePickerValue}' (type: ${typeof datePickerValue})`);
+            
+            if (!datePickerValue || datePickerValue.toString().trim() === "") {
+                console.log(`[${timestamp}] [DATE-CONVERT] Empty input, returning empty string`);
+                return "";
+            }
             
             const bulanMap = [
                 "januari", "februari", "maret", "april", "mei", "juni",
@@ -596,14 +634,74 @@
             ];
             
             try {
-                const [tahun, bulan, hari] = datePickerValue.split('-');
+                let tahun, bulan, hari;
+                const dateStr = datePickerValue.toString().trim();
+                
+                // Try different date formats
+                if (dateStr.includes('-')) {
+                    // Format: YYYY-MM-DD (standard HTML5 date)
+                    console.log(`[${timestamp}] [DATE-CONVERT] Detected format: YYYY-MM-DD`);
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        [tahun, bulan, hari] = parts;
+                    } else {
+                        return dateStr;
+                    }
+                } else if (dateStr.includes('/')) {
+                    // Format: DD/MM/YYYY or MM/DD/YYYY
+                    console.log(`[${timestamp}] [DATE-CONVERT] Detected format: with slashes`);
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        const first = parseInt(parts[0]);
+                        const second = parseInt(parts[1]);
+                        const third = parts[2];
+                        
+                        // If first > 12, it must be DD/MM/YYYY
+                        if (first > 12) {
+                            hari = String(first).padStart(2, '0');
+                            bulan = String(second).padStart(2, '0');
+                            tahun = third;
+                            console.log(`[${timestamp}] [DATE-CONVERT] Parsed as DD/MM/YYYY: ${hari}/${bulan}/${tahun}`);
+                        } else {
+                            // Assume MM/DD/YYYY (common in some locales)
+                            bulan = String(first).padStart(2, '0');
+                            hari = String(second).padStart(2, '0');
+                            tahun = third;
+                            console.log(`[${timestamp}] [DATE-CONVERT] Parsed as MM/DD/YYYY: ${bulan}/${hari}/${tahun}`);
+                        }
+                    } else {
+                        console.error(`[${timestamp}] [DATE-CONVERT] Invalid slash format`);
+                        return dateStr;
+                    }
+                } else {
+                    // Unknown format, return as is
+                    console.log(`[${timestamp}] [DATE-CONVERT] Unknown format, returning as is: ${dateStr}`);
+                    return dateStr;
+                }
+                
+                // Validate parsed values
                 const bulanIdx = parseInt(bulan) - 1;
                 const hariInt = parseInt(hari);
+                const tahunInt = parseInt(tahun);
                 
-                return `${hariInt} ${bulanMap[bulanIdx]} ${tahun}`;
+                console.log(`[${timestamp}] [DATE-CONVERT] Parsed values: hari=${hariInt}, bulan=${bulanIdx+1}, tahun=${tahunInt}`);
+                
+                if (bulanIdx < 0 || bulanIdx > 11) {
+                    console.error(`[${timestamp}] [DATE-CONVERT] Invalid month: ${bulanIdx + 1}`);
+                    return "";
+                }
+                
+                if (hariInt < 1 || hariInt > 31) {
+                    console.error(`[${timestamp}] [DATE-CONVERT] Invalid day: ${hariInt}`);
+                    return "";
+                }
+                
+                const result = `${hariInt} ${bulanMap[bulanIdx]} ${tahunInt}`;
+                console.log(`[${timestamp}] [DATE-CONVERT] SUCCESS: '${result}'`);
+                return result;
             } catch (e) {
-                console.error('[JADWAL] Error converting date:', e);
-                return datePickerValue;
+                console.error(`[${timestamp}] [DATE-CONVERT] Exception:`, e, `Input was: '${datePickerValue}'`);
+                return "";
             }
         }
 
@@ -615,31 +713,83 @@
             console.log(`[${timestamp}] [JADWAL] ▶️  __submitJadwal called`);
             
             try {
-                event.preventDefault();
+                event?.preventDefault?.();
                 
-                const tanggalInput = document.getElementById("jadwal-tanggal");
-                const durasiJamInput = document.getElementById("jadwal-durasi-jam");
-                const durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+                // Try to find the form container using closest()
+                let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
+                
+                // If not found, try to find via the jadwal-form-actions element
+                if (!formContainer) {
+                    const formActions = document.getElementById('jadwal-form-actions');
+                    if (formActions) {
+                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
+                                       formActions.parentElement?.parentElement?.parentElement || 
+                                       formActions.parentElement?.parentElement;
+                    }
+                }
+                
+                // If still not found, use document as fallback (will search entire page)
+                if (!formContainer) {
+                    formContainer = document;
+                    console.log(`[${timestamp}] [JADWAL] Using document as fallback container`);
+                } else {
+                    console.log(`[${timestamp}] [JADWAL] ✓ Form container found`);
+                }
+                
+                // Query form elements - use safe fallback chain
+                let tanggalInput = document.getElementById("jadwal-tanggal");
+                if (!tanggalInput && formContainer && formContainer !== document) {
+                    tanggalInput = formContainer.querySelector("#jadwal-tanggal");
+                }
+                
+                let durasiJamInput = document.getElementById("jadwal-durasi-jam");
+                if (!durasiJamInput && formContainer && formContainer !== document) {
+                    durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
+                }
+                
+                let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+                if (!durasiMenitInput && formContainer && formContainer !== document) {
+                    durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
+                }
                 
                 console.log(`[${timestamp}] [JADWAL] ✓ Form elements found`);
+                console.log(`[${timestamp}] [JADWAL] tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`);
                 
                 const tanggalRaw = tanggalInput?.value?.trim() || "";
-                const tanggal = convertDatePickerToIndonesian(tanggalRaw);
+                let tanggal = convertDatePickerToIndonesian(tanggalRaw);
+                
+                // If conversion failed but raw value exists, use raw value
+                if (!tanggal && tanggalRaw) {
+                    console.log(`[${timestamp}] [JADWAL] Conversion failed, using raw value: ${tanggalRaw}`);
+                    tanggal = tanggalRaw;
+                }
+                
                 const jam = parseInt(durasiJamInput?.value || "1");
                 const menit = parseInt(durasiMenitInput?.value || "50");
                 
-                const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+                // Debug: Check if input elements were found
+                console.log(`[${timestamp}] [JADWAL] Element checks: tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`);
+                console.log(`[${timestamp}] [JADWAL] Element values: tanggalInput.value='${tanggalInput?.value}', tanggalRaw='${tanggalRaw}'`);
+                
+                // Query ruangan selects - ALWAYS use document to find all select elements
+                // This ensures we find ruangan in the current chat message
+                let ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+                console.log(`[${timestamp}] [JADWAL] Found ${ruanganSelects.length} ruangan select elements`);
+                
                 const ruanganList = [];
-                ruanganSelects.forEach((select) => {
+                ruanganSelects.forEach((select, idx) => {
                     const ruangan_id = select.value;
+                    console.log(`[${timestamp}] [JADWAL] Ruangan[${idx}]: value='${ruangan_id}', innerText='${select.innerText || select.textContent}'`);
                     if (ruangan_id) {
                         ruanganList.push(ruangan_id);
                     }
                 });
                 
-                console.log(`[${timestamp}] [JADWAL] Values: tanggal='${tanggal}', ruangan_list='${ruanganList.join(",")}', durasi='${jam}j ${menit}m'`);
+                console.log(`[${timestamp}] [JADWAL] Raw tanggal: '${tanggalRaw}', Converted tanggal: '${tanggal}', ruangan_count: ${ruanganList.length}, durasi: ${jam}j ${menit}m`);
+                console.log(`[${timestamp}] [JADWAL] Selected ruangan IDs: ${ruanganList.length > 0 ? ruanganList.join(',') : 'NONE'}`);
                 
-                if (!tanggal) {
+                if (!tanggalRaw) {
+                    console.log(`[${timestamp}] [JADWAL] Validation failed: tanggalRaw empty (value='${tanggalInput?.value}')`);
                     Swal.fire({
                         title: 'Validasi Form',
                         text: 'Tanggal harus diisi. Silakan pilih tanggal dari kalender.',
@@ -650,6 +800,7 @@
                 }
                 
                 if (ruanganList.length === 0) {
+                    console.log(`[${timestamp}] [JADWAL] Validation failed: no ruangan selected`);
                     Swal.fire({
                         title: 'Validasi Form',
                         text: 'Minimal 1 ruangan harus dipilih',
@@ -682,6 +833,9 @@
                 
                 const message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
                 console.log(`[${timestamp}] [JADWAL] Message: ${message}`);
+                
+                // Store this message for later use by save/reshuffle buttons
+                window.__lastJadwalMessage = message;
                 
                 const userInput = document.getElementById("userInput");
                 if (userInput) {
@@ -2400,6 +2554,253 @@
                 }
             });
         }
+
+        // ================== JADWAL SEMINAR HANDLERS ==================
+        
+        // Store the last valid jadwal message for save/reshuffle operations
+        window.__lastJadwalMessage = null;
+        
+        /**
+         * Save jadwal preview to database
+         */
+        window.__saveJadwalDb = function(event) {
+            event?.preventDefault?.();
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] [JADWAL-SAVE] Save to database clicked`);
+            
+            try {
+                // Try to find the form container
+                let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
+                
+                if (!formContainer) {
+                    const formActions = document.getElementById('jadwal-form-actions');
+                    if (formActions) {
+                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
+                                       formActions.parentElement?.parentElement?.parentElement || 
+                                       formActions.parentElement?.parentElement;
+                    }
+                }
+                
+                if (!formContainer) {
+                    formContainer = document;
+                }
+                
+                const userInput = document.getElementById("userInput");
+                if (!userInput) {
+                    console.error(`[${timestamp}] [JADWAL-SAVE] userInput not found`);
+                    return;
+                }
+                
+                // Try to use stored message first
+                let message = window.__lastJadwalMessage;
+                
+                // If stored message is not available, try to rebuild from form
+                if (!message) {
+                    console.log(`[${timestamp}] [JADWAL-SAVE] Stored message empty, attempting to rebuild from form...`);
+                    
+                    // Query form elements - use safe fallback chain
+                    let tanggalInput = document.getElementById("jadwal-tanggal");
+                    if (!tanggalInput && formContainer && formContainer !== document) {
+                        tanggalInput = formContainer.querySelector("#jadwal-tanggal");
+                    }
+                    
+                    let durasiJamInput = document.getElementById("jadwal-durasi-jam");
+                    if (!durasiJamInput && formContainer && formContainer !== document) {
+                        durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
+                    }
+                    
+                    let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+                    if (!durasiMenitInput && formContainer && formContainer !== document) {
+                        durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
+                    }
+                    
+                    const tanggalRaw = tanggalInput?.value?.trim() || "";
+                    let tanggal = convertDatePickerToIndonesian(tanggalRaw);
+                    
+                    // If conversion failed but raw value exists, use raw value
+                    if (!tanggal && tanggalRaw) {
+                        console.log(`[${timestamp}] [JADWAL-SAVE] Conversion failed, using raw value: ${tanggalRaw}`);
+                        tanggal = tanggalRaw;
+                    }
+                    
+                    const jam = parseInt(durasiJamInput?.value || "1");
+                    const menit = parseInt(durasiMenitInput?.value || "50");
+                    
+                    // ALWAYS use document to find all select elements in the current form
+                    const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+                    console.log(`[${timestamp}] [JADWAL-SAVE] Found ${ruanganSelects.length} ruangan select elements`);
+                    
+                    const ruanganList = [];
+                    ruanganSelects.forEach((select, idx) => {
+                        const ruangan_id = select.value;
+                        console.log(`[${timestamp}] [JADWAL-SAVE] Ruangan[${idx}]: value='${ruangan_id}'`);
+                        if (ruangan_id) {
+                            ruanganList.push(ruangan_id);
+                        }
+                    });
+                    console.log(`[${timestamp}] [JADWAL-SAVE] Total ruangan selected: ${ruanganList.length}`);
+                    
+                    const totalMenit = (jam * 60) + menit;
+                    
+                    if (!tanggalRaw || ruanganList.length === 0) {
+                        console.error(`[${timestamp}] [JADWAL-SAVE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`);
+                        Swal.fire({
+                            title: 'Validasi Form',
+                            text: 'Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+                    
+                    message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+                    console.log(`[${timestamp}] [JADWAL-SAVE] Rebuilt message: ${message}`);
+                }
+                
+                // Add save action
+                const finalMessage = message.replace(/action[:\s]*\w+/gi, "").trim() + " | action: save";
+                
+                userInput.value = finalMessage;
+                console.log(`[${timestamp}] [JADWAL-SAVE] Final message: ${finalMessage}`);
+                
+                const btn = event?.target?.closest('.save-jadwal-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = 'Menyimpan...';
+                }
+                
+                window.sendMessage();
+            } catch (error) {
+                console.error(`[${timestamp}] [JADWAL-SAVE] Error:`, error);
+                Swal.fire({
+                    title: 'Error',
+                    text: `Terjadi error saat menyimpan: ${error.message}`,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        };
+        
+        /**
+         * Reshuffle jadwal preview
+         */
+        window.__reshuffleJadwal = function(event) {
+            event?.preventDefault?.();
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Reshuffle clicked`);
+            
+            try {
+                // Try to find the form container
+                let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
+                
+                if (!formContainer) {
+                    const formActions = document.getElementById('jadwal-form-actions');
+                    if (formActions) {
+                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
+                                       formActions.parentElement?.parentElement?.parentElement || 
+                                       formActions.parentElement?.parentElement;
+                    }
+                }
+                
+                if (!formContainer) {
+                    formContainer = document;
+                }
+                
+                const userInput = document.getElementById("userInput");
+                if (!userInput) {
+                    console.error(`[${timestamp}] [JADWAL-RESHUFFLE] userInput not found`);
+                    return;
+                }
+                
+                // Try to use stored message first
+                let message = window.__lastJadwalMessage;
+                
+                // If stored message is not available, try to rebuild from form
+                if (!message) {
+                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Stored message empty, attempting to rebuild from form...`);
+                    
+                    // Query form elements - use safe fallback chain
+                    let tanggalInput = document.getElementById("jadwal-tanggal");
+                    if (!tanggalInput && formContainer && formContainer !== document) {
+                        tanggalInput = formContainer.querySelector("#jadwal-tanggal");
+                    }
+                    
+                    let durasiJamInput = document.getElementById("jadwal-durasi-jam");
+                    if (!durasiJamInput && formContainer && formContainer !== document) {
+                        durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
+                    }
+                    
+                    let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
+                    if (!durasiMenitInput && formContainer && formContainer !== document) {
+                        durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
+                    }
+                    
+                    const tanggalRaw = tanggalInput?.value?.trim() || "";
+                    let tanggal = convertDatePickerToIndonesian(tanggalRaw);
+                    
+                    // If conversion failed but raw value exists, use raw value
+                    if (!tanggal && tanggalRaw) {
+                        console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Conversion failed, using raw value: ${tanggalRaw}`);
+                        tanggal = tanggalRaw;
+                    }
+                    
+                    const jam = parseInt(durasiJamInput?.value || "1");
+                    const menit = parseInt(durasiMenitInput?.value || "50");
+                    
+                    // ALWAYS use document to find all select elements in the current form
+                    const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
+                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Found ${ruanganSelects.length} ruangan select elements`);
+                    
+                    const ruanganList = [];
+                    ruanganSelects.forEach((select, idx) => {
+                        const ruangan_id = select.value;
+                        console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Ruangan[${idx}]: value='${ruangan_id}'`);
+                        if (ruangan_id) {
+                            ruanganList.push(ruangan_id);
+                        }
+                    });
+                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Total ruangan selected: ${ruanganList.length}`);
+                    
+                    const totalMenit = (jam * 60) + menit;
+                    
+                    if (!tanggalRaw || ruanganList.length === 0) {
+                        console.error(`[${timestamp}] [JADWAL-RESHUFFLE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`);
+                        Swal.fire({
+                            title: 'Validasi Form',
+                            text: 'Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+                    
+                    message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Rebuilt message: ${message}`);
+                }
+                
+                // Add shuffle action
+                const finalMessage = message.replace(/action[:\s]*\w+/gi, "").trim() + " | action: shuffle";
+                
+                userInput.value = finalMessage;
+                console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Final message: ${finalMessage}`);
+                
+                const btn = event?.target?.closest('.reshuffle-jadwal-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = 'Mengacak...';
+                }
+                
+                window.sendMessage();
+            } catch (error) {
+                console.error(`[${timestamp}] [JADWAL-RESHUFFLE] Error:`, error);
+                Swal.fire({
+                    title: 'Error',
+                    text: `Terjadi error saat mengacak: ${error.message}`,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        };
 
         // ================== BUTTON SESI BARU ==================
         if (btnNewChat) {

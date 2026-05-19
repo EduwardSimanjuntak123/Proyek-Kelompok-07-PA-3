@@ -85,11 +85,13 @@ EXECUTABLE_ACTIONS = {
     "generate_excel",
     "generate_jadwal_seminar",
     "save_jadwal",
+    "query_jadwal_kelompok",
 }
 
 
 def _infer_action_from_prompt(prompt_lower: str):
     infer_rules = [
+        ("query_jadwal_kelompok", ["kapan kelompok", "jadwal kelompok", "kelompok maju", "maju kapan"]),
         ("generate_jadwal_seminar", ["jadwal seminar", "buat jadwal", "jadwal presentasi", "schedule seminar"]),
         ("query_anggota_kelompok", ["anggota kelompok", "siapa anggota kelompok"]),
         ("generate_pembimbing", ["generate pembimbing", "assign pembimbing", "buat pembimbing"]),
@@ -702,6 +704,32 @@ def executor_node(state):
                         logger.info(f"[{user_id}] ✓ query_anggota_kelompok nomor={nomor_kelompok} total={result.get('total', 0)}")
                     else:
                         logger.warning(f"[{user_id}] ✗ query_anggota_kelompok gagal")
+
+        elif action == "query_jadwal_kelompok":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: query_jadwal_kelompok (jadwal kelompok)")
+
+            if not dosen_context:
+                state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+            else:
+                # Extract nomor kelompok dari prompt
+                # Pattern: "kapan kelompok 1", "jadwal kelompok 2", "kelompok 1 maju"
+                nomor_match = re.search(r"kelompok\s*(?:nomor\s*)?(\d+)", prompt_lower)
+                nomor_kelompok = nomor_match.group(1) if nomor_match else None
+
+                if not nomor_kelompok:
+                    state["result"] = "<p>Nomor kelompok tidak ditemukan. Contoh: <strong>kapan kelompok 1 maju seminar</strong></p>"
+                    logger.warning(f"[{user_id}] ✗ nomor kelompok tidak ditemukan di prompt")
+                else:
+                    result = JadwalSeminarTools.get_jadwal_kelompok_detail(
+                        kelompok_nomor=int(nomor_kelompok),
+                        dosen_context=[dosen_context]
+                    )
+                    state["result"] = result.get("message", "Gagal mengambil detail jadwal kelompok")
+                    if result.get("status") == "success":
+                        logger.info(f"[{user_id}] ✓ query_jadwal_kelompok nomor={nomor_kelompok}")
+                    else:
+                        logger.warning(f"[{user_id}] ✗ query_jadwal_kelompok gagal: {result.get('message')}")
         
         elif action == "query_matakuliah":
             logger.info(f"[{user_id}] ⚙️  TOOLS: query_matakuliah (daftar mata kuliah)")
