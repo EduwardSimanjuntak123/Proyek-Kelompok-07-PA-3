@@ -2669,6 +2669,21 @@
                     btn.innerHTML = 'Menyimpan...';
                 }
                 
+                // Show loading alert
+                Swal.fire({
+                    title: 'Menyimpan Jadwal...',
+                    text: 'Harap tunggu, jadwal sedang disimpan ke database.',
+                    icon: 'info',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: (modal) => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Store save indicator for response handler
+                window.__jadwalSaveInProgress = true;
+                
                 window.sendMessage();
             } catch (error) {
                 console.error(`[${timestamp}] [JADWAL-SAVE] Error:`, error);
@@ -2836,6 +2851,62 @@
                         }
                     }
                 });
+            });
+        }
+
+        // ================== OBSERVER UNTUK JADWAL SAVE RESPONSE ==================
+        // Monitor chat messages untuk detect jadwal save success/error
+        const chatBox = document.getElementById('chatBox');
+        if (chatBox) {
+            const observer = new MutationObserver(function(mutations) {
+                // Cek jika ada message baru ditambahkan
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) { // Element node
+                                const messageText = node.textContent || '';
+                                
+                                // Check jika ini adalah message dari save jadwal
+                                if (window.__jadwalSaveInProgress) {
+                                    // Check untuk success message
+                                    if (messageText.includes('Berhasil Disimpan') || messageText.includes('jadwal berhasil')) {
+                                        window.__jadwalSaveInProgress = false;
+                                        Swal.close(); // Close loading alert
+                                        
+                                        // Extract jumlah ruangan jika ada
+                                        const match = messageText.match(/(\d+)\s+Ruangan/);
+                                        const ruanganCount = match ? match[1] : 'jadwal';
+                                        
+                                        Swal.fire({
+                                            title: 'Jadwal Berhasil Disimpan!',
+                                            text: `Jadwal seminar untuk ${ruanganCount} ruangan telah berhasil disimpan ke database.`,
+                                            icon: 'success',
+                                            confirmButtonText: 'OK',
+                                            confirmButtonColor: '#10b981'
+                                        });
+                                    } 
+                                    // Check untuk error message
+                                    else if (messageText.includes('Gagal') || messageText.includes('Error') || messageText.includes('error')) {
+                                        window.__jadwalSaveInProgress = false;
+                                        Swal.close(); // Close loading alert
+                                        
+                                        Swal.fire({
+                                            title: 'Gagal Menyimpan Jadwal',
+                                            text: messageText.substring(0, 200), // Ambil 200 char pertama sebagai detail error
+                                            icon: 'error',
+                                            confirmButtonText: 'OK'
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(chatBox, {
+                childList: true,
+                subtree: true
             });
         }
     </script>

@@ -249,12 +249,13 @@ def parse_schedule_input(user_id: int, prompt: str, dosen_context: Dict, ruangan
         # Use provided ruangan_ids atau extract dari prompt
         final_ruangan_ids = []
         ruangan_names = []
+        seen_ruangan_ids = set()  # Track unique ruangan to avoid duplicates
         
         if ruangan_ids and len(ruangan_ids) > 0:
-            # Use provided IDs
-            final_ruangan_ids = ruangan_ids
+            # Use provided IDs (deduplicate)
+            final_ruangan_ids = list(set(ruangan_ids))
             # Get ruangan names
-            for rid in ruangan_ids:
+            for rid in final_ruangan_ids:
                 ruang = session.query(Ruangan).filter(Ruangan.id == rid).first()
                 if ruang:
                     ruangan_names.append(ruang.ruangan)
@@ -262,9 +263,11 @@ def parse_schedule_input(user_id: int, prompt: str, dosen_context: Dict, ruangan
             # Try extract from prompt
             ruangan_query = session.query(Ruangan).all()
             for ruang in ruangan_query:
-                if ruang.ruangan and ruang.ruangan.lower() in prompt_lower:
+                # Only add if ruangan name found in prompt AND not already added (avoid duplicates)
+                if ruang.ruangan and ruang.ruangan.lower() in prompt_lower and ruang.id not in seen_ruangan_ids:
                     final_ruangan_ids.append(ruang.id)
                     ruangan_names.append(ruang.ruangan)
+                    seen_ruangan_ids.add(ruang.id)
         
         session.close()
         

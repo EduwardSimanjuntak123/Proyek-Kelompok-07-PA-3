@@ -1872,7 +1872,7 @@ def executor_node(state):
                         html_result += f"""
     <div style="border:1px solid #d1d5db; border-radius:4px; padding:12px; margin-bottom:12px; background:#f9fafb;">
       <p style="margin:0 0 8px 0;"><strong>Kelompok {group.get('group_number')}:</strong> {group.get('member_count')} anggota</p>
-      <p style="margin:0 0 8px 0; color:{status_color};"><strong>{status_icon} Rata-rata Nilai: {group.get('group_average')} (Deviasi: {group.get('deviation_from_mean', 0)})</strong></p>
+      <p style="margin:0 0 8px 0; color:{status_color};"><strong>{status_icon} Rata-rata Nilai: {group.get('group_average')} (Deviasi: {abs(group.get('deviation_from_mean', 0))})</strong></p>
       <p style="margin:0 0 8px 0; font-size:12px; color:#6b7280;">Anggaran Kelompok:</p>
       {members_html}
     </div>
@@ -2091,6 +2091,16 @@ def executor_node(state):
                     if not kelompok_order:
                         kelompok_order = preview_meta.get("kelompok_order") or None
 
+                # When saving jadwal, ALWAYS use the exact group order from preview (stored in jadwal_entries or meta)
+                # This ensures what user sees in preview is exactly what gets saved to database
+                if action == "save_jadwal":
+                    preview_entries = state.get("jadwal_entries") or []
+                    if preview_entries and not kelompok_order:
+                        # Extract kelompok_order from preview jadwal_entries (preserves shuffle order)
+                        kelompok_order = [entry.get("kelompok_id") for entry in preview_entries if entry.get("kelompok_id")]
+                        logger.info(f"[{user_id}] ✓ Extracted kelompok_order from jadwal_entries: {kelompok_order}")
+                
+                # Fallback extraction if still needed (tanggal/ruangan missing and no preview available)
                 if action == "save_jadwal" and (not tanggal_str or not ruangan_list):
                     preview_entries = state.get("jadwal_entries") or []
                     if preview_entries:
@@ -2103,8 +2113,6 @@ def executor_node(state):
                                 if entry.get("ruangan_id") is not None and str(entry.get("ruangan_id")).isdigit()
                             ]
                             ruangan_list = list(dict.fromkeys(ruangan_list))
-                        if not kelompok_order:
-                            kelompok_order = [entry.get("kelompok_id") for entry in preview_entries if entry.get("kelompok_id")]
                 
                 logger.info(f"[{user_id}] Parsed: tanggal={tanggal_str}, ruangan_list={ruangan_list}, durasi={durasi_menit}")
                 

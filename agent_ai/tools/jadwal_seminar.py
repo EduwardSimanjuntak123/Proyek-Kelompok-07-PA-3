@@ -11,6 +11,9 @@ from models.kelompok import Kelompok
 from models.ruangan import Ruangan
 from models.pembimbing import Pembimbing
 from models.penguji import Penguji
+from models.dosen import Dosen
+from models.dosen_role import DosenRole
+from models.role import Role
 import logging
 
 logger = logging.getLogger(__name__)
@@ -164,7 +167,7 @@ class JadwalSeminarTools:
             session.close()
             return {
                 "asking": False,
-                "message": f"❌ Error: {str(e)}"
+                "message": f"Error: {str(e)}"
             }
 
     @staticmethod
@@ -405,6 +408,33 @@ class JadwalSeminarTools:
                 time_parts_end = time_slot[1].split(':')
                 waktu_selesai = current_date.replace(hour=int(time_parts_end[0]), minute=int(time_parts_end[1]), second=0)
 
+                # Get pembimbing and penguji for this kelompok with role info
+                pembimbing_list = session.query(Pembimbing).filter(
+                    Pembimbing.kelompok_id == kelompok.id
+                ).all()
+                
+                pembimbing_data = []
+                for pb in pembimbing_list:
+                    dosen = session.query(Dosen).filter(Dosen.user_id == pb.user_id).first()
+                    nama = dosen.nama if dosen else "Belum ditentukan"
+                    pembimbing_data.append({"nama": nama, "user_id": pb.user_id})
+                
+                penguji_list = session.query(Penguji).filter(
+                    Penguji.kelompok_id == kelompok.id
+                ).all()
+                
+                penguji_data = []
+                for pj in penguji_list:
+                    dosen = session.query(Dosen).filter(Dosen.user_id == pj.user_id).first()
+                    nama = dosen.nama if dosen else "Belum ditentukan"
+                    penguji_data.append({"nama": nama, "user_id": pj.user_id})
+                
+                # Extract pembimbing 1, 2 and penguji 1, 2
+                pembimbing_1 = pembimbing_data[0]["nama"] if len(pembimbing_data) > 0 else "-"
+                pembimbing_2 = pembimbing_data[1]["nama"] if len(pembimbing_data) > 1 else "-"
+                penguji_1 = penguji_data[0]["nama"] if len(penguji_data) > 0 else "-"
+                penguji_2 = penguji_data[1]["nama"] if len(penguji_data) > 1 else "-"
+
                 # Create jadwal entry (one entry per kelompok)
                 jadwal = Jadwal(
                     kelompok_id=kelompok.id,
@@ -429,52 +459,27 @@ class JadwalSeminarTools:
                     "waktu": f"{time_slot[0]} - {time_slot[1]}",
                     "ruangan_id": ruangan_id,
                     "ruangan_name": ruangan_map.get(ruangan_id, str(ruangan_id)),
-                    "prodi_kpa": prodi_kpa_label
+                    "prodi_kpa": prodi_kpa_label,
+                    "pembimbing_1": pembimbing_1,
+                    "pembimbing_2": pembimbing_2,
+                    "penguji_1": penguji_1,
+                    "penguji_2": penguji_2
                 })
             
             # Commit to database if persisting
             if persist:
                 session.commit()
-                logger.info(f"✓ Persisted {len(jadwal_entries)} jadwal entries untuk {len(ruangan_list)} ruangan")
+                logger.info(f"Persisted {len(jadwal_entries)} jadwal entries untuk {len(ruangan_list)} ruangan")
+                html = f"Jadwal Seminar Berhasil Disimpan untuk {len(ruangan_list)} Ruangan"
+                grouped_result = {"grouped": {}, "html": ""}
             else:
-                logger.info(f"✓ Generated {len(jadwal_entries)} jadwal entries (preview, not persisted)")
-
-            # Generate HTML response with appropriate messaging
-            if persist:
-                html = f"<p style='color:#059669; font-weight:bold;'>Jadwal Seminar Berhasil Disimpan untuk {len(ruangan_list)} Ruangan!</p>"
-            else:
-                html = f"<p style='color:#0c4a6e; font-weight:bold;'>Preview Jadwal Seminar untuk {len(ruangan_list)} Ruangan (belum disimpan)</p>"
-            html += "<table style='width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;'>"
-            html += "<tr style='background:#f0f0f0; border:1px solid #ddd;'>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>No</th>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Kelompok</th>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Prodi & Kategori PA</th>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Ruangan</th>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Tanggal</th>"
-            html += "<th style='padding:8px; text-align:left; border:1px solid #ddd;'>Waktu</th>"
-            html += "</tr>"
-            
-            for idx, entry in enumerate(jadwal_entries, 1):
-                html += f"<tr style='border:1px solid #ddd;'>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>{idx}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>Kelompok {entry.get('kelompok_nomor', entry.get('kelompok_id'))}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry.get('prodi_kpa', '')}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry.get('ruangan_name', 'Ruangan ' + str(entry.get('ruangan_id')))}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['tanggal']}</td>"
-                html += f"<td style='padding:8px; border:1px solid #ddd;'>{entry['waktu']}</td>"
-                html += f"</tr>"
-
-            html += "</table>"
-            html += f"<p style='margin-top:12px; color:#666;'><small>Total: {len(jadwal_entries)} jadwal dibuat ({len(kelompok_list)} kelompok dijadwalkan, {len(ordered_ruangan_ids)} ruangan)</small></p>"
-            
-            # Add grouped by date section
-            grouped_result = JadwalSeminarTools.format_jadwal_by_date(jadwal_entries)
-            grouped_html = grouped_result.get("html", "")
-            html += "<hr style='margin:16px 0; border:none; border-top:2px solid #ddd;'>"
-            html += grouped_html
-            
-            # Add action buttons if not persisted
-            if not persist:
+                logger.info(f"Generated {len(jadwal_entries)} jadwal entries (preview, not persisted)")
+                # Add grouped by date section for preview
+                grouped_result = JadwalSeminarTools.format_jadwal_by_date(jadwal_entries)
+                grouped_html = grouped_result.get("html", "")
+                html = grouped_html
+                
+                # Add action buttons if not persisted
                 html += """
 <div style='margin-top:16px; border:1px solid #fbbf24; background:#fef3c7; border-radius:10px; padding:12px;'>
     <h5 style='margin:0 0 8px 0; color:#92400e; font-size:14px; font-weight:600;'>Aksi Preview Jadwal</h5>
@@ -506,11 +511,11 @@ class JadwalSeminarTools:
             }
         except Exception as e:
             session.rollback()
-            logger.error(f"❌ Error generating jadwal: {e}")
+            logger.error(f"Error generating jadwal: {e}")
             session.close()
             return {
                 "success": False,
-                "message": f"❌ Error: {str(e)}"
+                "message": f"Error: {str(e)}"
             }
 
     @staticmethod
@@ -536,9 +541,9 @@ class JadwalSeminarTools:
         # Sort by tanggal
         sorted_dates = sorted(grouped.keys(), key=lambda x: datetime.strptime(x, "%d %b %Y"))
         
-        # Generate HTML dengan grouping per hari
-        html = '<div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0;">'
-        html += '<h3 style="margin:0 0 16px 0; color:#1e293b; font-size:16px; font-weight:700;">📅 Preview Jadwal Seminar Terstruktur</h3>'
+        # Generate HTML dengan grouping per hari dalam format table
+        html = '<div style="background:#f8fafc; border-radius:12px; padding:16px; border:1px solid #e2e8f0; overflow-x:auto;">'
+        html += '<h3 style="margin:0 0 16px 0; color:#1e293b; font-size:16px; font-weight:700;">Preview Jadwal Seminar Terstruktur</h3>'
         
         for tanggal in sorted_dates:
             # Parse date to get day name
@@ -550,24 +555,38 @@ class JadwalSeminarTools:
                 hari_nama = "Hari"
             
             entries = grouped[tanggal]
-            html += f'<div style="margin-bottom:16px; border-left:4px solid #3b82f6; padding-left:12px;">'
-            html += f'<h4 style="margin:0 0 10px 0; color:#1e40af; font-size:14px; font-weight:700;">🗓️ {hari_nama}, {tanggal}</h4>'
-            html += '<table style="width:100%; border-collapse:collapse; font-size:12px;">'
+            html += f'<div style="margin-bottom:20px;">'
+            html += f'<h4 style="margin:0 0 12px 0; color:#1e40af; font-size:14px; font-weight:700; padding-bottom:8px; border-bottom:2px solid #3b82f6;">{hari_nama}, {tanggal}</h4>'
+            
+            # Table format
+            html += '<table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">'
+            html += '<thead><tr style="background:#e0e7ff; border:1px solid #cbd5e1;">'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Kelompok</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Waktu</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Ruangan</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Pembimbing 1</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Pembimbing 2</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Penguji 1</th>'
+            html += '<th style="padding:10px; text-align:left; border:1px solid #cbd5e1; font-weight:700;">Penguji 2</th>'
+            html += '</tr></thead><tbody>'
             
             for idx, entry in enumerate(entries, 1):
-                bg_color = '#f0fdf4' if idx % 2 == 0 else '#ffffff'
-                html += f'<tr style="background:{bg_color}; border-bottom:1px solid #e5e7eb;">'
-                html += f'<td style="padding:8px; width:5%;">📍</td>'
-                html += f'<td style="padding:8px; width:25%; font-weight:600;">Kelompok {entry.get("kelompok_nomor", entry.get("kelompok_id"))}</td>'
-                html += f'<td style="padding:8px; width:25%; color:#666;">⏰ {entry["waktu"]}</td>'
-                html += f'<td style="padding:8px; width:45%; color:#059669; font-weight:600;">🏢 {entry.get("ruangan_name", "Ruangan " + str(entry.get("ruangan_id")))}</td>'
-                html += f'</tr>'
+                bg_color = '#f8fafc' if idx % 2 == 0 else '#ffffff'
+                html += f'<tr style="background:{bg_color}; border:1px solid #cbd5e1;">'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1; font-weight:600;">Kelompok {entry.get("kelompok_nomor", entry.get("kelompok_id"))}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1;">{entry["waktu"]}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1;">{entry.get("ruangan_name", "Ruangan " + str(entry.get("ruangan_id")))}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1; color:#7c3aed;">{entry.get("pembimbing_1", "-")}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1; color:#7c3aed;">{entry.get("pembimbing_2", "-")}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1; color:#dc2626;">{entry.get("penguji_1", "-")}</td>'
+                html += f'<td style="padding:10px; border:1px solid #cbd5e1; color:#dc2626;">{entry.get("penguji_2", "-")}</td>'
+                html += '</tr>'
             
-            html += '</table>'
+            html += '</tbody></table>'
             html += '</div>'
         
         html += f'<div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">'
-        html += f'<p style="margin:0; color:#64748b; font-size:12px;">📊 Total: <strong>{len(jadwal_entries)}</strong> jadwal | <strong>{len(sorted_dates)}</strong> hari | <strong>{len(set(entry.get("ruangan_id") for entry in jadwal_entries))}</strong> ruangan</p>'
+        html += f'<p style="margin:0; color:#64748b; font-size:12px;">Total: <strong>{len(jadwal_entries)}</strong> jadwal | <strong>{len(sorted_dates)}</strong> hari | <strong>{len(set(entry.get("ruangan_id") for entry in jadwal_entries))}</strong> ruangan</p>'
         html += '</div>'
         html += '</div>'
         
@@ -616,7 +635,7 @@ class JadwalSeminarTools:
             if not kelompok:
                 return {
                     "status": "error",
-                    "message": f"❌ Kelompok {kelompok_nomor} tidak ditemukan"
+                    "message": f"Kelompok {kelompok_nomor} tidak ditemukan"
                 }
             
             # Get jadwal for this kelompok
@@ -642,14 +661,28 @@ class JadwalSeminarTools:
                 Pembimbing.kelompok_id == kelompok.id
             ).all()
             
-            pembimbing_names = [pb.dosen.nama if pb.dosen else "Belum ditentukan" for pb in pembimbing_list]
+            pembimbing_data = []
+            for pb in pembimbing_list:
+                dosen = session.query(Dosen).filter(Dosen.user_id == pb.user_id).first()
+                nama = dosen.nama if dosen else "Belum ditentukan"
+                pembimbing_data.append(nama)
+            
+            pembimbing_1 = pembimbing_data[0] if len(pembimbing_data) > 0 else "-"
+            pembimbing_2 = pembimbing_data[1] if len(pembimbing_data) > 1 else "-"
             
             # Get penguji
             penguji_list = session.query(Penguji).filter(
                 Penguji.kelompok_id == kelompok.id
             ).all()
             
-            penguji_names = [pj.dosen.nama if pj.dosen else "Belum ditentukan" for pj in penguji_list]
+            penguji_data = []
+            for pj in penguji_list:
+                dosen = session.query(Dosen).filter(Dosen.user_id == pj.user_id).first()
+                nama = dosen.nama if dosen else "Belum ditentukan"
+                penguji_data.append(nama)
+            
+            penguji_1 = penguji_data[0] if len(penguji_data) > 0 else "-"
+            penguji_2 = penguji_data[1] if len(penguji_data) > 1 else "-"
             
             # Get ruangan
             ruangan_name = "Belum dijadwalkan"
@@ -664,40 +697,59 @@ class JadwalSeminarTools:
             
             # Generate HTML response
             html = '<div style="background:#f0fdf4; border-radius:12px; padding:16px; border:2px solid #10b981;">'
-            html += f'<h3 style="margin:0 0 12px 0; color:#065f46; font-size:16px; font-weight:700;">🎓 Detail Jadwal Seminar Kelompok {kelompok_nomor}</h3>'
+            html += f'<h3 style="margin:0 0 12px 0; color:#065f46; font-size:16px; font-weight:700;">Detail Jadwal Seminar Kelompok {kelompok_nomor}</h3>'
             
             # Jadwal info
             html += '<div style="background:#dcfce7; border-left:4px solid #10b981; padding:12px; margin-bottom:12px; border-radius:6px;">'
-            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">📅 Tanggal: {tanggal_jadwal}</p>'
-            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">⏰ Waktu: {waktu_jadwal}</p>'
-            html += f'<p style="margin:0; color:#065f46; font-weight:600;">🏢 Ruangan: {ruangan_name}</p>'
+            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">Tanggal: {tanggal_jadwal}</p>'
+            html += f'<p style="margin:0 0 4px 0; color:#065f46; font-weight:600;">Waktu: {waktu_jadwal}</p>'
+            html += f'<p style="margin:0; color:#065f46; font-weight:600;">Ruangan: {ruangan_name}</p>'
             html += '</div>'
             
             # Anggota kelompok
-            html += '<div style="margin-bottom:12px;">'
-            html += '<h4 style="margin:0 0 8px 0; color:#1e40af; font-size:13px; font-weight:700;">👥 Anggota Kelompok:</h4>'
-            html += '<ul style="margin:0; padding-left:20px;">'
-            for anggota in anggota_list:
-                html += f'<li style="color:#374151; margin-bottom:4px;">{anggota["nama"]} ({anggota["nim"]})</li>'
-            html += '</ul>'
+            html += '<div style="margin-bottom:16px;">'
+            html += '<h4 style="margin:0 0 8px 0; color:#1e40af; font-size:13px; font-weight:700;">Anggota Kelompok:</h4>'
+            html += '<table style="width:100%; border-collapse:collapse; font-size:12px; border:1px solid #cbd5e1;">'
+            for idx, anggota in enumerate(anggota_list, 1):
+                bg_color = '#f8fafc' if idx % 2 == 0 else '#ffffff'
+                html += f'<tr style="background:{bg_color}; border:1px solid #cbd5e1;">'
+                html += f'<td style="padding:8px; border:1px solid #cbd5e1; width:10%;">{idx}</td>'
+                html += f'<td style="padding:8px; border:1px solid #cbd5e1; width:35%;">{anggota["nama"]}</td>'
+                html += f'<td style="padding:8px; border:1px solid #cbd5e1; width:55%;">{anggota["nim"]}</td>'
+                html += '</tr>'
+            html += '</table>'
             html += '</div>'
             
-            # Pembimbing
+            # Dosen (Pembimbing dan Penguji)
             html += '<div style="margin-bottom:12px;">'
-            html += '<h4 style="margin:0 0 8px 0; color:#7c3aed; font-size:13px; font-weight:700;">👨‍🏫 Dosen Pembimbing:</h4>'
-            html += '<ul style="margin:0; padding-left:20px;">'
-            for pb_name in pembimbing_names:
-                html += f'<li style="color:#374151; margin-bottom:4px;">{pb_name}</li>'
-            html += '</ul>'
-            html += '</div>'
+            html += '<h4 style="margin:0 0 8px 0; color:#7c3aed; font-size:13px; font-weight:700;">Dosen Pembimbing dan Penguji:</h4>'
+            html += '<table style="width:100%; border-collapse:collapse; font-size:12px; border:1px solid #cbd5e1;">'
+            html += '<tr style="background:#e0e7ff; border:1px solid #cbd5e1;">'
+            html += '<th style="padding:8px; border:1px solid #cbd5e1; font-weight:700;">Jabatan</th>'
+            html += '<th style="padding:8px; border:1px solid #cbd5e1; font-weight:700;">Nama Dosen</th>'
+            html += '</tr>'
             
-            # Penguji
-            html += '<div style="margin-bottom:12px;">'
-            html += '<h4 style="margin:0 0 8px 0; color:#dc2626; font-size:13px; font-weight:700;">✅ Dosen Penguji:</h4>'
-            html += '<ul style="margin:0; padding-left:20px;">'
-            for pj_name in penguji_names:
-                html += f'<li style="color:#374151; margin-bottom:4px;">{pj_name}</li>'
-            html += '</ul>'
+            html += f'<tr style="background:#f3f4f6; border:1px solid #cbd5e1;">'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1; color:#7c3aed; font-weight:600;">Pembimbing 1</td>'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1;">{pembimbing_1}</td>'
+            html += '</tr>'
+            
+            html += f'<tr style="background:#ffffff; border:1px solid #cbd5e1;">'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1; color:#7c3aed; font-weight:600;">Pembimbing 2</td>'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1;">{pembimbing_2}</td>'
+            html += '</tr>'
+            
+            html += f'<tr style="background:#f3f4f6; border:1px solid #cbd5e1;">'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1; color:#dc2626; font-weight:600;">Penguji 1</td>'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1;">{penguji_1}</td>'
+            html += '</tr>'
+            
+            html += f'<tr style="background:#ffffff; border:1px solid #cbd5e1;">'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1; color:#dc2626; font-weight:600;">Penguji 2</td>'
+            html += f'<td style="padding:8px; border:1px solid #cbd5e1;">{penguji_2}</td>'
+            html += '</tr>'
+            
+            html += '</table>'
             html += '</div>'
             
             html += '</div>'
@@ -711,8 +763,10 @@ class JadwalSeminarTools:
                 "waktu": waktu_jadwal,
                 "ruangan": ruangan_name,
                 "anggota": anggota_list,
-                "pembimbing": pembimbing_names,
-                "penguji": penguji_names
+                "pembimbing_1": pembimbing_1,
+                "pembimbing_2": pembimbing_2,
+                "penguji_1": penguji_1,
+                "penguji_2": penguji_2
             }
         
         except Exception as e:
@@ -720,5 +774,5 @@ class JadwalSeminarTools:
             session.close()
             return {
                 "status": "error",
-                "message": f"❌ Error: {str(e)}"
+                "message": f"Error: {str(e)}"
             }
