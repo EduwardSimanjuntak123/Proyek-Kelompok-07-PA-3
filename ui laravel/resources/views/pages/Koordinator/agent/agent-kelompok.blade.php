@@ -378,8 +378,122 @@
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ asset('resources/js/agent-kelompok.js') }}"></script>
+    {{-- <script src="{{ asset('resources/js/agent-kelompok.js') }}"></script> --}}
+    {{-- 1. Load library flatpickr dulu --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+    {{-- 2. Definisikan fungsi di tag script TERPISAH --}}
+    <script>
+        async function initJadwalCalendar() {
+
+            const element = document.querySelector("#jadwal-tanggal");
+            if (!element) return;
+
+            if (element._flatpickr) {
+                element._flatpickr.destroy();
+            }
+
+            // ============================================================
+            // Hari libur nasional TETAP Indonesia (MM-DD)
+            // Tahun otomatis mengikuti tahun sistem
+            // ============================================================
+            const hariLiburTetap = [{
+                    bulan_hari: "01-01",
+                    holiday_name: "Tahun Baru Masehi"
+                },
+                {
+                    bulan_hari: "05-01",
+                    holiday_name: "Hari Buruh Internasional"
+                },
+                {
+                    bulan_hari: "06-01",
+                    holiday_name: "Hari Lahir Pancasila"
+                },
+                {
+                    bulan_hari: "08-17",
+                    holiday_name: "Hari Kemerdekaan Republik Indonesia"
+                },
+                {
+                    bulan_hari: "12-25",
+                    holiday_name: "Hari Raya Natal"
+                },
+                {
+                    bulan_hari: "12-26",
+                    holiday_name: "Cuti Bersama Natal"
+                },
+            ];
+
+            // Generate untuk tahun sekarang dan tahun depan
+            const tahunSekarang = new Date().getFullYear();
+            const dataLibur = [];
+
+            [tahunSekarang, tahunSekarang + 1].forEach(tahun => {
+                hariLiburTetap.forEach(item => {
+                    dataLibur.push({
+                        holiday_date: `${tahun}-${item.bulan_hari}`,
+                        holiday_name: item.holiday_name
+                    });
+                });
+            });
+
+            const hariLibur = dataLibur.map(x => x.holiday_date);
+
+            console.log("[HARI LIBUR] Total:", hariLibur.length, "tanggal");
+
+            flatpickr(element, {
+
+                dateFormat: "Y-m-d",
+                minDate: "today",
+
+                disable: [
+
+                    // Sabtu & Minggu
+                    function(date) {
+                        return (date.getDay() === 0 || date.getDay() === 6);
+                    },
+
+                    // Hari libur tetap
+                    ...hariLibur
+
+                ],
+
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+
+                    const d = dayElem.dateObj;
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const date = `${yyyy}-${mm}-${dd}`;
+
+                    // Merah untuk Sabtu & Minggu
+                    if (d.getDay() === 0 || d.getDay() === 6) {
+                        dayElem.style.background = "#fee2e2";
+                        dayElem.style.color = "#dc2626";
+                        dayElem.style.borderRadius = "50%";
+                    }
+
+                    // Kuning + tooltip untuk hari libur tetap
+                    if (hariLibur.includes(date)) {
+                        dayElem.style.background = "#fef3c7";
+                        dayElem.style.color = "#d97706";
+                        dayElem.style.border = "2px solid #f59e0b";
+                        dayElem.style.fontWeight = "bold";
+                        dayElem.style.borderRadius = "50%";
+
+                        const info = dataLibur.find(x => x.holiday_date === date);
+                        if (info) {
+                            dayElem.title = info.holiday_name;
+                        }
+                    }
+
+                }
+
+            });
+
+            console.log("[JADWAL] Kalender berhasil dibuat untuk tahun", tahunSekarang);
+        }
+    </script>
     <script>
         // ============== CHATBOT UI FUNCTIONS ==============
 
@@ -406,12 +520,12 @@
         // ============== JADWAL SEMINAR FUNCTIONS ==============
 
         /**
-         * Append jadwal form action buttons (Simpan + Buat Ulang)
+         * Append jadwal form action buttons (Simpan)
          */
         function appendJadwalFormActions(wrapper) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL] Appending action buttons...`);
-            
+
             try {
                 const bubble = wrapper.querySelector('.msg-bubble, .chat-message-bubble');
                 if (!bubble) {
@@ -420,25 +534,99 @@
                 }
 
                 const actionsHost = wrapper.querySelector('#jadwal-form-actions') || bubble;
-                
+
+                // ── Master list semua opsi ruangan (source of truth) ──
+                const allRuanganOptions = (function() {
+                    const firstSel = wrapper.querySelector('.jadwal-ruangan-select');
+                    if (!firstSel) return [];
+                    return Array.from(firstSel.options).map(function(o) {
+                        return {
+                            value: o.value,
+                            text: o.text
+                        };
+                    });
+                })();
+
+                // Sync semua dropdown: tiap select hanya tampilkan opsi yang belum dipilih select lain
+                function syncAllSelects() {
+                    const container = wrapper.querySelector('#jadwal-ruangan-container');
+                    const allSelects = Array.from(container.querySelectorAll('.jadwal-ruangan-select'));
+                    const selectedValues = allSelects.map(function(s) {
+                        return s.value;
+                    });
+
+                    allSelects.forEach(function(sel, idx) {
+                        const currentVal = sel.value;
+                        sel.innerHTML = '';
+                        allRuanganOptions.forEach(function(opt) {
+                            const isPlaceholder = opt.value === '';
+                            const isOwnValue = opt.value === currentVal;
+                            const isUsedByOther = selectedValues.some(function(v, i) {
+                                return i !== idx && v === opt.value && v !== '';
+                            });
+                            if (isPlaceholder || isOwnValue || !isUsedByOther) {
+                                const optEl = document.createElement('option');
+                                optEl.value = opt.value;
+                                optEl.text = opt.text;
+                                if (opt.value === currentVal) optEl.selected = true;
+                                sel.appendChild(optEl);
+                            }
+                        });
+                    });
+
+                    // Disable tombol tambah jika semua ruangan sudah dipilih
+                    const addBtn2 = wrapper.querySelector('#add-ruangan-btn');
+                    if (addBtn2) {
+                        const usedCount = selectedValues.filter(function(v) {
+                            return v !== '';
+                        }).length;
+                        const totalRooms = allRuanganOptions.filter(function(o) {
+                            return o.value !== '';
+                        }).length;
+                        addBtn2.disabled = usedCount >= totalRooms;
+                        addBtn2.style.opacity = addBtn2.disabled ? '0.5' : '1';
+                        addBtn2.style.cursor = addBtn2.disabled ? 'not-allowed' : 'pointer';
+                    }
+                }
+
+                // Helper function to update remove buttons visibility
+                function updateRemoveButtons() {
+                    const container = wrapper.querySelector('#jadwal-ruangan-container');
+                    const rows = container.querySelectorAll('.ruangan-row');
+                    const removeBtns = container.querySelectorAll('.remove-ruangan-btn');
+                    removeBtns.forEach(function(btn) {
+                        btn.style.display = rows.length > 1 ? 'block' : 'none';
+                    });
+                }
+
+                // Pasang change listener pada select agar sync otomatis saat pilihan berubah
+                function attachSelectChangeListener(sel) {
+                    sel.addEventListener('change', function() {
+                        syncAllSelects();
+                    });
+                }
+
+                // Pasang listener ke select yang sudah ada di DOM
+                wrapper.querySelectorAll('.jadwal-ruangan-select').forEach(attachSelectChangeListener);
+
                 // First, attach event listener to "+ Tambah Ruangan" button
                 const addBtn = wrapper.querySelector('#add-ruangan-btn');
                 if (addBtn) {
                     addBtn.onclick = function(event) {
                         event.preventDefault();
                         event.stopPropagation();
-                        
+
                         const container = wrapper.querySelector('#jadwal-ruangan-container');
                         const rows = container.querySelectorAll('.ruangan-row');
                         const rowCount = rows.length;
-                        
+
                         const newRow = document.createElement('div');
                         newRow.className = 'ruangan-row';
                         newRow.style.display = 'flex';
                         newRow.style.gap = '8px';
                         newRow.style.marginBottom = '8px';
                         newRow.style.alignItems = 'center';
-                        
+
                         const select = document.createElement('select');
                         select.className = 'jadwal-ruangan-select';
                         select.style.flex = '1';
@@ -446,14 +634,17 @@
                         select.style.border = '1px solid #d1d5db';
                         select.style.borderRadius = '4px';
                         select.style.fontSize = '14px';
-                                                select.style.background = 'white';
-                                                select.style.cursor = 'pointer';
-                        
-                        const firstSelect = container.querySelector('.jadwal-ruangan-select');
-                        if (firstSelect) {
-                            select.innerHTML = firstSelect.innerHTML;
-                        }
-                        
+                        select.style.background = 'white';
+                        select.style.cursor = 'pointer';
+
+                        // Isi dari master list (akan di-filter oleh syncAllSelects setelah append)
+                        allRuanganOptions.forEach(function(opt) {
+                            const optEl = document.createElement('option');
+                            optEl.value = opt.value;
+                            optEl.text = opt.text;
+                            select.appendChild(optEl);
+                        });
+
                         const removeBtn = document.createElement('button');
                         removeBtn.type = 'button';
                         removeBtn.className = 'remove-ruangan-btn';
@@ -466,36 +657,30 @@
                         removeBtn.style.fontWeight = 'bold';
                         removeBtn.style.minWidth = '40px';
                         removeBtn.textContent = '✕';
-                        
+
                         removeBtn.onclick = function(e) {
                             e.preventDefault();
                             e.stopPropagation();
                             newRow.remove();
                             updateRemoveButtons();
+                            syncAllSelects(); // kembalikan opsi yang sudah dihapus barisnya
                         };
-                        
+
                         newRow.appendChild(select);
                         newRow.appendChild(removeBtn);
                         container.appendChild(newRow);
-                        
+
+                        attachSelectChangeListener(select); // pasang listener ke select baru
                         updateRemoveButtons();
+                        syncAllSelects(); // filter opsi yang sudah terpakai
                         console.log(`[${timestamp}] [JADWAL] ✓ Ruangan row #${rowCount + 1} added`);
                     };
                     console.log(`[${timestamp}] [JADWAL] ✓ Add ruangan button listener attached`);
                 }
-                
-                // Helper function to update remove buttons visibility
-                function updateRemoveButtons() {
-                    const container = wrapper.querySelector('#jadwal-ruangan-container');
-                    const rows = container.querySelectorAll('.ruangan-row');
-                    const removeBtns = container.querySelectorAll('.remove-ruangan-btn');
-                    removeBtns.forEach(btn => {
-                        btn.style.display = rows.length > 1 ? 'block' : 'none';
-                    });
-                }
-                
+
+                syncAllSelects();
                 updateRemoveButtons();
-                
+
                 // Create action buttons container
                 const actionsDiv = document.createElement('div');
                 actionsDiv.style.display = 'flex';
@@ -503,7 +688,7 @@
                 actionsDiv.style.gap = '10px';
                 actionsDiv.style.marginTop = '0';
                 actionsDiv.style.width = '100%';
-                
+
                 // Simpan button
                 const saveBtn = document.createElement('button');
                 saveBtn.type = 'button';
@@ -514,60 +699,21 @@
                 saveBtn.style.pointerEvents = 'auto';
                 saveBtn.style.width = '100%';
                 saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Jadwal Seminar';
-                
+
                 saveBtn.onclick = function(event) {
                     event.preventDefault();
                     event.stopPropagation();
                     console.log(`[${timestamp}] [JADWAL] Save button clicked`);
                     window.__submitJadwal(event);
                 };
-                
-                // Reset button
-                const resetBtn = document.createElement('button');
-                resetBtn.type = 'button';
-                resetBtn.className = 'btn btn-sm btn-secondary jadwal-reset-btn';
-                resetBtn.style.position = 'relative';
-                resetBtn.style.zIndex = '2';
-                resetBtn.style.cursor = 'pointer';
-                resetBtn.style.pointerEvents = 'auto';
-                resetBtn.style.width = '100%';
-                resetBtn.innerHTML = '<i class="fas fa-redo"></i> Buat Ulang';
-                
-                resetBtn.onclick = function(event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    console.log(`[${timestamp}] [JADWAL] Reset button clicked`);
-                    const tanggalInput = wrapper.querySelector('#jadwal-tanggal');
-                    const jamInput = wrapper.querySelector('#jadwal-durasi-jam');
-                    const menitInput = wrapper.querySelector('#jadwal-durasi-menit');
-                    
-                    if (tanggalInput) tanggalInput.value = '';
-                    if (jamInput) jamInput.value = '1';
-                    if (menitInput) menitInput.value = '50';
-                    
-                    const container = wrapper.querySelector('#jadwal-ruangan-container');
-                    if (container) {
-                        const rows = container.querySelectorAll('.ruangan-row');
-                        if (rows.length > 1) {
-                            rows.forEach((row, idx) => {
-                                if (idx > 0) row.remove();
-                            });
-                        }
-                        const removeBtn = container.querySelector('.remove-ruangan-btn');
-                        if (removeBtn) removeBtn.style.display = 'none';
-                    }
-                    
-                    console.log(`[${timestamp}] [JADWAL] Form reset`);
-                };
-                
+
                 actionsDiv.appendChild(saveBtn);
-                actionsDiv.appendChild(resetBtn);
-                
-                                // Store form reference for validation
-                                saveBtn.jadwalFormWrapper = wrapper;
-                
+
+                // Store form reference for validation
+                saveBtn.jadwalFormWrapper = wrapper;
+
                 actionsHost.appendChild(actionsDiv);
-                
+
                 console.log(`[${timestamp}] [JADWAL] ✓ Action buttons appended`);
             } catch (error) {
                 console.error(`[${timestamp}] [JADWAL] ❌ Error:`, error);
@@ -591,19 +737,23 @@
          * Helper: Find jadwal form elements robustly
          */
         function getJadwalFormElements(formContainer) {
-            const tanggalInput = formContainer === document ? 
-                document.getElementById("jadwal-tanggal") : 
+            const tanggalInput = formContainer === document ?
+                document.getElementById("jadwal-tanggal") :
                 (formContainer?.querySelector("#jadwal-tanggal") || document.getElementById("jadwal-tanggal"));
-            const durasiJamInput = formContainer === document ? 
-                document.getElementById("jadwal-durasi-jam") : 
+            const durasiJamInput = formContainer === document ?
+                document.getElementById("jadwal-durasi-jam") :
                 (formContainer?.querySelector("#jadwal-durasi-jam") || document.getElementById("jadwal-durasi-jam"));
-            const durasiMenitInput = formContainer === document ? 
-                document.getElementById("jadwal-durasi-menit") : 
+            const durasiMenitInput = formContainer === document ?
+                document.getElementById("jadwal-durasi-menit") :
                 (formContainer?.querySelector("#jadwal-durasi-menit") || document.getElementById("jadwal-durasi-menit"));
-            
-            return { tanggalInput, durasiJamInput, durasiMenitInput };
+
+            return {
+                tanggalInput,
+                durasiJamInput,
+                durasiMenitInput
+            };
         }
-        
+
         /**
          * Helper: Get ruangan list from form
          */
@@ -618,25 +768,25 @@
             });
             return ruanganList;
         }
-        
+
         function convertDatePickerToIndonesian(datePickerValue) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [DATE-CONVERT] Input: '${datePickerValue}' (type: ${typeof datePickerValue})`);
-            
+
             if (!datePickerValue || datePickerValue.toString().trim() === "") {
                 console.log(`[${timestamp}] [DATE-CONVERT] Empty input, returning empty string`);
                 return "";
             }
-            
+
             const bulanMap = [
                 "januari", "februari", "maret", "april", "mei", "juni",
                 "juli", "agustus", "september", "oktober", "november", "desember"
             ];
-            
+
             try {
                 let tahun, bulan, hari;
                 const dateStr = datePickerValue.toString().trim();
-                
+
                 // Try different date formats
                 if (dateStr.includes('-')) {
                     // Format: YYYY-MM-DD (standard HTML5 date)
@@ -655,7 +805,7 @@
                         const first = parseInt(parts[0]);
                         const second = parseInt(parts[1]);
                         const third = parts[2];
-                        
+
                         // If first > 12, it must be DD/MM/YYYY
                         if (first > 12) {
                             hari = String(first).padStart(2, '0');
@@ -678,24 +828,26 @@
                     console.log(`[${timestamp}] [DATE-CONVERT] Unknown format, returning as is: ${dateStr}`);
                     return dateStr;
                 }
-                
+
                 // Validate parsed values
                 const bulanIdx = parseInt(bulan) - 1;
                 const hariInt = parseInt(hari);
                 const tahunInt = parseInt(tahun);
-                
-                console.log(`[${timestamp}] [DATE-CONVERT] Parsed values: hari=${hariInt}, bulan=${bulanIdx+1}, tahun=${tahunInt}`);
-                
+
+                console.log(
+                    `[${timestamp}] [DATE-CONVERT] Parsed values: hari=${hariInt}, bulan=${bulanIdx+1}, tahun=${tahunInt}`
+                );
+
                 if (bulanIdx < 0 || bulanIdx > 11) {
                     console.error(`[${timestamp}] [DATE-CONVERT] Invalid month: ${bulanIdx + 1}`);
                     return "";
                 }
-                
+
                 if (hariInt < 1 || hariInt > 31) {
                     console.error(`[${timestamp}] [DATE-CONVERT] Invalid day: ${hariInt}`);
                     return "";
                 }
-                
+
                 const result = `${hariInt} ${bulanMap[bulanIdx]} ${tahunInt}`;
                 console.log(`[${timestamp}] [DATE-CONVERT] SUCCESS: '${result}'`);
                 return result;
@@ -711,23 +863,24 @@
         window.__submitJadwal = function(event) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL] ▶️  __submitJadwal called`);
-            
+
             try {
                 event?.preventDefault?.();
-                
+
                 // Try to find the form container using closest()
                 let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
-                
+
                 // If not found, try to find via the jadwal-form-actions element
                 if (!formContainer) {
                     const formActions = document.getElementById('jadwal-form-actions');
                     if (formActions) {
-                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
-                                       formActions.parentElement?.parentElement?.parentElement || 
-                                       formActions.parentElement?.parentElement;
+                        formContainer = formActions.closest(
+                                '.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') ||
+                            formActions.parentElement?.parentElement?.parentElement ||
+                            formActions.parentElement?.parentElement;
                     }
                 }
-                
+
                 // If still not found, use document as fallback (will search entire page)
                 if (!formContainer) {
                     formContainer = document;
@@ -735,61 +888,75 @@
                 } else {
                     console.log(`[${timestamp}] [JADWAL] ✓ Form container found`);
                 }
-                
+
                 // Query form elements - use safe fallback chain
                 let tanggalInput = document.getElementById("jadwal-tanggal");
                 if (!tanggalInput && formContainer && formContainer !== document) {
                     tanggalInput = formContainer.querySelector("#jadwal-tanggal");
                 }
-                
+
                 let durasiJamInput = document.getElementById("jadwal-durasi-jam");
                 if (!durasiJamInput && formContainer && formContainer !== document) {
                     durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
                 }
-                
+
                 let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
                 if (!durasiMenitInput && formContainer && formContainer !== document) {
                     durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
                 }
-                
+
                 console.log(`[${timestamp}] [JADWAL] ✓ Form elements found`);
-                console.log(`[${timestamp}] [JADWAL] tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`);
-                
+                console.log(
+                    `[${timestamp}] [JADWAL] tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`
+                );
+
                 const tanggalRaw = tanggalInput?.value?.trim() || "";
                 let tanggal = convertDatePickerToIndonesian(tanggalRaw);
-                
+
                 // If conversion failed but raw value exists, use raw value
                 if (!tanggal && tanggalRaw) {
                     console.log(`[${timestamp}] [JADWAL] Conversion failed, using raw value: ${tanggalRaw}`);
                     tanggal = tanggalRaw;
                 }
-                
+
                 const jam = parseInt(durasiJamInput?.value || "1");
                 const menit = parseInt(durasiMenitInput?.value || "50");
-                
+
                 // Debug: Check if input elements were found
-                console.log(`[${timestamp}] [JADWAL] Element checks: tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`);
-                console.log(`[${timestamp}] [JADWAL] Element values: tanggalInput.value='${tanggalInput?.value}', tanggalRaw='${tanggalRaw}'`);
-                
+                console.log(
+                    `[${timestamp}] [JADWAL] Element checks: tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`
+                );
+                console.log(
+                    `[${timestamp}] [JADWAL] Element values: tanggalInput.value='${tanggalInput?.value}', tanggalRaw='${tanggalRaw}'`
+                );
+
                 // Query ruangan selects - ALWAYS use document to find all select elements
                 // This ensures we find ruangan in the current chat message
                 let ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
                 console.log(`[${timestamp}] [JADWAL] Found ${ruanganSelects.length} ruangan select elements`);
-                
+
                 const ruanganList = [];
                 ruanganSelects.forEach((select, idx) => {
                     const ruangan_id = select.value;
-                    console.log(`[${timestamp}] [JADWAL] Ruangan[${idx}]: value='${ruangan_id}', innerText='${select.innerText || select.textContent}'`);
+                    console.log(
+                        `[${timestamp}] [JADWAL] Ruangan[${idx}]: value='${ruangan_id}', innerText='${select.innerText || select.textContent}'`
+                    );
                     if (ruangan_id) {
                         ruanganList.push(ruangan_id);
                     }
                 });
-                
-                console.log(`[${timestamp}] [JADWAL] Raw tanggal: '${tanggalRaw}', Converted tanggal: '${tanggal}', ruangan_count: ${ruanganList.length}, durasi: ${jam}j ${menit}m`);
-                console.log(`[${timestamp}] [JADWAL] Selected ruangan IDs: ${ruanganList.length > 0 ? ruanganList.join(',') : 'NONE'}`);
-                
+
+                console.log(
+                    `[${timestamp}] [JADWAL] Raw tanggal: '${tanggalRaw}', Converted tanggal: '${tanggal}', ruangan_count: ${ruanganList.length}, durasi: ${jam}j ${menit}m`
+                );
+                console.log(
+                    `[${timestamp}] [JADWAL] Selected ruangan IDs: ${ruanganList.length > 0 ? ruanganList.join(',') : 'NONE'}`
+                );
+
                 if (!tanggalRaw) {
-                    console.log(`[${timestamp}] [JADWAL] Validation failed: tanggalRaw empty (value='${tanggalInput?.value}')`);
+                    console.log(
+                        `[${timestamp}] [JADWAL] Validation failed: tanggalRaw empty (value='${tanggalInput?.value}')`
+                    );
                     Swal.fire({
                         title: 'Validasi Form',
                         text: 'Tanggal harus diisi. Silakan pilih tanggal dari kalender.',
@@ -798,7 +965,7 @@
                     });
                     return;
                 }
-                
+
                 if (ruanganList.length === 0) {
                     console.log(`[${timestamp}] [JADWAL] Validation failed: no ruangan selected`);
                     Swal.fire({
@@ -807,36 +974,37 @@
                         icon: 'warning',
                         confirmButtonText: 'OK'
                     });
-                                    if (jam < 0 || jam > 8 || menit < 0 || menit > 59) {
-                                        Swal.fire({
-                                            title: 'Validasi Durasi',
-                                            text: 'Durasi tidak valid. Jam: 0-8, Menit: 0-59',
-                                            icon: 'warning',
-                                            confirmButtonText: 'OK'
-                                        });
-                                        return;
-                                    }
-                
+                    if (jam < 0 || jam > 8 || menit < 0 || menit > 59) {
+                        Swal.fire({
+                            title: 'Validasi Durasi',
+                            text: 'Durasi tidak valid. Jam: 0-8, Menit: 0-59',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
                     return;
                 }
-                
+
                 const totalMenit = (jam * 60) + menit;
-                                if (totalMenit < 30 || totalMenit > 480) {
-                                    Swal.fire({
-                                        title: 'Durasi Terlalu Pendek/Panjang',
-                                        text: `Durasi harus antara 30 menit hingga 8 jam. Anda input: ${totalMenit} menit`,
-                                        icon: 'warning',
-                                        confirmButtonText: 'OK'
-                                    });
-                                    return;
-                                }
-                
-                const message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+                if (totalMenit < 30 || totalMenit > 480) {
+                    Swal.fire({
+                        title: 'Durasi Terlalu Pendek/Panjang',
+                        text: `Durasi harus antara 30 menit hingga 8 jam. Anda input: ${totalMenit} menit`,
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                const message =
+                    `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
                 console.log(`[${timestamp}] [JADWAL] Message: ${message}`);
-                
+
                 // Store this message for later use by save/reshuffle buttons
                 window.__lastJadwalMessage = message;
-                
+
                 const userInput = document.getElementById("userInput");
                 if (userInput) {
                     userInput.value = message;
@@ -844,7 +1012,7 @@
 
                     const submitBtn = event.target?.closest('.jadwal-submit-btn');
                     setJadwalSubmitButtonLoading(submitBtn);
-                    
+
                     window.sendMessage();
                 } else {
                     console.error(`[${timestamp}] [JADWAL] ❌ userInput element not found`);
@@ -1054,14 +1222,23 @@
             row.appendChild(body);
 
             chatBox.appendChild(row);
-            
+
             // Attach jadwal form action buttons if form is present
             if (sender === "ai" && text.includes('Input Jadwal Seminar')) {
+
                 setTimeout(() => {
+
                     appendJadwalFormActions(row);
-                }, 50);
+
+                    // Tambahan untuk kalender
+                    console.log("[JADWAL] Initializing calendar...");
+
+                    initJadwalCalendar();
+
+                }, 200);
+
             }
-            
+
             scrollToBottom();
         }
 
@@ -1135,11 +1312,11 @@
             });
 
             const action = (fields.action || "").toLowerCase();
-            const prefix = (action === "save" || action === "simpan" || action === "persist")
-                ? "Simpan jadwal seminar"
-                : (action === "acak" || action === "shuffle" || action === "random")
-                    ? "Acak ulang jadwal seminar"
-                    : "Jadwal seminar";
+            const prefix = (action === "save" || action === "simpan" || action === "persist") ?
+                "Simpan jadwal seminar" :
+                (action === "acak" || action === "shuffle" || action === "random") ?
+                "Acak ulang jadwal seminar" :
+                "Jadwal seminar";
 
             const parts = [];
 
@@ -1155,10 +1332,12 @@
                     const allNumeric = maybeIds.length > 0 && maybeIds.every(s => /^\d+$/.test(s));
                     if (allNumeric) {
                         const idToName = {};
-                        if (typeof latestJadwalEntries !== 'undefined' && Array.isArray(latestJadwalEntries) && latestJadwalEntries.length) {
+                        if (typeof latestJadwalEntries !== 'undefined' && Array.isArray(latestJadwalEntries) &&
+                            latestJadwalEntries.length) {
                             latestJadwalEntries.forEach(e => {
                                 if (e && (e.ruangan_id || e.ruangan_id === 0)) {
-                                    idToName[String(e.ruangan_id)] = e.ruangan_name || e.ruangan || String(e.ruangan_id);
+                                    idToName[String(e.ruangan_id)] = e.ruangan_name || e.ruangan || String(e
+                                        .ruangan_id);
                                 }
                             });
                         }
@@ -2264,7 +2443,10 @@
 
             switchToChat(); // 🔥 penting
 
-            appendMessage("user", displayMessage)
+            // Saat simpan jadwal: skip bubble pesan user, AI langsung tampil sebagai konfirmasi
+            if (!window.__jadwalSaveInProgress) {
+                appendMessage("user", displayMessage)
+            }
             input.value = ""
             autoResizeTextarea(input, 20)
             input.focus()
@@ -2273,6 +2455,16 @@
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+            // Attach jadwal_meta + jadwal_entries so backend can restore
+            // preview state even if Python state was reset between requests.
+            const jadwalPayload = {};
+            if (latestJadwalMeta) {
+                jadwalPayload.jadwal_meta = latestJadwalMeta;
+            }
+            if (latestJadwalEntries && latestJadwalEntries.length) {
+                jadwalPayload.jadwal_entries = latestJadwalEntries;
+            }
+
             fetch(route, {
                     method: "POST",
                     headers: {
@@ -2280,7 +2472,8 @@
                         "X-CSRF-TOKEN": csrfToken
                     },
                     body: JSON.stringify({
-                        prompt: message
+                        prompt: message,
+                        ...jadwalPayload
                     })
                 })
                 .then(res => {
@@ -2330,93 +2523,75 @@
                     }
 
                     scrollToBottom()
-                    
-                                    // Handle jadwal seminar response
-                                    if (data.jadwal_stage === 'completed' && data.jadwal_entries) {
-                                        console.log('[JADWAL] Jadwal seminar berhasil dibuat:', data.jadwal_entries.length);
-                        
-                                        // Update sidebar status
-                                        if (typeof updateSidebarStatus === 'function') {
-                                            updateSidebarStatus('jadwal', 'success');
-                                        }
-                        
-                                        // Show success alert
-                                        setTimeout(() => {
-                                            Swal.fire({
-                                                title: '✅ Jadwal Seminar Berhasil Dibuat!',
-                                                html: `<strong>${data.jadwal_entries.length}</strong> jadwal seminar telah berhasil disimpan ke database.<br><br><small style="color:#6b7280;">Jadwal dapat diverifikasi melalui halaman Data Jadwal Seminar.</small>`,
-                                                icon: 'success',
-                                                confirmButtonText: 'Lanjut',
-                                                confirmButtonColor: '#10b981'
-                                            });
-                                        }, 500);
-                                    } else if (data.jadwal_stage === 'input_form') {
-                                        // Form displayed - no alert needed
-                                        console.log('[JADWAL] Form input displayed');
-                                    } else if (data.jadwal_stage === 'preview' && data.jadwal_entries) {
-                                        console.log('[JADWAL] Jadwal seminar preview:', data.jadwal_entries.length);
 
-                                        if (typeof updateSidebarStatus === 'function') {
-                                            updateSidebarStatus('jadwal', 'preview');
-                                        }
+                    // Handle jadwal seminar response
+                    if (data.jadwal_stage === 'completed' && data.jadwal_entries) {
+                        console.log('[JADWAL] Jadwal seminar berhasil dibuat:', data.jadwal_entries.length);
 
-                                        appendJadwalPreviewActions();
+                        // Update sidebar status
+                        if (typeof updateSidebarStatus === 'function') {
+                            updateSidebarStatus('jadwal', 'success');
+                        }
 
-                                        // Show preview dialog with options: Simpan atau Acak Ulang
-                                        setTimeout(() => {
-                                            Swal.fire({
-                                                title: '🔎 Preview Jadwal Seminar (Belum Disimpan)',
-                                                html: data.result || 'Preview jadwal dibuat. Periksa sebelum menyimpan.',
-                                                icon: 'info',
-                                                showCancelButton: true,
-                                                confirmButtonText: 'Simpan Jadwal',
-                                                cancelButtonText: 'Acak Ulang',
-                                                confirmButtonColor: '#10b981',
-                                                width: 900
-                                            }).then((res) => {
-                                                // If simpan requested
-                                                if (res.isConfirmed) {
-                                                    // Build save message using meta if available
-                                                    const meta = data.jadwal_meta || {};
-                                                    const tanggal = meta.tanggal || '';
-                                                    const ruangan_list = (meta.ruangan_list || []).join(',');
-                                                    const durasi = meta.durasi_menit || '';
-                                                    const saveMsg = `[jadwal] action: save | tanggal: ${tanggal} | ruangan: ${ruangan_list} | durasi: ${durasi}`;
-                                                    const userInput = document.getElementById('userInput');
-                                                    if (userInput) {
-                                                        userInput.value = saveMsg;
-                                                        window.sendMessage();
-                                                    }
-                                                } else if (res.dismiss === Swal.DismissReason.cancel) {
-                                                    // Acak ulang requested: shuffle the current preview locally
-                                                    if (typeof window.__jadwalPreviewAction === 'function') {
-                                                        window.__jadwalPreviewAction('acak');
-                                                    }
-                                                }
-                                            });
-                                        }, 300);
-                                    } else if (message.includes('[jadwal]') && message.includes('durasi')) {
-                                        // Jadwal parsing atau error
-                                        if (displayText.includes('❌') || displayText.includes('Error')) {
-                                            console.log('[JADWAL] Jadwal creation failed');
-                            
-                                            // Update sidebar status to warning
-                                            if (typeof updateSidebarStatus === 'function') {
-                                                updateSidebarStatus('jadwal', 'warning');
-                                            }
-                            
-                                            // Show error alert
-                                            setTimeout(() => {
-                                                Swal.fire({
-                                                    title: '⚠️  Gagal Membuat Jadwal',
-                                                    html: displayText || 'Terjadi kesalahan saat membuat jadwal. Silakan periksa input Anda.',
-                                                    icon: 'error',
-                                                    confirmButtonText: 'Coba Lagi',
-                                                    confirmButtonColor: '#ef4444'
-                                                });
-                                            }, 500);
-                                        }
-                                    }
+                        // Show success alert
+                        setTimeout(() => {
+                            Swal.fire({
+                                title: '✅ Jadwal Seminar Berhasil Dibuat!',
+                                html: `<strong>${data.jadwal_entries.length}</strong> jadwal seminar telah berhasil disimpan ke database.<br><br><small style="color:#6b7280;">Jadwal dapat diverifikasi melalui halaman Data Jadwal Seminar.</small>`,
+                                icon: 'success',
+                                confirmButtonText: 'Lanjut',
+                                confirmButtonColor: '#10b981'
+                            });
+                        }, 500);
+                    } else if (data.jadwal_stage === 'input_form') {
+                        // Form displayed - no alert needed
+                        console.log('[JADWAL] Form input displayed');
+                    } else if (data.jadwal_stage === 'preview' && data.jadwal_entries) {
+                        console.log('[JADWAL] Jadwal seminar preview:', data.jadwal_entries.length);
+
+                        if (typeof updateSidebarStatus === 'function') {
+                            updateSidebarStatus('jadwal', 'preview');
+                        }
+
+                        appendJadwalPreviewActions();
+
+                        // Show preview dialog with options: Simpan atau Acak Ulang
+                        setTimeout(() => {
+                            Swal.fire({
+                                title: '🔎 Preview Jadwal Seminar (Belum Disimpan)',
+                                html: data.result ||
+                                    'Preview jadwal dibuat. Periksa sebelum menyimpan.',
+                                icon: 'info',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: '✕ Tutup',
+                                confirmButtonColor: '#6b7280',
+                                width: 900
+                            });
+                        }, 300);
+                    } else if (message.includes('[jadwal]') && message.includes('durasi')) {
+                        // Jadwal parsing atau error
+                        if (displayText.includes('❌') || displayText.includes('Error')) {
+                            console.log('[JADWAL] Jadwal creation failed');
+
+                            // Update sidebar status to warning
+                            if (typeof updateSidebarStatus === 'function') {
+                                updateSidebarStatus('jadwal', 'warning');
+                            }
+
+                            // Show error alert
+                            setTimeout(() => {
+                                Swal.fire({
+                                    title: '⚠️  Gagal Membuat Jadwal',
+                                    html: displayText ||
+                                        'Terjadi kesalahan saat membuat jadwal. Silakan periksa input Anda.',
+                                    icon: 'error',
+                                    confirmButtonText: 'Coba Lagi',
+                                    confirmButtonColor: '#ef4444'
+                                });
+                            }, 500);
+                        }
+                    }
                 })
                 .catch(err => {
                     removeLoading(loadingId)
@@ -2556,10 +2731,10 @@
         }
 
         // ================== JADWAL SEMINAR HANDLERS ==================
-        
+
         // Store the last valid jadwal message for save/reshuffle operations
         window.__lastJadwalMessage = null;
-        
+
         /**
          * Save jadwal preview to database
          */
@@ -2567,69 +2742,71 @@
             event?.preventDefault?.();
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL-SAVE] Save to database clicked`);
-            
+
             try {
                 // Try to find the form container
                 let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
-                
+
                 if (!formContainer) {
                     const formActions = document.getElementById('jadwal-form-actions');
                     if (formActions) {
-                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
-                                       formActions.parentElement?.parentElement?.parentElement || 
-                                       formActions.parentElement?.parentElement;
+                        formContainer = formActions.closest(
+                                '.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') ||
+                            formActions.parentElement?.parentElement?.parentElement ||
+                            formActions.parentElement?.parentElement;
                     }
                 }
-                
+
                 if (!formContainer) {
                     formContainer = document;
                 }
-                
+
                 const userInput = document.getElementById("userInput");
                 if (!userInput) {
                     console.error(`[${timestamp}] [JADWAL-SAVE] userInput not found`);
                     return;
                 }
-                
+
                 // Try to use stored message first
                 let message = window.__lastJadwalMessage;
-                
+
                 // If stored message is not available, try to rebuild from form
                 if (!message) {
-                    console.log(`[${timestamp}] [JADWAL-SAVE] Stored message empty, attempting to rebuild from form...`);
-                    
+                    console.log(
+                        `[${timestamp}] [JADWAL-SAVE] Stored message empty, attempting to rebuild from form...`);
+
                     // Query form elements - use safe fallback chain
                     let tanggalInput = document.getElementById("jadwal-tanggal");
                     if (!tanggalInput && formContainer && formContainer !== document) {
                         tanggalInput = formContainer.querySelector("#jadwal-tanggal");
                     }
-                    
+
                     let durasiJamInput = document.getElementById("jadwal-durasi-jam");
                     if (!durasiJamInput && formContainer && formContainer !== document) {
                         durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
                     }
-                    
+
                     let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
                     if (!durasiMenitInput && formContainer && formContainer !== document) {
                         durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
                     }
-                    
+
                     const tanggalRaw = tanggalInput?.value?.trim() || "";
                     let tanggal = convertDatePickerToIndonesian(tanggalRaw);
-                    
+
                     // If conversion failed but raw value exists, use raw value
                     if (!tanggal && tanggalRaw) {
                         console.log(`[${timestamp}] [JADWAL-SAVE] Conversion failed, using raw value: ${tanggalRaw}`);
                         tanggal = tanggalRaw;
                     }
-                    
+
                     const jam = parseInt(durasiJamInput?.value || "1");
                     const menit = parseInt(durasiMenitInput?.value || "50");
-                    
+
                     // ALWAYS use document to find all select elements in the current form
                     const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
                     console.log(`[${timestamp}] [JADWAL-SAVE] Found ${ruanganSelects.length} ruangan select elements`);
-                    
+
                     const ruanganList = [];
                     ruanganSelects.forEach((select, idx) => {
                         const ruangan_id = select.value;
@@ -2639,11 +2816,13 @@
                         }
                     });
                     console.log(`[${timestamp}] [JADWAL-SAVE] Total ruangan selected: ${ruanganList.length}`);
-                    
+
                     const totalMenit = (jam * 60) + menit;
-                    
+
                     if (!tanggalRaw || ruanganList.length === 0) {
-                        console.error(`[${timestamp}] [JADWAL-SAVE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`);
+                        console.error(
+                            `[${timestamp}] [JADWAL-SAVE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`
+                        );
                         Swal.fire({
                             title: 'Validasi Form',
                             text: 'Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi.',
@@ -2652,23 +2831,39 @@
                         });
                         return;
                     }
-                    
-                    message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
+
+                    message =
+                        `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
                     console.log(`[${timestamp}] [JADWAL-SAVE] Rebuilt message: ${message}`);
                 }
-                
-                // Add save action
-                const finalMessage = message.replace(/action[:\s]*\w+/gi, "").trim() + " | action: save";
-                
+
+                // Add save action — encode kelompok_order dari preview
+                // langsung ke prompt agar Python bisa parse tanpa butuh state.
+                let orderStr = "";
+                if (latestJadwalEntries && latestJadwalEntries.length > 0) {
+                    orderStr = " | order: " + latestJadwalEntries.map(e => e.kelompok_id).join(",");
+                }
+
+                // Jika message tidak punya tanggal/ruangan (rebuild gagal), inject dari meta
+                let baseMsg = message;
+                if (latestJadwalMeta && (!baseMsg.includes("tanggal") || !baseMsg.includes("ruangan"))) {
+                    const m = latestJadwalMeta;
+                    const ruanganStr = (m.ruangan_list || []).join(",");
+                    baseMsg =
+                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${ruanganStr} | durasi: ${m.durasi_menit || 110}`;
+                }
+
+                const finalMessage = baseMsg.replace(/action[:\s]*\w+/gi, "").trim() + " | action: save" + orderStr;
+
                 userInput.value = finalMessage;
                 console.log(`[${timestamp}] [JADWAL-SAVE] Final message: ${finalMessage}`);
-                
+
                 const btn = event?.target?.closest('.save-jadwal-btn');
                 if (btn) {
                     btn.disabled = true;
                     btn.innerHTML = 'Menyimpan...';
                 }
-                
+
                 // Show loading alert
                 Swal.fire({
                     title: 'Menyimpan Jadwal...',
@@ -2680,10 +2875,10 @@
                         Swal.showLoading();
                     }
                 });
-                
+
                 // Store save indicator for response handler
                 window.__jadwalSaveInProgress = true;
-                
+
                 window.sendMessage();
             } catch (error) {
                 console.error(`[${timestamp}] [JADWAL-SAVE] Error:`, error);
@@ -2695,116 +2890,53 @@
                 });
             }
         };
-        
+
         /**
-         * Reshuffle jadwal preview
+         * Reshuffle jadwal preview — kirim ulang request ke backend dengan action: shuffle
          */
         window.__reshuffleJadwal = function(event) {
             event?.preventDefault?.();
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Reshuffle clicked`);
-            
+
             try {
-                // Try to find the form container
-                let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
-                
-                if (!formContainer) {
-                    const formActions = document.getElementById('jadwal-form-actions');
-                    if (formActions) {
-                        formContainer = formActions.closest('.chat-message-wrapper, .msg-container, .chat-message, [data-msg]') || 
-                                       formActions.parentElement?.parentElement?.parentElement || 
-                                       formActions.parentElement?.parentElement;
-                    }
-                }
-                
-                if (!formContainer) {
-                    formContainer = document;
-                }
-                
                 const userInput = document.getElementById("userInput");
                 if (!userInput) {
                     console.error(`[${timestamp}] [JADWAL-RESHUFFLE] userInput not found`);
                     return;
                 }
-                
-                // Try to use stored message first
-                let message = window.__lastJadwalMessage;
-                
-                // If stored message is not available, try to rebuild from form
-                if (!message) {
-                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Stored message empty, attempting to rebuild from form...`);
-                    
-                    // Query form elements - use safe fallback chain
-                    let tanggalInput = document.getElementById("jadwal-tanggal");
-                    if (!tanggalInput && formContainer && formContainer !== document) {
-                        tanggalInput = formContainer.querySelector("#jadwal-tanggal");
-                    }
-                    
-                    let durasiJamInput = document.getElementById("jadwal-durasi-jam");
-                    if (!durasiJamInput && formContainer && formContainer !== document) {
-                        durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
-                    }
-                    
-                    let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
-                    if (!durasiMenitInput && formContainer && formContainer !== document) {
-                        durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
-                    }
-                    
-                    const tanggalRaw = tanggalInput?.value?.trim() || "";
-                    let tanggal = convertDatePickerToIndonesian(tanggalRaw);
-                    
-                    // If conversion failed but raw value exists, use raw value
-                    if (!tanggal && tanggalRaw) {
-                        console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Conversion failed, using raw value: ${tanggalRaw}`);
-                        tanggal = tanggalRaw;
-                    }
-                    
-                    const jam = parseInt(durasiJamInput?.value || "1");
-                    const menit = parseInt(durasiMenitInput?.value || "50");
-                    
-                    // ALWAYS use document to find all select elements in the current form
-                    const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
-                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Found ${ruanganSelects.length} ruangan select elements`);
-                    
-                    const ruanganList = [];
-                    ruanganSelects.forEach((select, idx) => {
-                        const ruangan_id = select.value;
-                        console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Ruangan[${idx}]: value='${ruangan_id}'`);
-                        if (ruangan_id) {
-                            ruanganList.push(ruangan_id);
-                        }
-                    });
-                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Total ruangan selected: ${ruanganList.length}`);
-                    
-                    const totalMenit = (jam * 60) + menit;
-                    
-                    if (!tanggalRaw || ruanganList.length === 0) {
-                        console.error(`[${timestamp}] [JADWAL-RESHUFFLE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`);
-                        Swal.fire({
-                            title: 'Validasi Form',
-                            text: 'Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi.',
-                            icon: 'warning',
-                            confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-                    
-                    message = `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
-                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Rebuilt message: ${message}`);
+
+                // Utamakan latestJadwalMeta karena selalu tersimpan setelah preview berhasil
+                let baseMessage = window.__lastJadwalMessage;
+                if (latestJadwalMeta) {
+                    const m = latestJadwalMeta;
+                    const ruanganStr = (m.ruangan_list || []).join(",");
+                    baseMessage =
+                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${ruanganStr} | durasi: ${m.durasi_menit || 110}`;
+                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Pakai latestJadwalMeta: ${baseMessage}`);
                 }
-                
-                // Add shuffle action
-                const finalMessage = message.replace(/action[:\s]*\w+/gi, "").trim() + " | action: shuffle";
-                
+
+                if (!baseMessage) {
+                    Swal.fire({
+                        title: 'Tidak Ada Data Preview',
+                        text: 'Silakan generate jadwal terlebih dahulu sebelum mengacak ulang.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                // Kirim ke backend dengan action: shuffle supaya Python random.shuffle dijalankan
+                const finalMessage = baseMessage.replace(/\|\s*action[:\s]*\w+/gi, "").trim() + " | action: shuffle";
                 userInput.value = finalMessage;
                 console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Final message: ${finalMessage}`);
-                
+
                 const btn = event?.target?.closest('.reshuffle-jadwal-btn');
                 if (btn) {
                     btn.disabled = true;
-                    btn.innerHTML = 'Mengacak...';
+                    btn.innerHTML = '⏳ Mengacak...';
                 }
-                
+
                 window.sendMessage();
             } catch (error) {
                 console.error(`[${timestamp}] [JADWAL-RESHUFFLE] Error:`, error);
@@ -2865,18 +2997,19 @@
                         mutation.addedNodes.forEach(function(node) {
                             if (node.nodeType === 1) { // Element node
                                 const messageText = node.textContent || '';
-                                
+
                                 // Check jika ini adalah message dari save jadwal
                                 if (window.__jadwalSaveInProgress) {
                                     // Check untuk success message
-                                    if (messageText.includes('Berhasil Disimpan') || messageText.includes('jadwal berhasil')) {
+                                    if (messageText.includes('Berhasil Disimpan') || messageText
+                                        .includes('jadwal berhasil')) {
                                         window.__jadwalSaveInProgress = false;
                                         Swal.close(); // Close loading alert
-                                        
+
                                         // Extract jumlah ruangan jika ada
                                         const match = messageText.match(/(\d+)\s+Ruangan/);
                                         const ruanganCount = match ? match[1] : 'jadwal';
-                                        
+
                                         Swal.fire({
                                             title: 'Jadwal Berhasil Disimpan!',
                                             text: `Jadwal seminar untuk ${ruanganCount} ruangan telah berhasil disimpan ke database.`,
@@ -2884,15 +3017,18 @@
                                             confirmButtonText: 'OK',
                                             confirmButtonColor: '#10b981'
                                         });
-                                    } 
+                                    }
                                     // Check untuk error message
-                                    else if (messageText.includes('Gagal') || messageText.includes('Error') || messageText.includes('error')) {
+                                    else if (messageText.includes('Gagal') || messageText.includes(
+                                            'Error') || messageText.includes('error')) {
                                         window.__jadwalSaveInProgress = false;
                                         Swal.close(); // Close loading alert
-                                        
+
                                         Swal.fire({
                                             title: 'Gagal Menyimpan Jadwal',
-                                            text: messageText.substring(0, 200), // Ambil 200 char pertama sebagai detail error
+                                            text: messageText.substring(0,
+                                                200
+                                            ), // Ambil 200 char pertama sebagai detail error
                                             icon: 'error',
                                             confirmButtonText: 'OK'
                                         });

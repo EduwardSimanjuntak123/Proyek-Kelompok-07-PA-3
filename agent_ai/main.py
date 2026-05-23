@@ -63,7 +63,7 @@ builder.add_edge("answer", END)
 graph = builder.compile()
 
 
-def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conversation_history: list = None):
+def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conversation_history: list = None, request_data: dict = None):
     """
     Jalankan agent untuk chat dengan LLM yang model-aware
     User bebas input apapun di UI - agent bisa menjawab tentang models/schema
@@ -73,6 +73,8 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         user_id: User ID dari session untuk tracking conversation
         dosen_context: Context dosen (user_id, prodi, role, kategori_pa, etc)
         conversation_history: History percakapan sebelumnya (optional)
+        request_data: Data tambahan dari frontend (jadwal_meta, jadwal_entries, dll)
+                      Dipakai untuk restore preview state antar request
     
     Returns:
         Dictionary dengan hasil:
@@ -100,6 +102,9 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         })
         
         # Create state dengan dosen context (untuk model awareness)
+        # request_data berisi jadwal_meta & jadwal_entries dari frontend
+        # sehingga executor_node bisa restore preview state antar request
+        _request_data = request_data or {}
         state = {
             "messages": initial_messages,
             "plan": None,
@@ -117,7 +122,12 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
             "context": {
                 "dosen_context": dosen_context or [],
                 "type": "chat"
-            }
+            },
+            # Restore jadwal state dari request_data jika tersedia
+            "request_data": _request_data,
+            "jadwal_meta": _request_data.get("jadwal_meta") or None,
+            "jadwal_entries": _request_data.get("jadwal_entries") or None,
+            "jadwal_stage": "preview" if _request_data.get("jadwal_meta") else None,
         }
         
         # Invoke graph - akan go through planner -> executor -> answer

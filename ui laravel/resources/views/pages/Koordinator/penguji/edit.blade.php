@@ -4,6 +4,7 @@
 @section('content')
     <section class="section">
         <div class="section-body">
+
             <div class="row">
                 <div class="col-12">
 
@@ -11,23 +12,26 @@
 
                     <div class="card">
 
-                        <div class="card-header d-flex justify-content-between">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+
                             <h4>Edit Penguji Kelompok</h4>
 
                             <a href="{{ route('penguji.index') }}" class="btn btn-primary btn-sm">
                                 Kembali
                             </a>
+
                         </div>
 
                         <div class="card-body">
 
                             <form method="POST" action="{{ route('penguji.update', Crypt::encrypt($kelompok_id)) }}">
+
                                 @csrf
                                 @method('PUT')
 
                                 <input type="hidden" name="kelompok_id" value="{{ $kelompok_id }}">
 
-                                {{-- KELOMPOK --}}
+                                {{-- Kelompok --}}
                                 <div class="form-group">
 
                                     <label>Kelompok</label>
@@ -36,6 +40,7 @@
                                         value="{{ $kelompok->nomor_kelompok ?? '-' }}" readonly>
 
                                 </div>
+
 
                                 {{-- PENGUJI 1 --}}
                                 <div class="form-group">
@@ -83,18 +88,36 @@
                                     </select>
                                 </div>
 
+
                                 <button type="submit" class="btn btn-primary">
 
-                                    <i class="fas fa-save"></i> Simpan Perubahan
+                                    <i class="fas fa-save"></i>
+                                    Simpan Perubahan
 
                                 </button>
 
                             </form>
 
                         </div>
+
                     </div>
 
                 </div>
             </div>
+
         </div>
     </section>
+@endsection
+
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+
+            $('.select2').select2({
+                width: '100%'
+            });
+
+        });
+    </script>
+@endpush

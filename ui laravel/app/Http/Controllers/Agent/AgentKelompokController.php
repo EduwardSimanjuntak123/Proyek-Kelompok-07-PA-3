@@ -127,10 +127,19 @@ class AgentKelompokController extends Controller
                 Log::info("[$traceId] Role Item:", $item);
             }
 
+            // Ambil jadwal_meta dan jadwal_entries dari request frontend
+            // agar Python agent bisa restore preview state antar request.
+            $jadwalMeta    = $request->input('jadwal_meta');
+            $jadwalEntries = $request->input('jadwal_entries');
+
             $finalPayload = [
-                "prompt" => $prompt,
-                "dosen_context" => $payload,
-                "user_id" => $userId
+                "prompt"         => $prompt,
+                "dosen_context"  => $payload,
+                "user_id"        => $userId,
+                "request_data"   => [
+                    "jadwal_meta"    => $jadwalMeta,
+                    "jadwal_entries" => $jadwalEntries,
+                ],
             ];
 
             Log::info("[$traceId] Final Payload:", $finalPayload);
@@ -158,17 +167,20 @@ class AgentKelompokController extends Controller
             Log::info("[$traceId] === END GENERATE AI ===");
 
             return response()->json([
-                'success' => true,
-                'result' => $data['result'] ?? '',
-                'action' => $data['action'] ?? null,
+                'success'          => true,
+                'result'           => $data['result']           ?? '',
+                'action'           => $data['action']           ?? null,
                 'grouping_payload' => $data['grouping_payload'] ?? null,
-                'grouping_meta' => $data['grouping_meta'] ?? null,
+                'grouping_meta'    => $data['grouping_meta']    ?? null,
                 'pembimbing_payload' => $data['pembimbing_payload'] ?? null,
-                'pembimbing_meta' => $data['pembimbing_meta'] ?? null,
-                'penguji_payload' => $data['penguji_payload'] ?? null,
-                'penguji_meta' => $data['penguji_meta'] ?? null,
-                            'jadwal_stage' => $data['jadwal_stage'] ?? null,
-                            'jadwal_entries' => $data['jadwal_entries'] ?? null,
+                'pembimbing_meta'  => $data['pembimbing_meta']  ?? null,
+                'penguji_payload'  => $data['penguji_payload']  ?? null,
+                'penguji_meta'     => $data['penguji_meta']     ?? null,
+                'jadwal_stage'     => $data['jadwal_stage']     ?? null,
+                'jadwal_entries'   => $data['jadwal_entries']   ?? null,
+                // Kembalikan jadwal_meta agar frontend menyimpannya
+                // dan mengirimkannya kembali di request berikutnya.
+                'jadwal_meta'      => $data['jadwal_meta']      ?? $jadwalMeta ?? null,
             ]);
 
         } catch (\Exception $e) {

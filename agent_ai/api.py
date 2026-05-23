@@ -119,6 +119,9 @@ class GenerateGroupingRequest(BaseModel):
     prompt: str
     dosen_context: List[DosenContext]
     user_id: int  # User ID dari Laravel session untuk conversation tracking
+    # Data tambahan dari frontend (jadwal_meta, jadwal_entries, dll)
+    # Dikirim oleh blade.php agar Python bisa restore preview state antar request
+    request_data: Optional[Dict[str, Any]] = None
 
 
 class GroupMember(BaseModel):
@@ -249,11 +252,14 @@ async def agent_endpoint(request: GenerateGroupingRequest):
         logger.debug(f"[{trace_id}] User message logged to MongoDB")
         
         # Call agent - dengan dosen_context untuk model awareness
+        # request_data berisi jadwal_meta, jadwal_entries dari frontend
+        # agar Python agent bisa restore preview state antar request
         agent_result = run_agent_chat(
             prompt=request.prompt,
             user_id=request.user_id,
             dosen_context=dosen_context,
-            conversation_history=conversation_history
+            conversation_history=conversation_history,
+            request_data=request.request_data or {}
         )
         
         # Add user message ke Redis context (short-term)

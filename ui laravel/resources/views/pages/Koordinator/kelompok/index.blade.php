@@ -47,7 +47,7 @@
                                                     <div class="d-flex">
                                                         <a href="{{ route('kelompokMahasiswa.index', $item->id) }}"
                                                             class="btn btn-primary btn-sm"><i
-                                                                class="nav-icon fas fa-edit"></i> &nbsp;
+                                                                class="nav-icon fas fa-cog"></i> &nbsp;
                                                             Kelola</a>&nbsp;&nbsp;
                                                         <a href="{{ route('kelompok.edit', Crypt::encrypt($item->id)) }}"
                                                             class="btn btn-success btn-sm"><i

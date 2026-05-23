@@ -523,4 +523,19 @@ Route::prefix('ai-agent')->group(function () {
     Route::get('/analytics/debug', [AgentAnalyticsController::class, 'debug'])
         ->name('agent.analytics.debug');
 
+    Route::get('/api/hari-libur', function () {
+    $tahun = request('year', date('Y'));
+    
+    $response = Http::timeout(10)
+        ->get("https://api-harilibur.vercel.app/api", [
+            'year' => $tahun
+        ]);
+    
+    if ($response->failed()) {
+        return response()->json([], 200); // Kalender tetap jalan meski API gagal
+    }
+    
+    return response()->json($response->json());
+});
+
 });

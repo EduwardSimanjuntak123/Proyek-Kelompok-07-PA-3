@@ -39,7 +39,7 @@ from tools.penguji_tools import (
     get_penguji_of_kelompok,
 )
 from tools.dosen_role_tools import get_dosen_roles_by_dosen_context
-from tools.jadwal_tools import get_jadwal_by_dosen_context
+from tools.jadwal_seminar import get_jadwal_by_dosen_context, check_existing_jadwal_by_context
 from tools.nilai_mahasiswa_tools import (
     get_nilai_akhir_by_dosen_context,
     get_nilai_permatkul_by_mahasiswa,
@@ -497,7 +497,23 @@ def executor_node(state):
         state["pembimbing_meta"] = None
         state["penguji_payload"] = None
         state["penguji_meta"] = None
-        
+
+        # ── Restore jadwal_meta / jadwal_entries dari request jika state kosong ──
+        # Frontend mengirim jadwal_meta & jadwal_entries bersama setiap request,
+        # sehingga meskipun Python state di-reset antar request, data preview
+        # tetap tersedia untuk aksi save_jadwal.
+        request_data = state.get("request_data") or {}
+        if request_data.get("jadwal_meta") and not state.get("jadwal_meta"):
+            state["jadwal_meta"] = request_data["jadwal_meta"]
+            logger.info(f"[{user_id}] 🔄 Restored jadwal_meta from request_data")
+        if request_data.get("jadwal_entries") and not state.get("jadwal_entries"):
+            state["jadwal_entries"] = request_data["jadwal_entries"]
+            logger.info(f"[{user_id}] 🔄 Restored jadwal_entries from request_data ({len(request_data['jadwal_entries'])} entries)")
+        # If jadwal_meta is present (restored or existing) and stage is unknown,
+        # treat it as a resumed preview so save_jadwal can proceed.
+        if state.get("jadwal_meta") and not state.get("jadwal_stage"):
+            state["jadwal_stage"] = "preview"
+
         plan = state.get("plan", {})
         prompt = state.get("messages", [{}])[-1].get("content", "")
         prompt_lower = prompt.lower()
@@ -2029,7 +2045,35 @@ def executor_node(state):
             # STEP 1: Check if this is the initial request (ask for form)
             # Also reset if completed, so user can create another jadwal
             if (not state.get("jadwal_stage") or state.get("jadwal_stage") == "completed") and not is_jadwal_submission and action != "save_jadwal":
-                # User just asked for jadwal seminar, show form
+                # ── CEK APAKAH JADWAL SUDAH ADA DI DATABASE ──────────────────
+                existing_check = check_existing_jadwal_by_context(user_id)
+                if existing_check.get("exists"):
+                    total     = existing_check.get("total", 0)
+                    tgl_mulai = existing_check.get("tgl_mulai", "-")
+                    tgl_selesai = existing_check.get("tgl_selesai", "-")
+                    logger.info(f"[{user_id}] ℹ️  Jadwal sudah ada ({total} entries), memberitahu user")
+                    state["result"] = (
+                        f"<div style='padding:12px;border:1px solid #bbf7d0;border-radius:12px;"
+                        f"background:#f0fdf4;'>"
+                        f"<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;'>"
+                        f"<span style='font-size:20px;'>✅</span>"
+                        f"<strong style='color:#166534;font-size:15px;'>Jadwal Seminar Sudah Terbuat</strong>"
+                        f"</div>"
+                        f"<p style='margin:0 0 6px 0;color:#15803d;'>"
+                        f"Sudah terdapat <strong>{total} jadwal seminar</strong> yang tersimpan "
+                        f"di database untuk konteks Anda.</p>"
+                        f"<p style='margin:0 0 10px 0;color:#4b5563;font-size:13px;'>"
+                        f"📅 Periode: <strong>{tgl_mulai}</strong> s/d <strong>{tgl_selesai}</strong></p>"
+                        f"<p style='margin:0;color:#6b7280;font-size:12px;'>"
+                        f"Jika ingin membuat jadwal baru, silakan hapus jadwal yang sudah ada terlebih dahulu "
+                        f"melalui halaman Data Jadwal Seminar.</p>"
+                        f"</div>"
+                    )
+                    state["jadwal_stage"] = "completed"
+                    state["sidebar_update"] = {"step": "jadwal", "status": "success"}
+                    return state
+
+                # Jadwal belum ada — tampilkan form input
                 current_stage = state.get("jadwal_stage")
                 logger.info(f"[{user_id}] ℹ️  jadwal_stage={current_stage}, showing input form")
                 form_result = JadwalSeminarTools.get_form_jadwal()
@@ -2061,23 +2105,127 @@ def executor_node(state):
                 durasi_match = re.search(r'durasi[:\s]*(\d+)', prompt_lower)
                 durasi_menit = int(durasi_match.group(1)) if durasi_match else 110
 
-                # Optional action: save / simpan / persist or acak / shuffle
-                action_match = re.search(r'action[:\s]*([a-zA-Z_]+)', prompt_lower)
-                action_str = action_match.group(1).strip().lower() if action_match else None
-                order_match = re.search(r'order[:\s]*([0-9,]+)', prompt_lower)
-                order_str = order_match.group(1) if order_match else None
-                kelompok_order = [int(item.strip()) for item in order_str.split(',') if item.strip().isdigit()] if order_str else None
-                persist = False
-                shuffle_groups = False
-                if action_str in ("save", "simpan", "persist"):
-                    persist = True
-                if action_str in ("acak", "shuffle", "random"):
-                    shuffle_groups = True
+
+                # ── FAST PATH: "Simpan ke Database" button from frontend ──────────────
+                # action == "save_jadwal" comes BEFORE any tanggal/ruangan parsing
+                # because at this point tanggal_mulai / kelompok_list are not yet set.
                 if action == "save_jadwal":
-                    persist = True
-                if action_str is None:
-                    # Default preview should look random so user doesn't always see kelompok 1..n in order
+                    # ── PRIMARY: parse semua data langsung dari prompt ──────────
+                    # Frontend menyertakan order:, tanggal:, ruangan:, durasi:
+                    # dalam string prompt saat tombol Simpan ditekan.
+                    # Ini tidak bergantung pada state Python sama sekali.
+
+                    # Parse kelompok_order dari prompt (format: "order: 7,9,2,5,...")
+                    _order_match_prompt = re.search(r'order[:\s]*([0-9,]+)', prompt_lower)
+                    _kelompok_order_from_prompt = (
+                        [int(x.strip()) for x in _order_match_prompt.group(1).split(',') if x.strip().isdigit()]
+                        if _order_match_prompt else []
+                    )
+
+                    # Parse tanggal dari prompt
+                    _tanggal_match_save = re.search(r'tanggal[:\s]+([^|]*?)(?:\||$)', prompt_lower)
+                    _tanggal_str_from_prompt = _tanggal_match_save.group(1).strip() if _tanggal_match_save else None
+
+                    # Parse ruangan dari prompt
+                    _ruangan_match_save = re.search(r'ruangan[:\s]*([0-9,]+)', prompt_lower)
+                    _ruangan_list_from_prompt = (
+                        [int(r.strip()) for r in _ruangan_match_save.group(1).split(',') if r.strip().isdigit()]
+                        if _ruangan_match_save else []
+                    )
+
+                    # Parse durasi dari prompt
+                    _durasi_match_save = re.search(r'durasi[:\s]*(\d+)', prompt_lower)
+                    _durasi_from_prompt = int(_durasi_match_save.group(1)) if _durasi_match_save else None
+
+                    # ── FALLBACK: gunakan jadwal_meta dari state / request_data ─
+                    preview_meta = state.get("jadwal_meta") or {}
+
+                    _tanggal_str_save   = _tanggal_str_from_prompt  or preview_meta.get("tanggal")
+                    _ruangan_list_save  = _ruangan_list_from_prompt  or preview_meta.get("ruangan_list") or []
+                    _durasi_menit_save  = _durasi_from_prompt        or preview_meta.get("durasi_menit") or 110
+                    _kelompok_order_save = _kelompok_order_from_prompt or preview_meta.get("kelompok_order") or []
+
+                    _tanggal_mulai_save = JadwalSeminarTools.parse_tanggal_input(_tanggal_str_save) if _tanggal_str_save else None
+
+                    logger.info(
+                        f"[{user_id}] [SAVE] kelompok_order={_kelompok_order_save}, "
+                        f"tanggal={_tanggal_str_save}, ruangan={_ruangan_list_save}"
+                    )
+
+                    if not _tanggal_mulai_save or not _ruangan_list_save:
+                        state["result"] = "❌ Data preview tidak ditemukan. Silakan buat jadwal preview terlebih dahulu."
+                        logger.warning(f"[{user_id}] ✗ save_jadwal: missing preview metadata")
+                        return state
+
+                    _kelompok_list_save = JadwalSeminarTools.get_kelompok_for_jadwal(user_id, [dosen_context])
+                    if not _kelompok_list_save:
+                        state["result"] = "❌ Tidak ada kelompok yang sesuai untuk dijadwalkan."
+                        logger.warning(f"[{user_id}] ✗ save_jadwal: no kelompok found")
+                        return state
+
+                    result = JadwalSeminarTools.generate_jadwal_seminar(
+                        user_id=user_id,
+                        tanggal_mulai=_tanggal_mulai_save,
+                        durasi_menit=_durasi_menit_save,
+                        ruangan_list=_ruangan_list_save,
+                        kelompok_list=_kelompok_list_save,
+                        dosen_context=[dosen_context],
+                        persist=True,
+                        shuffle_groups=False,
+                        kelompok_order=_kelompok_order_save if _kelompok_order_save else None,
+                    )
+
+                    state["result"] = result.get("message")
+                    if result.get("success"):
+                        state["jadwal_stage"] = "completed"
+                        state["jadwal_entries"] = result.get("jadwal_entries", [])
+                        state["sidebar_update"] = {"step": "jadwal", "status": "success"}
+                        logger.info(f"[{user_id}] ✓ save_jadwal persisted {result.get('total')} entries")
+                    else:
+                        logger.warning(f"[{user_id}] ✗ save_jadwal gagal: {result.get('message')}")
+                    return state
+
+                # ── Normal flow: parse prompt inputs ─────────────────────────────────
+                # Default
+                persist = False
+                shuffle_groups = True
+                kelompok_order = None
+
+                # Kata kunci
+                shuffle_keywords = [
+                    "acak",
+                    "acak ulang",
+                    "shuffle",
+                    "random"
+                ]
+
+                save_keywords = [
+                    "simpan",
+                    "save",
+                    "persist"
+                ]
+
+                # Parse order explicit
+                order_match = re.search(
+                    r'order[:\s]*([0-9,]+)',
+                    prompt_lower
+                )
+
+                if order_match:
+                    kelompok_order = [
+                        int(x.strip())
+                        for x in order_match.group(1).split(',')
+                        if x.strip().isdigit()
+                    ]
+
+                # Acak ulang
+                if any(k in prompt_lower for k in shuffle_keywords):
                     shuffle_groups = True
+
+                # Simpan via kata kunci teks
+                if any(k in prompt_lower for k in save_keywords):
+                    persist = True
+                    shuffle_groups = False
 
                 # Reuse preview metadata if the user is saving or reshuffling a previewed schedule.
                 preview_meta = state.get("jadwal_meta") or {}
@@ -2091,29 +2239,6 @@ def executor_node(state):
                     if not kelompok_order:
                         kelompok_order = preview_meta.get("kelompok_order") or None
 
-                # When saving jadwal, ALWAYS use the exact group order from preview (stored in jadwal_entries or meta)
-                # This ensures what user sees in preview is exactly what gets saved to database
-                if action == "save_jadwal":
-                    preview_entries = state.get("jadwal_entries") or []
-                    if preview_entries and not kelompok_order:
-                        # Extract kelompok_order from preview jadwal_entries (preserves shuffle order)
-                        kelompok_order = [entry.get("kelompok_id") for entry in preview_entries if entry.get("kelompok_id")]
-                        logger.info(f"[{user_id}] ✓ Extracted kelompok_order from jadwal_entries: {kelompok_order}")
-                
-                # Fallback extraction if still needed (tanggal/ruangan missing and no preview available)
-                if action == "save_jadwal" and (not tanggal_str or not ruangan_list):
-                    preview_entries = state.get("jadwal_entries") or []
-                    if preview_entries:
-                        if not tanggal_str:
-                            tanggal_str = preview_entries[0].get("tanggal")
-                        if not ruangan_list:
-                            ruangan_list = [
-                                int(entry.get("ruangan_id"))
-                                for entry in preview_entries
-                                if entry.get("ruangan_id") is not None and str(entry.get("ruangan_id")).isdigit()
-                            ]
-                            ruangan_list = list(dict.fromkeys(ruangan_list))
-                
                 logger.info(f"[{user_id}] Parsed: tanggal={tanggal_str}, ruangan_list={ruangan_list}, durasi={durasi_menit}")
                 
                 if not tanggal_str or not ruangan_list:
@@ -2135,8 +2260,11 @@ def executor_node(state):
                     logger.warning(f"[{user_id}] ✗ No matching kelompok found")
                     return state
                 
-                logger.info(f"[{user_id}] ✓ Found {len(kelompok_list)} kelompok to schedule")
-                
+                logger.info(
+                    f"[{user_id}] Generating jadwal: kelompok_order={kelompok_order}, "
+                    f"shuffle={shuffle_groups}, persist={persist}"
+                )
+                    
                 # Generate jadwal untuk setiap ruangan
                 result = JadwalSeminarTools.generate_jadwal_seminar(
                     user_id=user_id,
