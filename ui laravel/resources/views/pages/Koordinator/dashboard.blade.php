@@ -13,7 +13,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>📋 List Task Koordinator PA</h4>
+                            <h4>List Task Koordinator PA</h4>
                         </div>
                         <div class="card-body">
                             <div class="verification-flow-container">
@@ -183,7 +183,33 @@
 
             {{-- ROW: Donut Chart & Bar Chart Bimbingan --}}
             <div class="row mt-4">
-                <div class="col-lg-4 col-md-12">
+
+                <div class="col-lg-12 col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4>Jumlah Proses Bimbingan Tiap Kelompok</h4>
+                            <span class="badge badge-info">Live Updates</span>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="barBimbingan" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ROW: Histogram Nilai & Line Chart Tren --}}
+            <div class="row mt-2">
+                <div class="col-lg-6 col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Distribusi Nilai Proyek</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="histogramNilai" height="160"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h4>Status Administrasi</h4>
@@ -212,32 +238,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8 col-md-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4>Jumlah Proses Bimbingan Tiap Kelompok</h4>
-                            <span class="badge badge-info">Live Updates</span>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="barBimbingan" height="120"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ROW: Histogram Nilai & Line Chart Tren --}}
-            <div class="row mt-2">
-                <div class="col-lg-6 col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Distribusi Nilai Proyek</h4>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="histogramNilai" height="160"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-12">
+                {{-- <div class="col-lg-6 col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h4>Tren Rata-rata Nilai Mata Kuliah</h4>
@@ -246,12 +247,12 @@
                             <canvas id="lineNilai" height="160"></canvas>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             {{-- ROW: Perbandingan Nilai & Timeline Tahapan --}}
             <div class="row mt-2">
-                <div class="col-lg-7 col-md-12">
+                <div class="col-lg-12 col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h4>Perbandingan Nilai Akhir Kelompok (Teratas)</h4>
@@ -287,7 +288,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-5 col-md-12">
+                {{-- <div class="col-lg-5 col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h4>Monitoring Tahapan Proyek</h4>
@@ -337,7 +338,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             {{-- Tabel Monitoring Prioritas --}}
@@ -375,87 +376,49 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php
-                                            $monitoring = isset($monitoring)
-                                                ? $monitoring
-                                                : [
-                                                    [
-                                                        'kelompok' => 'K-04 (Smart City)',
-                                                        'admin' => 'Belum Lengkap',
-                                                        'bimbingan' => '2 / 12',
-                                                        'nilai' => 75.0,
-                                                        'sidang' => 'Belum Terjadwal',
-                                                        'sidang_type' => 'none',
-                                                    ],
-                                                    [
-                                                        'kelompok' => 'K-08 (Marketplace UMKM)',
-                                                        'admin' => 'Verifikasi',
-                                                        'bimbingan' => '10 / 12',
-                                                        'nilai' => 82.5,
-                                                        'sidang' => 'Menunggu',
-                                                        'sidang_type' => 'wait',
-                                                    ],
-                                                    [
-                                                        'kelompok' => 'K-15 (Augmented Reality)',
-                                                        'admin' => 'Lengkap',
-                                                        'bimbingan' => '12 / 12',
-                                                        'nilai' => 89.0,
-                                                        'sidang' => 'Sudah Sidang',
-                                                        'sidang_type' => 'done',
-                                                    ],
-                                                    [
-                                                        'kelompok' => 'K-22 (Smart Farm)',
-                                                        'admin' => 'Lengkap',
-                                                        'bimbingan' => '11 / 12',
-                                                        'nilai' => 94.5,
-                                                        'sidang' => 'Terjadwal',
-                                                        'sidang_type' => 'active',
-                                                    ],
-                                                ];
-                                        @endphp
-                                        @foreach ($monitoring as $m)
-                                            <tr data-admin="{{ $m['admin'] }}">
-                                                <td style="font-weight:500;">{{ $m['kelompok'] }}</td>
+                                        @foreach ($daftar_kelompok as $kelompok)
+                                            <tr>
+                                                <td style="font-weight:500;">
+                                                    Kelompok {{ $kelompok->nomor_kelompok }}
+                                                </td>
+
                                                 <td>
-                                                    @if ($m['admin'] === 'Belum Lengkap')
-                                                        <span class="badge badge-danger" style="font-size:11px;">Belum
-                                                            Lengkap</span>
-                                                    @elseif($m['admin'] === 'Verifikasi')
-                                                        <span class="badge badge-warning"
-                                                            style="font-size:11px;">Verifikasi</span>
-                                                    @else
-                                                        <span class="badge badge-success"
-                                                            style="font-size:11px;">Lengkap</span>
-                                                    @endif
+                                                    <span class="badge badge-success" style="font-size:11px;">
+                                                        {{ $kelompok->status }}
+                                                    </span>
                                                 </td>
-                                                <td class="text-center" style="font-size:13px;">{{ $m['bimbingan'] }}
+
+                                                <td class="text-center" style="font-size:13px;">
+                                                    {{ $kelompok->jumlah_bimbingan_selesai }} / 12
                                                 </td>
+
                                                 <td class="text-right" style="font-size:13px;font-weight:600;">
-                                                    {{ $m['nilai'] }}</td>
+                                                    {{ number_format($kelompok->rata_nilai_akhir ?? 0, 1) }}
+                                                </td>
+
                                                 <td>
-                                                    @if ($m['sidang_type'] === 'done')
+                                                    @if ($kelompok->jadwal)
                                                         <span style="color:#16a34a;font-size:12px;font-weight:600;">
                                                             <i class="fas fa-circle"
                                                                 style="font-size:7px;vertical-align:middle;"></i>
-                                                            {{ $m['sidang'] }}
-                                                        </span>
-                                                    @elseif($m['sidang_type'] === 'active')
-                                                        <span style="color:#002045;font-size:12px;font-weight:600;">
-                                                            <i class="fas fa-circle"
-                                                                style="font-size:7px;vertical-align:middle;animation:pulse 1.5s infinite;"></i>
-                                                            {{ $m['sidang'] }}
+
+                                                            {{ \Carbon\Carbon::parse($kelompok->jadwal->waktu_mulai)->format('d M Y H:i') }}
                                                         </span>
                                                     @else
                                                         <span style="color:#6b7280;font-size:12px;">
                                                             <i class="fas fa-circle"
                                                                 style="font-size:7px;vertical-align:middle;"></i>
-                                                            {{ $m['sidang'] }}
+
+                                                            Belum Terjadwal
                                                         </span>
                                                     @endif
                                                 </td>
+
                                                 <td class="text-right">
                                                     <a href="#" class="text-primary"
-                                                        style="font-size:12px;font-weight:600;">Detail</a>
+                                                        style="font-size:12px;font-weight:600;">
+                                                        Detail
+                                                    </a>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -547,7 +510,7 @@
 
             // ── 2. Bar Chart Bimbingan Per Kelompok ─────────────────────
             var barDataRaw = @json($bar_data);
-            var barColors = barDataRaw.map(v => v <= 3 ? '#ef4444' : '#002045');
+            var barColors = barDataRaw.map(v => v > 8 ? '#10b981' : '#f59e0b');
 
             new Chart(document.getElementById('barBimbingan'), {
                 type: 'bar',
@@ -570,6 +533,7 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: 10,
                             grid: {
                                 color: '#f0f0f0'
                             },
@@ -592,7 +556,7 @@
                 data: {
                     labels: ['A', 'B', 'C', 'D'],
                     datasets: [{
-                        label: 'Jumlah Mahasiswa',
+                        label: 'Jumlah Kelompok',
                         data: @json($dist_nilai),
                         backgroundColor: '#002045',
                         borderRadius: 6,

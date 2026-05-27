@@ -16,13 +16,18 @@ class Nilai_Mahasiswa extends Model
     }
     public function tahunMasuk()
     {
-    return $this->belongsTo(tahunMasuk::class, 'TM_id');
+        return $this->belongsTo(tahunMasuk::class, 'TM_id');
     }
     public function kategoriPA()
     {
         return $this->belongsTo(kategoriPA::class, 'KPA_id');
     }
-    public function KelompokMahasiswa() {
+    public function KelompokMahasiswa()
+    {
         return $this->hasMany(KelompokMahasiswa::class);
+    }
+    public function kelompok()
+    {
+        return $this->belongsTo(Kelompok::class, 'kelompok_id');
     }
 }

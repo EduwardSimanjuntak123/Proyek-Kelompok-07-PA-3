@@ -10,6 +10,10 @@ class Kelompok extends Model
     use HasFactory;
 
     protected $table = 'kelompok';
+    public function nilaiMahasiswa()
+    {
+        return $this->hasMany(Nilai_Mahasiswa::class, 'kelompok_id');
+    }
 
     public function prodi()
     {
@@ -31,36 +35,41 @@ class Kelompok extends Model
     {
         return $this->hasMany(pembimbing::class, 'kelompok_id');
     }
+    public function bimbingan()
+    {
+        return $this->hasMany(Bimbingan::class, 'kelompok_id');
+    }
     public function nilais()
     {
         return $this->hasMany(Nilai_kelompok::class);
-    }   
+    }
     public function nilaiindividu()
     {
         return $this->hasMany(Nilai_Individu::class);
-    }  
+    }
     public function penguji()
     {
         return $this->hasMany(Penguji::class, 'kelompok_id');
     }
-    public function KelompokMahasiswa() {
+    public function KelompokMahasiswa()
+    {
         return $this->hasMany(KelompokMahasiswa::class);
     }
-public function tahunAjaran()
-{
-    return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
-}
+    public function tahunAjaran()
+    {
+        return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
+    }
 
     public function pengajuanSeminar()
     {
         return $this->hasMany(PengajuanSeminar::class);
     }
     protected $fillable = [
-    'nomor_kelompok',
-    'KPA_id',
-    'prodi_id',
-    'TM_id',
-    'tahun_ajaran_id', // 
-    'status',
-];
+        'nomor_kelompok',
+        'KPA_id',
+        'prodi_id',
+        'TM_id',
+        'tahun_ajaran_id', // 
+        'status',
+    ];
 }
