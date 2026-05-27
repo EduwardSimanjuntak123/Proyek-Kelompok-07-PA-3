@@ -159,7 +159,6 @@
                                     <th>Seminar</th>
                                     <th>Progress</th>
                                     <th>Status</th>
-                                    <th>Aksi</th>
                                 </tr>
 
                             </thead>
@@ -270,18 +269,6 @@
                                             @endif
 
                                         </td>
-
-                                        <td>
-
-                                            <a href="#" class="btn btn-sm btn-primary">
-
-                                                <i class="fas fa-eye"></i>
-                                                Detail
-
-                                            </a>
-
-                                        </td>
-
                                     </tr>
                                 @endfor
 
