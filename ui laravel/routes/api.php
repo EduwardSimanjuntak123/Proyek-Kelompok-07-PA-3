@@ -1,6 +1,6 @@
-<?php
+ <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AgentController;
+use App\Http\Controllers\WhatsAppController;
 
-Route::get('/agent/context', [AgentController::class, 'context']);
+Route::post('send-wa', [WhatsAppController::class, 'send']); 
