@@ -146,6 +146,12 @@ class dashboard_Controller extends Controller
         ));
     }
 
+   public function detailAdministratif()
+{
+    return view('pages.Koordinator.Detail.detail-administratif');
+}
+
+
     public function pembimbing()
     {
         $KPA_id = session('KPA_id');

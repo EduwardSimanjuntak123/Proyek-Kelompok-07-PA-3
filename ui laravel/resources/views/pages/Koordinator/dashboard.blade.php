@@ -211,31 +211,71 @@
                 </div>
                 <div class="col-lg-6 col-md-12">
                     <div class="card">
-                        <div class="card-header">
-                            <h4>Status Administrasi</h4>
+
+                        <div class="card-header d-flex justify-content-between align-items-center">
+
+                            <h4 class="mb-0">
+                                Status Administrasi
+                            </h4>
+
+                            <a href="{{ route('detail.administratif') }}" class="btn btn-sm btn-primary">
+
+                                <i class="fas fa-eye mr-1"></i>
+                                Detail
+
+                            </a>
+
                         </div>
+
                         <div class="card-body">
+
                             <div class="dashboard-donut-wrap">
                                 <canvas id="donutChart" height="220"></canvas>
                             </div>
-                            <div class="dashboard-donut-legend mt-3">
+
+                            <div class="dashboard-donut-legend mt-4">
+
                                 <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#10b981;"></span>
+                                    <span class="donut-legend-dot" style="background:#10b981;">
+                                    </span>
+
                                     <span>Lengkap</span>
-                                    <span class="ml-auto font-weight-bold">{{ $stat_lengkap ?? 78 }}</span>
+
+                                    <span class="ml-auto font-weight-bold">
+                                        {{ $stat_lengkap ?? 78 }}
+                                    </span>
                                 </div>
+
                                 <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#f59e0b;"></span>
+
+                                    <span class="donut-legend-dot" style="background:#f59e0b;">
+                                    </span>
+
                                     <span>Menunggu Verifikasi</span>
-                                    <span class="ml-auto font-weight-bold">{{ $stat_menunggu ?? 32 }}</span>
+
+                                    <span class="ml-auto font-weight-bold">
+                                        {{ $stat_menunggu ?? 32 }}
+                                    </span>
+
                                 </div>
+
                                 <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#ef4444;"></span>
+
+                                    <span class="donut-legend-dot" style="background:#ef4444;">
+                                    </span>
+
                                     <span>Belum Lengkap</span>
-                                    <span class="ml-auto font-weight-bold">{{ $stat_belum ?? 14 }}</span>
+
+                                    <span class="ml-auto font-weight-bold">
+                                        {{ $stat_belum ?? 14 }}
+                                    </span>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
                 </div>
                 {{-- <div class="col-lg-6 col-md-12">
