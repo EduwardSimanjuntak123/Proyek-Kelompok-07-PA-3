@@ -155,8 +155,8 @@
                                     <th>Kelompok</th>
                                     <th>Jumlah Anggota</th>
                                     <th>Bimbingan</th>
-                                    <th>Artefak</th>
-                                    <th>Seminar</th>
+                                    <th>Submit Artefak</th>
+                                    <th>Maju Seminar</th>
                                     <th>Progress</th>
                                     <th>Status</th>
                                 </tr>
@@ -164,53 +164,50 @@
                             </thead>
 
                             <tbody>
-
-                                @for ($i = 1; $i <= 8; $i++)
+                                @forelse ($daftar_kelompok as $kelompok)
                                     <tr>
 
                                         <td>
                                             <div class="font-weight-bold text-primary">
-                                                Kelompok {{ $i }}
+                                                {{ $kelompok->nomor_kelompok }}
                                             </div>
 
                                             <small class="text-muted">
-                                                PA-III Tahun 2025/2026
+                                                PA-{{ $KPA_id }} Tahun 2025/2026
                                             </small>
                                         </td>
 
                                         <td>
-                                            {{ rand(3, 5) }} Mahasiswa
-                                        </td>
-
-                                        <td>
-
-                                            <div class="progress" data-height="10">
-
-                                                <div class="progress-bar bg-primary" style="width:{{ rand(60, 100) }}%">
-                                                </div>
-
-                                            </div>
-
-                                            <small>
-                                                {{ rand(4, 8) }}/8 sesi
-                                            </small>
-
+                                            {{ $kelompok->jumlah_anggota ?? 0 }} Mahasiswa
                                         </td>
 
                                         <td>
 
                                             @php
-                                                $artefak = ['Lengkap', 'Pending', 'Belum'];
-                                                $statusArtefak = $artefak[array_rand($artefak)];
+                                                $jumlahSesi = $kelompok->jumlah_bimbingan_selesai ?? 0;
+                                                $persentase = min(($jumlahSesi / 8) * 100, 100);
                                             @endphp
 
-                                            @if ($statusArtefak == 'Lengkap')
+                                            <div class="progress" data-height="10">
+
+                                                <div class="progress-bar bg-primary" style="width: {{ $persentase }}%">
+                                                </div>
+
+                                            </div>
+
+
+
+                                            <small>
+                                                {{ $kelompok->jumlah_bimbingan_selesai ?? 0 }}/8 sesi
+                                            </small>
+
+                                        </td>
+
+                                        <td>
+
+                                            @if ($kelompok->jumlah_artefak_submit > 0)
                                                 <span class="badge badge-success">
                                                     Lengkap
-                                                </span>
-                                            @elseif($statusArtefak == 'Pending')
-                                                <span class="badge badge-warning">
-                                                    Pending
                                                 </span>
                                             @else
                                                 <span class="badge badge-danger">
@@ -222,25 +219,59 @@
 
                                         <td>
 
-                                            <span class="badge badge-info">
-                                                Terjadwal
-                                            </span>
+                                            @if ($kelompok->sudah_memiliki_jadwal)
+                                                <span class="badge badge-info">
+                                                    Terjadwal
+                                                </span>
+                                            @else
+                                                <span class="badge badge-warning">
+                                                    Belum Terjadwal
+                                                </span>
+                                            @endif
 
                                         </td>
 
                                         <td>
 
+                                            @php
+                                                $progressCount = 0;
+
+                                                // 1. Bimbingan minimal 8x
+                                                if (($kelompok->jumlah_bimbingan_selesai ?? 0) >= 8) {
+                                                    $progressCount++;
+                                                }
+
+                                                // 2. Artefak sudah submit
+                                                if (($kelompok->jumlah_artefak_submit ?? 0) > 0) {
+                                                    $progressCount++;
+                                                }
+
+                                                // 3. Seminar sudah terjadwal
+                                                if ($kelompok->sudah_memiliki_jadwal) {
+                                                    $progressCount++;
+                                                }
+
+                                                $persentaseProgress = ($progressCount / 3) * 100;
+                                            @endphp
+
                                             <div class="d-flex align-items-center">
 
                                                 <div class="progress flex-grow-1 mr-2" data-height="8">
 
-                                                    <div class="progress-bar bg-success" style="width:{{ rand(40, 100) }}%">
+                                                    <div class="progress-bar 
+            @if ($progressCount == 3) bg-success
+            @elseif($progressCount == 2)
+                bg-warning
+            @else
+                bg-danger @endif
+        "
+                                                        style="width: {{ $persentaseProgress }}%">
                                                     </div>
 
                                                 </div>
 
                                                 <small>
-                                                    {{ rand(40, 100) }}%
+                                                    {{ $progressCount }}/3
                                                 </small>
 
                                             </div>
@@ -249,31 +280,27 @@
 
                                         <td>
 
-                                            @php
-                                                $status = ['Lengkap', 'Pending', 'Bermasalah'];
-                                                $final = $status[array_rand($status)];
-                                            @endphp
-
-                                            @if ($final == 'Lengkap')
+                                            @if ($progressCount >= 3)
                                                 <span class="badge badge-success">
-                                                    Lengkap
-                                                </span>
-                                            @elseif($final == 'Pending')
-                                                <span class="badge badge-warning">
-                                                    Pending
+                                                    Selesai
                                                 </span>
                                             @else
-                                                <span class="badge badge-danger">
-                                                    Bermasalah
+                                                <span class="badge badge-warning">
+                                                    Berlangsung
                                                 </span>
                                             @endif
 
                                         </td>
+
                                     </tr>
-                                @endfor
-
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            Belum ada data kelompok
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
-
                         </table>
 
                     </div>

@@ -239,7 +239,7 @@
                                     <span class="donut-legend-dot" style="background:#10b981;">
                                     </span>
 
-                                    <span>Lengkap</span>
+                                    <span>Selesai</span>
 
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_lengkap ?? 78 }}
@@ -251,7 +251,7 @@
                                     <span class="donut-legend-dot" style="background:#f59e0b;">
                                     </span>
 
-                                    <span>Menunggu Verifikasi</span>
+                                    <span>Sedang Progress</span>
 
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_menunggu ?? 32 }}
@@ -264,7 +264,7 @@
                                     <span class="donut-legend-dot" style="background:#ef4444;">
                                     </span>
 
-                                    <span>Belum Lengkap</span>
+                                    <span>Belum Ada Progress</span>
 
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_belum ?? 14 }}

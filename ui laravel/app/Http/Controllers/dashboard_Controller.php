@@ -44,17 +44,30 @@ class dashboard_Controller extends Controller
             ->where('prodi_id', $prodi_id)
             ->where('TM_id', $TM_id)
             ->count();
-        $daftar_kelompok = Kelompok::with('jadwal')
+        $daftar_kelompok = Kelompok::with(['jadwal'])
             ->withCount([
+                'KelompokMahasiswa as jumlah_anggota',
+
                 'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
                     $q->where('status', 'selesai');
+                },
+
+                'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
+                    $q->whereHas('tugas', function ($query) {
+                        $query->where('kategori_tugas', 'Artefak');
+                    })
+                        ->whereIn('status', ['Submitted', 'Late']);
                 }
+            ])
+            ->withExists([
+                'jadwal as sudah_memiliki_jadwal'
             ])
             ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
             ->where('KPA_id', $KPA_id)
             ->where('prodi_id', $prodi_id)
             ->where('TM_id', $TM_id)
             ->get();
+
         $bar_labels = $daftar_kelompok->map(function ($item) {
             return 'Kelompok ' . $item->nomor_kelompok;
         });
@@ -129,6 +142,43 @@ class dashboard_Controller extends Controller
                 ];
             })
             ->values();
+        $stat_lengkap = 0;
+        $stat_menunggu = 0;
+        $stat_belum = 0;
+
+        foreach ($daftar_kelompok as $kelompok) {
+
+            $progressCount = 0;
+
+            // 1. Bimbingan selesai >= 8
+            if (($kelompok->jumlah_bimbingan_selesai ?? 0) >= 8) {
+                $progressCount++;
+            }
+
+            // 2. Artefak submit
+            if (($kelompok->jumlah_artefak_submit ?? 0) > 0) {
+                $progressCount++;
+            }
+
+            // 3. Sudah ada jadwal seminar
+            if ($kelompok->sudah_memiliki_jadwal) {
+                $progressCount++;
+            }
+
+            // Klasifikasi status
+            if ($progressCount >= 3) {
+
+                $stat_lengkap++;
+
+            } elseif ($progressCount > 0) {
+
+                $stat_menunggu++;
+
+            } else {
+
+                $stat_belum++;
+            }
+        }
 
         return view('pages.Koordinator.dashboard', compact(
             'jumlah_mahasiswa',
@@ -142,14 +192,47 @@ class dashboard_Controller extends Controller
             'bar_labels',
             'bar_data',
             'dist_nilai',
-            'top_kelompok'
+            'top_kelompok',
+            'stat_lengkap',
+            'stat_menunggu',
+            'stat_belum'
         ));
     }
 
-   public function detailAdministratif()
-{
-    return view('pages.Koordinator.Detail.detail-administratif');
-}
+    public function detailAdministratif()
+    {
+
+        $KPA_id = session('KPA_id');
+
+        $prodi_id = session('prodi_id');
+        $TM_id = session('TM_id');
+        $user_id = session('user_id');
+        $daftar_kelompok = Kelompok::with(['jadwal'])
+            ->withCount([
+                'KelompokMahasiswa as jumlah_anggota',
+
+                'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
+                    $q->where('status', 'selesai');
+                },
+
+                'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
+                    $q->whereHas('tugas', function ($query) {
+                        $query->where('kategori_tugas', 'Artefak');
+                    })
+                        ->whereIn('status', ['Submitted', 'Late']);
+                }
+            ])
+            ->withExists([
+                'jadwal as sudah_memiliki_jadwal'
+            ])
+            ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
+            ->where('KPA_id', $KPA_id)
+            ->where('prodi_id', $prodi_id)
+            ->where('TM_id', $TM_id)
+            ->get();
+
+        return view('pages.Koordinator.Detail.detail-administratif', compact('daftar_kelompok', 'KPA_id', 'prodi_id', 'TM_id', 'user_id'));
+    }
 
 
     public function pembimbing()

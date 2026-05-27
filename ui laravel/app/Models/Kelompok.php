@@ -64,6 +64,10 @@ class Kelompok extends Model
     {
         return $this->hasMany(PengajuanSeminar::class);
     }
+    public function pengumpulanTugas()
+    {
+        return $this->hasMany(pengumpulan_tugas::class, 'kelompok_id');
+    }
     protected $fillable = [
         'nomor_kelompok',
         'KPA_id',
