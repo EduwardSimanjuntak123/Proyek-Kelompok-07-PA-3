@@ -12,11 +12,16 @@
             <div class="row mb-4">
                 <div class="col-lg-12">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h4>List Task Koordinator PA</h4>
+                            <button class="btn btn-sm btn-outline-secondary" id="btnRefreshStatus"
+                                onclick="refreshVerificationStatus()">
+                                <i class="fas fa-sync-alt mr-1"></i> Refresh Status
+                            </button>
                         </div>
                         <div class="card-body">
                             <div class="verification-flow-container">
+
                                 {{-- Step 1: Kelompok --}}
                                 <div class="verification-step" data-step="kelompok"
                                     data-status="{{ $verification_status['kelompok'] ?? 'pending' }}">
@@ -30,6 +35,12 @@
                                     <div class="step-label">
                                         <p class="step-title">Pembagian Kelompok</p>
                                         <p class="step-desc">Buat & generate kelompok</p>
+                                        <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
+                                            <a href="#" class="btn-wa" onclick="kirimWA('kelompok'); return false;">
+                                                <i class="fab fa-whatsapp"></i>
+                                                Kirim Notifikasi WA
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -49,6 +60,12 @@
                                     <div class="step-label">
                                         <p class="step-title">Assign Dosen Pembimbing</p>
                                         <p class="step-desc">Tentukan dosen pembimbing</p>
+                                        <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
+                                            <a href="#" class="btn-wa" onclick="kirimWA('pembimbing'); return false;">
+                                                <i class="fab fa-whatsapp"></i>
+                                                Kirim Notifikasi WA
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -68,6 +85,12 @@
                                     <div class="step-label">
                                         <p class="step-title">Assign Dosen Penguji</p>
                                         <p class="step-desc">Tentukan dosen penguji</p>
+                                        <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
+                                            <a href="#" class="btn-wa" onclick="kirimWA('penguji'); return false;">
+                                                <i class="fab fa-whatsapp"></i>
+                                                Kirim Notifikasi WA
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -87,8 +110,15 @@
                                     <div class="step-label">
                                         <p class="step-title">Jadwal Seminar</p>
                                         <p class="step-desc">Tentukan waktu seminar</p>
+                                        <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
+                                            <a href="#" class="btn-wa" onclick="kirimWA('jadwal'); return false;">
+                                                <i class="fab fa-whatsapp"></i>
+                                                Kirim Notifikasi WA
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             {{-- Status Legend --}}
@@ -183,7 +213,6 @@
 
             {{-- ROW: Donut Chart & Bar Chart Bimbingan --}}
             <div class="row mt-4">
-
                 <div class="col-lg-12 col-md-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -211,71 +240,43 @@
                 </div>
                 <div class="col-lg-6 col-md-12">
                     <div class="card">
-
                         <div class="card-header d-flex justify-content-between align-items-center">
-
                             <h4 class="mb-0">
                                 Status Administrasi
                             </h4>
-
                             <a href="{{ route('detail.administratif') }}" class="btn btn-sm btn-primary">
-
                                 <i class="fas fa-eye mr-1"></i>
                                 Detail
-
                             </a>
-
                         </div>
-
                         <div class="card-body">
-
                             <div class="dashboard-donut-wrap">
                                 <canvas id="donutChart" height="220"></canvas>
                             </div>
-
                             <div class="dashboard-donut-legend mt-4">
-
                                 <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#10b981;">
-                                    </span>
-
+                                    <span class="donut-legend-dot" style="background:#10b981;"></span>
                                     <span>Selesai</span>
-
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_lengkap ?? 78 }}
                                     </span>
                                 </div>
-
                                 <div class="donut-legend-item">
-
-                                    <span class="donut-legend-dot" style="background:#f59e0b;">
-                                    </span>
-
+                                    <span class="donut-legend-dot" style="background:#f59e0b;"></span>
                                     <span>Sedang Progress</span>
-
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_menunggu ?? 32 }}
                                     </span>
-
                                 </div>
-
                                 <div class="donut-legend-item">
-
-                                    <span class="donut-legend-dot" style="background:#ef4444;">
-                                    </span>
-
+                                    <span class="donut-legend-dot" style="background:#ef4444;"></span>
                                     <span>Belum Ada Progress</span>
-
                                     <span class="ml-auto font-weight-bold">
                                         {{ $stat_belum ?? 14 }}
                                     </span>
-
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
                 </div>
                 {{-- <div class="col-lg-6 col-md-12">
@@ -491,11 +492,6 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
-    {{-- ============================================================
-         PERBAIKAN: Semua default value dikumpulkan di satu tempat,
-         SEBELUM tag <script>, menggunakan isset() agar tidak error
-         meski controller belum mengirim variabelnya.
-         ============================================================ --}}
     @php
         $dist_nilai = isset($dist_nilai) ? $dist_nilai : [62, 80, 28, 8];
 
@@ -515,7 +511,97 @@
     @endphp
 
     <script>
+        // ============================================================
+        // KONFIGURASI NOMOR & PESAN WA
+        // Ganti nomor dengan format internasional tanpa tanda +
+        // Contoh: 6281234567890
+        // ============================================================
+        const WA_CONFIG = {
+            kelompok: '6281234567890',
+            pembimbing: '6281234567890',
+            penguji: '6281234567890',
+            jadwal: '6281234567890',
+        };
+
+        const WA_MESSAGES = {
+            kelompok: 'Halo, informasi bahwa pembagian kelompok PA telah selesai dilakukan. Silakan cek sistem untuk melihat detail kelompok masing-masing.',
+            pembimbing: 'Halo, informasi bahwa assign dosen pembimbing PA telah selesai dilakukan. Silakan cek sistem untuk melihat dosen pembimbing kelompok Anda.',
+            penguji: 'Halo, informasi bahwa assign dosen penguji PA telah selesai dilakukan. Silakan cek sistem untuk melihat dosen penguji kelompok Anda.',
+            jadwal: 'Halo, informasi bahwa jadwal seminar PA telah ditetapkan. Silakan cek sistem untuk melihat jadwal seminar kelompok Anda.',
+        };
+
+        // ============================================================
+        // FUNGSI KIRIM WA
+        // ============================================================
+        function kirimWA(step) {
+            const nomor = WA_CONFIG[step];
+            const pesan = encodeURIComponent(WA_MESSAGES[step]);
+            window.open('https://wa.me/' + nomor + '?text=' + pesan, '_blank');
+        }
+
+        // ============================================================
+        // APPLY STATUS KE DOM (tampilkan/sembunyikan tombol WA)
+        // ============================================================
+        function applyVerificationStatus(data) {
+            var steps = ['kelompok', 'pembimbing', 'penguji', 'jadwal'];
+            steps.forEach(function(step) {
+                var status = data[step] || 'pending';
+                var stepEl = document.querySelector('.verification-step[data-step="' + step + '"]');
+                if (!stepEl) return;
+
+                stepEl.setAttribute('data-status', status);
+
+                var waBtn = stepEl.querySelector('.wa-btn-wrapper');
+                if (waBtn) {
+                    waBtn.style.display = (status === 'success') ? 'block' : 'none';
+                }
+            });
+        }
+
+        // ============================================================
+        // REFRESH STATUS VIA AJAX
+        // ============================================================
+        function refreshVerificationStatus() {
+            var btn = document.getElementById('btnRefreshStatus');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Memuat...';
+            }
+
+            fetch('{{ route('koordinator.getVerificationStatus') }}', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                })
+                .then(function(res) {
+                    return res.json();
+                })
+                .then(function(json) {
+                    if (json.success && json.data) {
+                        applyVerificationStatus(json.data);
+                    }
+                })
+                .catch(function(err) {
+                    console.warn('Gagal refresh status verifikasi:', err);
+                })
+                .finally(function() {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Refresh Status';
+                    }
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+
+            // -- Apply status awal dari server (Blade) --
+            var initialStatus = @json($verification_status ?? []);
+            applyVerificationStatus(initialStatus);
+
+            // -- Auto-refresh setiap 60 detik --
+            setInterval(refreshVerificationStatus, 60000);
 
             // ── 1. Donut Chart Status Administrasi ──────────────────────
             new Chart(document.getElementById('donutChart'), {
@@ -626,7 +712,6 @@
             });
 
             // ── 4. Line Chart Tren Nilai ─────────────────────────────────
-            // PERBAIKAN: gunakan $tren_labels dan $tren_data (bukan $dist_nilai)
             new Chart(document.getElementById('lineNilai'), {
                 type: 'line',
                 data: {
@@ -826,9 +911,49 @@
 
     {{-- VERIFICATION FLOW STYLES --}}
     <style>
+        /* ── Tombol WhatsApp ─────────────────────────────────────────── */
+        .btn-wa {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background-color: #25D366;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+            box-shadow: 0 2px 6px rgba(37, 211, 102, 0.35);
+            line-height: 1.4;
+        }
+
+        .btn-wa i {
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        /* Hover: warna hijau tua yang kontras & masih terasa WA */
+        .btn-wa:hover {
+            background-color: #128C4D;
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(18, 140, 77, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-wa:active {
+            background-color: #0e6b3b;
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(18, 140, 77, 0.3);
+        }
+
+        /* ── Verification Flow ───────────────────────────────────────── */
         .verification-flow-container {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 10px;
             flex-wrap: wrap;
@@ -837,7 +962,7 @@
 
         .verification-step {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
             padding: 15px;
             border-radius: 10px;
@@ -948,6 +1073,8 @@
             font-weight: bold;
             flex: 0 0 auto;
             margin: 0 -5px;
+            /* sejajarkan dengan tengah step-circle */
+            padding-top: 13px;
         }
 
         .verification-legend {
@@ -987,6 +1114,7 @@
             .verification-arrow {
                 transform: rotate(90deg);
                 margin: -5px 0;
+                padding-top: 0;
             }
 
             .verification-step {

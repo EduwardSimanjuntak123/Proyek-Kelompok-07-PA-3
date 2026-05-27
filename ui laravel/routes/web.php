@@ -231,6 +231,10 @@ Route::prefix('bimbingan')->group(function () {
     Route::delete('/{id}', [BimbinganController::class, 'destroy'])->name('bimbingan.destroy');
     Route::get('/{id}/show', [BimbinganController::class, 'show'])->name('bimbingan.show');
 });
+
+Route::get('/koordinator/verification-status', [AgentKelompokController::class, 'getVerificationStatus'])
+    ->name('koordinator.getVerificationStatus');
+
 //request bimbingan dosen pembimbing
 Route::prefix('pengumuman')->group(function () {
     Route::get('/pengumuman/show/{id}', [PengumumanController::class, 'showPengumuman'])->name('pengumuman.show');
