@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('jabatan_akademik')->nullable();
             $table->string('jabatan_akademik_desc')->nullable();
             $table->string('jenjang_pendidikan')->nullable();
+            $table->string('nomor_telepon')->nullable();
             $table->string('nidn')->nullable();
             $table->integer('user_id')->nullable()->unique();
             $table->timestamps();

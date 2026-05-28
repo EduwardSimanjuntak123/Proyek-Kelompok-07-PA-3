@@ -12,10 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+
         $middleware->alias([
             'role'=> \App\Http\Middleware\RoleMiddleware::class,
             'auth.api' => \App\Http\Middleware\AuthApiMiddleware::class,
-            'dosen_roles' =>\App\Http\Middleware\CheckDosenMiddleware::class,
+            'dosen_roles' => \App\Http\Middleware\CheckDosenMiddleware::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'send-wa',
         ]);
 
     }) 

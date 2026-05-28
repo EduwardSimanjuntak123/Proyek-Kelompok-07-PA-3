@@ -27,6 +27,7 @@ class dashboard_Controller extends Controller
         $TM_id = session('TM_id');
         $user_id = session('user_id');
 
+
         $jumlah_mahasiswa = KelompokMahasiswa::with('kelompok')
             ->whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
                 $q->where('KPA_id', $KPA_id);

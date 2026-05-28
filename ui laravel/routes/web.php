@@ -42,6 +42,8 @@ use App\Http\Controllers\TahunAJaran_Controller;
 use App\Http\Controllers\Agent\AgentKelompokController;
 use App\Http\Controllers\MahasiswaSyncController;
 use App\Http\Controllers\Agent_Controller;
+use App\Http\Controllers\WhatsAppController;
+
 
 Route::post('/sync-mahasiswa', [MahasiswaSyncController::class, 'sync']);
 
@@ -61,6 +63,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Route dengan middleware auth + role
 Route::middleware(['auth.api'])->group(function () {
+    // Letakkan di dalam routes/web.php
+    Route::post('/send-wa', [WhatsAppController::class, 'send'])->name('whatsapp.send');
     Route::get('/dashboard/mahasiswa', [dashboard_Controller::class, 'mahasiswa'])
         ->name('dashboard.mahasiswa')->middleware('role:Mahasiswa');
 
@@ -74,10 +78,10 @@ Route::middleware(['auth.api'])->group(function () {
         ->name('dashboard.koordinator')->middleware('dosen_roles:1');
 
     Route::get(
-    '/koordinator/detail-administratif',
-    [dashboard_Controller::class, 'detailAdministratif']
-)->name('detail.administratif')
- ->middleware('dosen_roles:1');
+        '/koordinator/detail-administratif',
+        [dashboard_Controller::class, 'detailAdministratif']
+    )->name('detail.administratif')
+        ->middleware('dosen_roles:1');
 
     Route::get('/dashboard/BAAK', [dashboard_Controller::class, 'BAAK'])
         ->name('dashboard.BAAK')->middleware('role:Staff');
@@ -485,7 +489,7 @@ Route::prefix('ai-agent')->group(function () {
     // halaman chat
     Route::get('/kelompok', [AgentKelompokController::class, 'index'])
         ->name('ai.kelompok');
-        Route::get('/penguji', [AgentPengujiController::class, 'index'])
+    Route::get('/penguji', [AgentPengujiController::class, 'index'])
         ->name('ai.penguji');
 
     // kirim pesan ke AI
@@ -523,10 +527,10 @@ Route::prefix('ai-agent')->group(function () {
     // Analytics Dashboard
     Route::get('/analytics', [AgentAnalyticsController::class, 'dashboard'])
         ->name('agent.analytics.dashboard');
-    
+
     Route::get('/analytics/refresh', [AgentAnalyticsController::class, 'refresh'])
         ->name('agent.analytics.refresh');
-    
+
     Route::get('/analytics/data', [AgentAnalyticsController::class, 'getAnalyticsData'])
         ->name('agent.analytics.data');
 
@@ -534,18 +538,18 @@ Route::prefix('ai-agent')->group(function () {
         ->name('agent.analytics.debug');
 
     Route::get('/api/hari-libur', function () {
-    $tahun = request('year', date('Y'));
-    
-    $response = Http::timeout(10)
-        ->get("https://api-harilibur.vercel.app/api", [
-            'year' => $tahun
-        ]);
-    
-    if ($response->failed()) {
-        return response()->json([], 200); // Kalender tetap jalan meski API gagal
-    }
-    
-    return response()->json($response->json());
-});
+        $tahun = request('year', date('Y'));
+
+        $response = Http::timeout(10)
+            ->get("https://api-harilibur.vercel.app/api", [
+                'year' => $tahun
+            ]);
+
+        if ($response->failed()) {
+            return response()->json([], 200); // Kalender tetap jalan meski API gagal
+        }
+
+        return response()->json($response->json());
+    });
 
 });

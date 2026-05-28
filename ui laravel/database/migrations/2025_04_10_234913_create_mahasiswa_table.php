@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string('prodi_name');
             $table->string('fakultas');
             $table->integer('angkatan');
+            $table->string('nomor_telepon')->nullable();
             $table->string('status');
             $table->string('asrama')->nullable();
             $table->timestamps();

@@ -33,4 +33,12 @@ class Mahasiswa extends Model
             'id'
         );
     }
+    public function kelompokMahasiswa()
+    {
+        return $this->hasMany(
+            KelompokMahasiswa::class,
+            'user_id', // foreign key di kelompok_mahasiswa
+            'user_id'  // local key di mahasiswa
+        );
+    }
 }

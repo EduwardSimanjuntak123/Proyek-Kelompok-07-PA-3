@@ -19,6 +19,15 @@
                                 <i class="fas fa-sync-alt mr-1"></i> Refresh Status
                             </button>
                         </div>
+                        @if (session('success'))
+                            <script>
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: '{{ session('success') }}'
+                                });
+                            </script>
+                        @endif
                         <div class="card-body">
                             <div class="verification-flow-container">
 
@@ -36,11 +45,19 @@
                                         <p class="step-title">Pembagian Kelompok</p>
                                         <p class="step-desc">Buat & generate kelompok</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                            <a href="#" class="btn-wa" onclick="kirimWA('kelompok'); return false;">
-                                                <i class="fab fa-whatsapp"></i>
-                                                Kirim Notifikasi WA
-                                            </a>
+                                            <form action="{{ route('whatsapp.send') }}" method="POST">
+                                                @csrf
+
+                                                <input type="hidden" name="pesan"
+                                                    value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
+
+                                                <button type="submit" class="btn-wa">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                    Kirim Notifikasi WA
+                                                </button>
+                                            </form>
                                         </div>
+
                                     </div>
                                 </div>
 
@@ -61,7 +78,8 @@
                                         <p class="step-title">Assign Dosen Pembimbing</p>
                                         <p class="step-desc">Tentukan dosen pembimbing</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                            <a href="#" class="btn-wa" onclick="kirimWA('pembimbing'); return false;">
+                                            <a href="{{ route('whatsapp.send') }}" class="btn-wa"
+                                                onclick="kirimWA('pembimbing'); return false;">
                                                 <i class="fab fa-whatsapp"></i>
                                                 Kirim Notifikasi WA
                                             </a>
@@ -512,34 +530,6 @@
 
     <script>
         // ============================================================
-        // KONFIGURASI NOMOR & PESAN WA
-        // Ganti nomor dengan format internasional tanpa tanda +
-        // Contoh: 6281234567890
-        // ============================================================
-        const WA_CONFIG = {
-            kelompok: '6281234567890',
-            pembimbing: '6281234567890',
-            penguji: '6281234567890',
-            jadwal: '6281234567890',
-        };
-
-        const WA_MESSAGES = {
-            kelompok: 'Halo, informasi bahwa pembagian kelompok PA telah selesai dilakukan. Silakan cek sistem untuk melihat detail kelompok masing-masing.',
-            pembimbing: 'Halo, informasi bahwa assign dosen pembimbing PA telah selesai dilakukan. Silakan cek sistem untuk melihat dosen pembimbing kelompok Anda.',
-            penguji: 'Halo, informasi bahwa assign dosen penguji PA telah selesai dilakukan. Silakan cek sistem untuk melihat dosen penguji kelompok Anda.',
-            jadwal: 'Halo, informasi bahwa jadwal seminar PA telah ditetapkan. Silakan cek sistem untuk melihat jadwal seminar kelompok Anda.',
-        };
-
-        // ============================================================
-        // FUNGSI KIRIM WA
-        // ============================================================
-        function kirimWA(step) {
-            const nomor = WA_CONFIG[step];
-            const pesan = encodeURIComponent(WA_MESSAGES[step]);
-            window.open('https://wa.me/' + nomor + '?text=' + pesan, '_blank');
-        }
-
-        // ============================================================
         // APPLY STATUS KE DOM (tampilkan/sembunyikan tombol WA)
         // ============================================================
         function applyVerificationStatus(data) {
@@ -607,7 +597,7 @@
             new Chart(document.getElementById('donutChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Lengkap', 'Menunggu Verifikasi', 'Belum Lengkap'],
+                    labels: ['Selesai', 'Sedang Progress', 'Belum Ada Progress'],
                     datasets: [{
                         data: [
                             {{ $stat_lengkap ?? 78 }},
