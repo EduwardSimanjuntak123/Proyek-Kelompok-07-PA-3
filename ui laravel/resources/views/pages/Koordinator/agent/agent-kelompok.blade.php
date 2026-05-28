@@ -97,7 +97,7 @@
                                 <div class="step-number">2</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Verifikasi Pembimbing</div>
+                                <div class="step-title">Assign Dosen Pembimbing</div>
                                 <div class="step-subtitle">Tentukan dosen pembimbing</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -122,7 +122,7 @@
                                 <div class="step-number">3</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Verifikasi Penguji</div>
+                                <div class="step-title">Assign Dosen Penguji</div>
                                 <div class="step-subtitle">Tentukan dosen penguji</div>
                             </div>
                             <div class="step-status" data-status="pending">
@@ -148,7 +148,7 @@
                                 <div class="step-number">4</div>
                             </div>
                             <div class="step-info">
-                                <div class="step-title">Jadwal Seminar</div>
+                                <div class="step-title">Assign Jadwal Seminar</div>
                                 <div class="step-subtitle">Tentukan waktu seminar</div>
                             </div>
                             <div class="step-status" data-status="pending">

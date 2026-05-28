@@ -126,7 +126,7 @@
                                         </svg>
                                     </div>
                                     <div class="step-label">
-                                        <p class="step-title">Jadwal Seminar</p>
+                                        <p class="step-title">Assign Jadwal Seminar</p>
                                         <p class="step-desc">Tentukan waktu seminar</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
                                             <a href="#" class="btn-wa" onclick="kirimWA('jadwal'); return false;">
@@ -407,77 +407,78 @@
                         <div class="card-header d-flex flex-wrap justify-content-between align-items-start gap-2">
                             <div>
                                 <h4 class="mb-0">Monitoring Prioritas</h4>
-                                <small class="text-muted">Detail kelompok yang membutuhkan perhatian khusus</small>
+                                <small class="text-muted">
+                                    Detail kelompok yang membutuhkan perhatian khusus
+                                </small>
                             </div>
-                            <div class="d-flex gap-2 align-items-center" style="gap:8px;">
+
+                            <div class="d-flex flex-nowrap align-items-center" style="gap:8px;">
                                 <select class="form-control form-control-sm" id="filterStatus" style="min-width:150px;">
                                     <option value="">Semua Status</option>
                                     <option value="Belum Lengkap">Belum Lengkap</option>
                                     <option value="Verifikasi">Verifikasi</option>
                                     <option value="Lengkap">Lengkap</option>
                                 </select>
-                                <button class="btn btn-primary btn-sm" onclick="window.print()">
+
+                                <button class="btn btn-primary btn-sm text-nowrap" onclick="window.print()">
                                     <i class="fas fa-download mr-1"></i> Export Data
                                 </button>
                             </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0" id="tabelMonitoring">
+                                <table class="table table-hover align-middle mb-0" id="tabelMonitoring">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>Kelompok</th>
-                                            <th>Status Administrasi</th>
-                                            <th class="text-center">Bimbingan</th>
-                                            <th class="text-right">Nilai Akhir</th>
-                                            <th>Status Sidang</th>
-                                            <th></th>
+                                            <th style="width:25%;">Kelompok</th>
+                                            <th style="width:22%;">Status Administrasi</th>
+                                            <th class="text-center" style="width:18%;">Bimbingan</th>
+                                            <th class="text-center" style="width:15%;">Nilai Akhir</th>
+                                            <th style="width:20%;">Status Sidang</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         @foreach ($daftar_kelompok as $kelompok)
                                             <tr>
-                                                <td style="font-weight:500;">
+                                                {{-- Kelompok --}}
+                                                <td class="font-weight-600 py-3">
                                                     Kelompok {{ $kelompok->nomor_kelompok }}
                                                 </td>
 
-                                                <td>
-                                                    <span class="badge badge-success" style="font-size:11px;">
+                                                {{-- Status --}}
+                                                <td class="py-3">
+                                                    <span class="badge badge-success px-3 py-2"
+                                                        style="font-size:11px;border-radius:20px;">
                                                         {{ $kelompok->status }}
                                                     </span>
                                                 </td>
 
-                                                <td class="text-center" style="font-size:13px;">
+                                                {{-- Bimbingan --}}
+                                                <td class="text-center py-3" style="font-size:13px;font-weight:500;">
                                                     {{ $kelompok->jumlah_bimbingan_selesai }} / 12
                                                 </td>
 
-                                                <td class="text-right" style="font-size:13px;font-weight:600;">
+                                                {{-- Nilai --}}
+                                                <td class="text-center py-3" style="font-size:13px;font-weight:600;">
                                                     {{ number_format($kelompok->rata_nilai_akhir ?? 0, 1) }}
                                                 </td>
 
-                                                <td>
+                                                {{-- Status Sidang --}}
+                                                <td class="py-3">
                                                     @if ($kelompok->jadwal)
                                                         <span style="color:#16a34a;font-size:12px;font-weight:600;">
-                                                            <i class="fas fa-circle"
-                                                                style="font-size:7px;vertical-align:middle;"></i>
+                                                            <i class="fas fa-circle mr-1" style="font-size:7px;"></i>
 
                                                             {{ \Carbon\Carbon::parse($kelompok->jadwal->waktu_mulai)->format('d M Y H:i') }}
                                                         </span>
                                                     @else
                                                         <span style="color:#6b7280;font-size:12px;">
-                                                            <i class="fas fa-circle"
-                                                                style="font-size:7px;vertical-align:middle;"></i>
+                                                            <i class="fas fa-circle mr-1" style="font-size:7px;"></i>
 
                                                             Belum Terjadwal
                                                         </span>
                                                     @endif
-                                                </td>
-
-                                                <td class="text-right">
-                                                    <a href="#" class="text-primary"
-                                                        style="font-size:12px;font-weight:600;">
-                                                        Detail
-                                                    </a>
                                                 </td>
                                             </tr>
                                         @endforeach

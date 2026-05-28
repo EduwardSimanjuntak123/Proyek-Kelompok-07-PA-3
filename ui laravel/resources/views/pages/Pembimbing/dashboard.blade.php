@@ -396,7 +396,9 @@
                                                 @endphp
                                                 <span class="badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
                                             </td>
+
                                             <td>{{ $kelompok['nilai_rata'] ?? '-' }}</td>
+
                                             <td>
                                                 @if ($kelompok['status_bimbingan'] === 'Aktif')
                                                     <span class="badge badge-primary">Bimbingan Aktif</span>
@@ -895,14 +897,15 @@
             /* -----------------------------------------------
                3. VERTICAL BAR — Jumlah Bimbingan per Kelompok
             ----------------------------------------------- */
-            const bimbinganData = [17, 14, 5, 18, 12, 3];
+            const bimbinganLabels = @json($chart_kelompok_labels);
+            const bimbinganData = @json($chart_bimbingan_data);
             new Chart(document.getElementById('chartBarBimbingan'), {
                 type: 'bar',
                 data: {
-                    labels: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6'],
+                    labels: bimbinganLabels,
                     datasets: [{
                         label: 'Sesi',
-                        data: bimbinganData,
+                        data: @json($chart_bimbingan_data),
                         backgroundColor: bimbinganData.map(v => v < 8 ? RED : GREEN),
                         borderRadius: 6,
                         borderSkipped: false,
@@ -948,10 +951,10 @@
             new Chart(document.getElementById('chartHorizontalBar'), {
                 type: 'bar',
                 data: {
-                    labels: ['Kelompok 04', 'Kelompok 01', 'Kelompok 05', 'Kelompok 02'],
+                    labels: @json($chart_kelompok_labels),
                     datasets: [{
                         label: 'Nilai',
-                        data: [92, 88, 81, 75],
+                        data: @json($chart_nilai_kelompok),
                         backgroundColor: BLUE_DARK,
                         borderRadius: 4,
                         borderSkipped: false,
