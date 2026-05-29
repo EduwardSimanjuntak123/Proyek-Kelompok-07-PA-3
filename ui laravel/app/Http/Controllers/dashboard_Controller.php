@@ -201,39 +201,188 @@ class dashboard_Controller extends Controller
     }
 
     public function detailAdministratif()
-    {
+{
+    $KPA_id = session('KPA_id');
+    $prodi_id = session('prodi_id');
+    $TM_id = session('TM_id');
+    $user_id = session('user_id');
 
-        $KPA_id = session('KPA_id');
+    // =========================
+    // FILTER & SORTING
+    // =========================
 
-        $prodi_id = session('prodi_id');
-        $TM_id = session('TM_id');
-        $user_id = session('user_id');
-        $daftar_kelompok = Kelompok::with(['jadwal'])
-            ->withCount([
-                'KelompokMahasiswa as jumlah_anggota',
+    $statusFilter = request('status');
+    $sortFilter = request('sort');
 
-                'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
-                    $q->where('status', 'selesai');
-                },
+    // =========================
+    // QUERY DATA KELOMPOK
+    // =========================
 
-                'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
-                    $q->whereHas('tugas', function ($query) {
-                        $query->where('kategori_tugas', 'Artefak');
-                    })
-                        ->whereIn('status', ['Submitted', 'Late']);
-                }
-            ])
-            ->withExists([
-                'jadwal as sudah_memiliki_jadwal'
-            ])
-            ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
-            ->where('KPA_id', $KPA_id)
-            ->where('prodi_id', $prodi_id)
-            ->where('TM_id', $TM_id)
-            ->get();
+    $daftar_kelompok = Kelompok::with(['jadwal'])
 
-        return view('pages.Koordinator.Detail.detail-administratif', compact('daftar_kelompok', 'KPA_id', 'prodi_id', 'TM_id', 'user_id'));
+        ->withCount([
+
+            // Jumlah anggota kelompok
+            'KelompokMahasiswa as jumlah_anggota',
+
+            // Jumlah bimbingan selesai
+            'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
+                $q->where('status', 'selesai');
+            },
+
+            // Jumlah artefak submit
+            'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
+                $q->whereHas('tugas', function ($query) {
+                    $query->where('kategori_tugas', 'Artefak');
+                })
+                ->whereIn('status', ['Submitted', 'Late']);
+            }
+
+        ])
+
+        // Cek apakah sudah punya jadwal seminar
+        ->withExists([
+            'jadwal as sudah_memiliki_jadwal'
+        ])
+
+        // Rata-rata nilai akhir
+        ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
+
+        // Filter data
+        ->where('KPA_id', $KPA_id)
+        ->where('prodi_id', $prodi_id)
+        ->where('TM_id', $TM_id)
+
+        ->get();
+        // Total asli semua kelompok
+         $total_kelompok = $daftar_kelompok->count();
+
+    // =========================
+    // HITUNG STATUS MONITORING
+    // =========================
+
+    $daftar_kelompok = $daftar_kelompok->map(function ($kelompok) {
+
+        $progressCount = 0;
+
+        // 1. Bimbingan minimal 8x
+        if (($kelompok->jumlah_bimbingan_selesai ?? 0) >= 8) {
+            $progressCount++;
+        }
+
+        // 2. Artefak sudah submit
+        if (($kelompok->jumlah_artefak_submit ?? 0) > 0) {
+            $progressCount++;
+        }
+
+        // 3. Seminar sudah terjadwal
+        if ($kelompok->sudah_memiliki_jadwal) {
+            $progressCount++;
+        }
+
+        // Simpan progress
+        $kelompok->progress_count = $progressCount;
+
+        // Status monitoring
+        if ($progressCount == 3) {
+
+        $kelompok->status_monitoring = 'Selesai';
+
+        } else {
+
+        $kelompok->status_monitoring = 'Berlangsung';
+        }
+
+            return $kelompok;
+        });
+
+    // =========================
+    // FILTER STATUS
+    // =========================
+
+    if ($statusFilter) {
+
+    $daftar_kelompok = $daftar_kelompok->where(
+        'status_monitoring',
+        $statusFilter
+    );
+}
+
+    // =========================
+    // SORTING
+    // =========================
+
+    if ($sortFilter == 'tinggi') {
+
+        $daftar_kelompok = $daftar_kelompok->sortByDesc('progress_count');
+
+    } elseif ($sortFilter == 'rendah') {
+
+        $daftar_kelompok = $daftar_kelompok->sortBy('progress_count');
+
+    } elseif ($sortFilter == 'terbaru') {
+
+        $daftar_kelompok = $daftar_kelompok->sortByDesc('created_at');
     }
+
+    // Reset index collection
+    $daftar_kelompok = $daftar_kelompok->values();
+
+    // =========================
+    // STATISTIK DASHBOARD
+    // =========================
+
+    $jumlah_kelompok = $total_kelompok;
+
+    $selesai = $daftar_kelompok
+        ->where('status_monitoring', 'Selesai')
+        ->count();
+
+    $berlangsung = $daftar_kelompok
+        ->where('status_monitoring', 'Berlangsung')
+        ->count();
+
+    // =========================
+    // PAGINATION MANUAL
+    // =========================
+
+    $perPage = 10;
+    $currentPage = request()->get('page', 1);
+
+    $pagedData = $daftar_kelompok->slice(
+        ($currentPage - 1) * $perPage,
+        $perPage
+    );
+
+    $daftar_kelompok = new \Illuminate\Pagination\LengthAwarePaginator(
+        $pagedData,
+        $daftar_kelompok->count(),
+        $perPage,
+        $currentPage,
+        [
+            'path' => request()->url(),
+            'query' => request()->query(),
+        ]
+    );
+
+    // =========================
+    // RETURN VIEW
+    // =========================
+
+    return view(
+        'pages.Koordinator.Detail.detail-administratif',
+        compact(
+            'daftar_kelompok',
+            'jumlah_kelompok',
+            'selesai',
+            'berlangsung',
+            'KPA_id',
+            'prodi_id',
+            'TM_id',
+            'user_id'
+        )
+    );
+}
 
 
 

@@ -26,7 +26,7 @@
             {{-- KPI --}}
             <div class="row mb-4">
 
-                <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="card card-statistic-1 shadow-sm">
                         <div class="card-icon bg-primary">
                             <i class="fas fa-users"></i>
@@ -36,14 +36,15 @@
                             <div class="card-header">
                                 <h4>Total Kelompok</h4>
                             </div>
+
                             <div class="card-body">
-                                {{ $total_kelompok ?? 15 }}
+                                {{ $jumlah_kelompok }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="card card-statistic-1 shadow-sm">
                         <div class="card-icon bg-success">
                             <i class="fas fa-check-circle"></i>
@@ -51,16 +52,16 @@
 
                         <div class="card-wrap">
                             <div class="card-header">
-                                <h4>Lengkap</h4>
+                                <h4>Selesai</h4>
                             </div>
                             <div class="card-body">
-                                {{ $lengkap ?? 8 }}
+                                {{ $selesai }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="card card-statistic-1 shadow-sm">
                         <div class="card-icon bg-warning">
                             <i class="fas fa-clock"></i>
@@ -68,71 +69,112 @@
 
                         <div class="card-wrap">
                             <div class="card-header">
-                                <h4>Pending</h4>
+                                <h4>Berlangsung</h4>
                             </div>
                             <div class="card-body">
-                                {{ $pending ?? 4 }}
+                                {{ $berlangsung }}
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="card card-statistic-1 shadow-sm">
-                        <div class="card-icon bg-danger">
-                            <i class="fas fa-exclamation-circle"></i>
-                        </div>
-
-                        <div class="card-wrap">
-                            <div class="card-header">
-                                <h4>Bermasalah</h4>
-                            </div>
-                            <div class="card-body">
-                                {{ $bermasalah ?? 3 }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
 
             {{-- FILTER --}}
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
+            {{-- FILTER --}}
+            <div class="card shadow-sm border-0 mb-4">
 
-                    <div class="row">
+                <div class="card-body py-3">
 
-                        <div class="col-md-4">
-                            <select class="form-control">
-                                <option>Semua Status</option>
-                                <option>Lengkap</option>
-                                <option>Pending</option>
-                                <option>Bermasalah</option>
-                            </select>
+                    <form method="GET" action="{{ url()->current() }}">
+
+                        <div class="row align-items-end">
+
+                            {{-- Filter Status --}}
+                            <div class="col-lg-4 col-md-6 mb-3">
+
+                                <label class="font-weight-bold text-dark mb-2">
+                                    Status Kelompok
+                                </label>
+
+                                <select name="status" class="form-control shadow-sm">
+
+                                    <option value="">
+                                        Semua Status
+                                    </option>
+
+                                    <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>
+                                        Selesai
+                                    </option>
+
+                                    <option value="Berlangsung" {{ request('status') == 'Berlangsung' ? 'selected' : '' }}>
+                                        Berlangsung
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            {{-- Sorting --}}
+                            <div class="col-lg-4 col-md-6 mb-3">
+
+                                <label class="font-weight-bold text-dark mb-2">
+                                    Urutkan Data
+                                </label>
+
+                                <select name="sort" class="form-control shadow-sm">
+
+                                    <option value="">
+                                        Default
+                                    </option>
+
+                                    <option value="tinggi" {{ request('sort') == 'tinggi' ? 'selected' : '' }}>
+                                        Progress Tertinggi
+                                    </option>
+
+                                    <option value="rendah" {{ request('sort') == 'rendah' ? 'selected' : '' }}>
+                                        Progress Terendah
+                                    </option>
+
+                                    <option value="terbaru" {{ request('sort') == 'terbaru' ? 'selected' : '' }}>
+                                        Terbaru
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            {{-- Button --}}
+                            <div class="col-lg-4 col-md-12 mb-3">
+
+                                <div class="d-flex flex-wrap align-items-center" style="gap:10px;">
+
+                                    {{-- Cari --}}
+                                    <button type="submit" class="btn btn-primary shadow-sm px-4">
+
+                                        <i class="fas fa-search mr-1"></i>
+                                        Cari
+
+                                    </button>
+
+                                    {{-- Reset --}}
+                                    <a href="{{ url()->current() }}" class="btn btn-light border shadow-sm px-4">
+
+                                        <i class="fas fa-redo-alt mr-1"></i>
+                                        Reset
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+
                         </div>
 
-                        <div class="col-md-4">
-                            <select class="form-control">
-                                <option>Urutkan Kelompok</option>
-                                <option>Progress Tertinggi</option>
-                                <option>Progress Terendah</option>
-                                <option>Terbaru</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4 text-right">
-
-                            <button class="btn btn-primary">
-                                <i class="fas fa-download"></i>
-                                Export Excel
-                            </button>
-
-                        </div>
-
-                    </div>
+                    </form>
 
                 </div>
+
             </div>
 
 
@@ -308,52 +350,32 @@
                 </div>
 
 
-                {{-- pagination --}}
-                <div class="card-footer text-right">
+                {{-- Pagination --}}
+                <div class="card-footer bg-white border-0 py-3">
 
-                    <nav>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
 
-                        <ul class="pagination justify-content-end mb-0">
+                        <small class="text-muted mb-2 mb-md-0">
+                            Menampilkan
+                            {{ $daftar_kelompok->firstItem() ?? 0 }}
+                            -
+                            {{ $daftar_kelompok->lastItem() ?? 0 }}
 
-                            <li class="page-item disabled">
-                                <a class="page-link">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
-                            </li>
+                            dari
 
-                            <li class="page-item active">
-                                <a class="page-link">
-                                    1
-                                </a>
-                            </li>
+                            {{ $daftar_kelompok->total() }}
+                            kelompok
+                        </small>
 
-                            <li class="page-item">
-                                <a class="page-link">
-                                    2
-                                </a>
-                            </li>
+                        <div>
+                            {{ $daftar_kelompok->withQueryString()->links() }}
+                        </div>
 
-                            <li class="page-item">
-                                <a class="page-link">
-                                    3
-                                </a>
-                            </li>
-
-                            <li class="page-item">
-                                <a class="page-link">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
-                            </li>
-
-                        </ul>
-
-                    </nav>
+                    </div>
 
                 </div>
 
             </div>
-
-        </div>
 
     </section>
 @endsection
