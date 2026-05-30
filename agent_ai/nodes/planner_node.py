@@ -80,6 +80,10 @@ def _safe_parse_plan_json(response_text: str) -> Dict:
 
 def _score_action_candidates(prompt_lower: str) -> List[Tuple[str, int]]:
     scoring_rules = {
+        "query_rag": {
+            "keywords": ["pedoman", "panduan", "sop", "aturan", "dokumen", "manual", "regulasi", "referensi"],
+            "requires": ["pedoman", "panduan", "dokumen", "manual", "aturan"],
+        },
         "create_group_hybrid": {
             "keywords": ["harus satu", "satu kelompok", "satu grup"],
             "requires": ["kelompok"],
@@ -345,6 +349,20 @@ def planner_node(state):
             state["plan"] = plan
             return state
 
+        # Intent khusus: pertanyaan berbasis dokumen/pedoman/aturan harus masuk ke RAG
+        if any(term in prompt_lower for term in ["pedoman", "panduan", "dokumen", "manual", "aturan", "regulasi", "referensi"]):
+            plan = {
+                "action": "query_rag",
+                "confidence": 0.94,
+                "source": "rule",
+                "reason": "Document/pedoman retrieval intent",
+                "params": extracted_params,
+                "alternatives": [],
+            }
+            logger.info(f"[{user_id}] 📋 PLANNER: '{prompt[:50]}...' → query_rag ✓ (dokumen/pedoman)")
+            state["plan"] = plan
+            return state
+
         if "sudah ada pembimbing" in prompt_lower or "apakah sudah ada pembimbing" in prompt_lower:
             plan = {
                 "action": "check_pembimbing",
@@ -486,7 +504,7 @@ def planner_node(state):
     check_kelompok, delete_kelompok, query_dosen, query_dosen_role, query_mahasiswa, query_kelompok,
     query_anggota_kelompok, query_matakuliah, query_prodi, query_roles, query_kategori_pa,
     query_tahun_ajaran, query_ruangan, query_jadwal, query_nilai, query_pembimbing, query_penguji,
-    generate_pembimbing, check_pembimbing, generate_penguji, check_penguji, generate_jadwal,
+    query_rag, generate_pembimbing, check_pembimbing, generate_penguji, check_penguji, generate_jadwal,
     save_jadwal, create_group, create_group_hybrid, create_group_by_grades, generate_excel, chat
 
     OUTPUT JSON ONLY:

@@ -1,6 +1,7 @@
 # Virtual environment
 venv/
 .venv/
+agent_ai/.venv/
 env/
 
 # Environment variables

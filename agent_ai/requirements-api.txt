@@ -20,3 +20,6 @@ grafana-api
 # Optional
 pandas
 numpy
+ragas
+datasets
+langchain-community

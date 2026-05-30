@@ -7,9 +7,13 @@ Pastikan sudah run: pip install -r requirements-api.txt
 import subprocess
 import sys
 import os
+from pathlib import Path
 
 def start_server():
     """Start FastAPI server"""
+    script_dir = Path(__file__).resolve().parent
+    local_python = script_dir / ".venv" / "Scripts" / "python.exe"
+    python_cmd = str(local_python) if local_python.exists() else sys.executable
     
     print("=" * 60)
     print("Starting Agent Grouping FastAPI Server")
@@ -31,7 +35,7 @@ def start_server():
     # Run uvicorn
     try:
         subprocess.run([
-            sys.executable, "-m", "uvicorn",
+            python_cmd, "-m", "uvicorn",
             "api:app",
             "--host", "127.0.0.1",
             "--port", "8001",

@@ -5,7 +5,7 @@ Untuk menyimpan analytics, logs, insights, dan full conversation history
 
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING, DESCENDING, ReturnDocument
 from bson.objectid import ObjectId
 import json
 import logging
@@ -75,12 +75,15 @@ class MongoDBMemory:
     def update_session(self, user_id: int, session_data: Dict) -> bool:
         """Update session data"""
         try:
-            result = self.sessions_col.update_one(
+            # Use find_one_and_update so we can specify sort to pick the latest
+            # active session. update_one does not accept a `sort` parameter.
+            updated = self.sessions_col.find_one_and_update(
                 {"user_id": user_id, "status": "active"},
                 {"$set": {"updated_at": datetime.now(), "data": session_data}},
-                sort=[("created_at", DESCENDING)]
+                sort=[("created_at", DESCENDING)],
+                return_document=ReturnDocument.AFTER,
             )
-            return result.modified_count > 0
+            return updated is not None
         except Exception as e:
             logger.error(f"[MONGO] Error updating session: {e}")
             return False

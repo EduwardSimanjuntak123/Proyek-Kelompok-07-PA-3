@@ -57,6 +57,11 @@ from tools.jadwal_seminar import JadwalSeminarTools
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+try:
+    from RAG import retriever as rag_retriever
+except Exception:
+    rag_retriever = None
+
 EXECUTABLE_ACTIONS = {
     "query_dosen",
     "query_mahasiswa",
@@ -71,6 +76,7 @@ EXECUTABLE_ACTIONS = {
     "query_roles",
     "query_tahun_ajaran",
     "query_ruangan",
+    "query_rag",
     "query_pembimbing",
     "query_penguji",
     "check_pembimbing",
@@ -91,6 +97,7 @@ EXECUTABLE_ACTIONS = {
 
 def _infer_action_from_prompt(prompt_lower: str):
     infer_rules = [
+        ("query_rag", ["pedoman", "panduan", "sop", "aturan", "dokumen", "manual", "pedoman pa", "pedoman_pa"]),
         ("query_jadwal_kelompok", ["kapan kelompok", "jadwal kelompok", "kelompok maju", "maju kapan"]),
         ("generate_jadwal_seminar", ["jadwal seminar", "buat jadwal", "jadwal presentasi", "schedule seminar"]),
         ("query_anggota_kelompok", ["anggota kelompok", "siapa anggota kelompok"]),
@@ -746,6 +753,44 @@ def executor_node(state):
                         logger.info(f"[{user_id}] ✓ query_jadwal_kelompok nomor={nomor_kelompok}")
                     else:
                         logger.warning(f"[{user_id}] ✗ query_jadwal_kelompok gagal: {result.get('message')}")
+
+        elif action == "query_rag":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: query_rag (retrieval from document store)")
+            # Use simple keyword retriever. If retriever not available, return helpful message.
+            if rag_retriever is None:
+                state["result"] = (
+                    "<p>RAG module belum tersedia. Untuk mengaktifkan RAG, pasang dependensi dan indeks dokumen:</p>"
+                    "<ol>"
+                    "<li>pip install PyPDF2</li>"
+                    "<li>jalankan Python: from RAG import retriever; retriever.index_documents()</li>"
+                    "</ol>"
+                )
+            else:
+                try:
+                    hits = rag_retriever.query(prompt, top_k=3)
+                except ImportError as e:
+                    state["result"] = f"<p>Dependency error: {html.escape(str(e))}</p>"
+                    return state
+                except Exception as e:
+                    logger.exception(f"[{user_id}] ✗ RAG query failed: {e}")
+                    state["result"] = "<p>Terjadi kesalahan saat mengambil dokumen. Periksa log server.</p>"
+                    return state
+
+                if not hits:
+                    state["result"] = "<p>Tidak ditemukan informasi relevan pada dokumen yang terindeks.</p>"
+                else:
+                    # Format simple list of hits with excerpt
+                    html_result = f"<h2>Hasil Pencarian Dokumen ({len(hits)} terbaik)</h2>"
+                    for h in hits:
+                        src = html.escape(h.get("source") or "")
+                        excerpt = html.escape((h.get("chunk") or "")[0:800])
+                        score = h.get("score", 0)
+                        html_result += f"<div style='margin-bottom:12px; padding:8px; border:1px solid #eee; border-radius:6px;'>"
+                        html_result += f"<h4 style='margin:0 0 6px 0;'>Sumber: {src} — skor: {score}</h4>"
+                        html_result += f"<p style='margin:0; white-space:pre-wrap;'>{excerpt}</p>"
+                        html_result += "</div>"
+                    html_result += "<p><em>Catatan: ini adalah pencarian kata kunci sederhana. Untuk hasil yang lebih baik, pasang embeddings dan lakukan indexing menggunakan retriever berbasis vektor.</em></p>"
+                    state["result"] = html_result
         
         elif action == "query_matakuliah":
             logger.info(f"[{user_id}] ⚙️  TOOLS: query_matakuliah (daftar mata kuliah)")

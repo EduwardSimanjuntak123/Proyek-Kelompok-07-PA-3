@@ -57,27 +57,12 @@ from core.memory import ConversationMemory
 from core.redis_memory import get_redis_manager
 from core.mongo_memory import get_mongo_memory
 
-
-# Configure logging - show DEBUG level untuk detailed flow tracking
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s [%(name)s] %(levelname)s: %(message)s',
-    handlers=[
-        logging.StreamHandler(),  # Console output
-        logging.FileHandler('agent_api.log')  # File logging
-    ]
-)
-
-for handler in logging.getLogger().handlers:
-    handler.addFilter(Cp1252SafeFilter())
+# Configure concise logging to reduce noisy DEBUG output from external libs
+from logging_setup import configure_concise_logging
+configure_concise_logging(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Set FastAPI/Uvicorn loggers ke level yang lebih rendah for less noise
-logging.getLogger("uvicorn").setLevel(logging.INFO)
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-logging.getLogger("fastapi").setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 
 # Custom JSON encoder untuk handle MongoDB ObjectId dan datetime
 class MongoJSONEncoder(JSONEncoder):

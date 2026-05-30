@@ -20,7 +20,15 @@ echo ============================================================
 echo.
 
 REM Check if Python is installed
-python --version >nul 2>&1
+set "VENV_PYTHON=%~dp0.venv\Scripts\python.exe"
+
+if exist "%VENV_PYTHON%" (
+    set "PYTHON_CMD=%VENV_PYTHON%"
+) else (
+    set "PYTHON_CMD=python"
+)
+
+%PYTHON_CMD% --version >nul 2>&1
 if errorlevel 1 (
     echo Error: Python tidak ditemukan!
     echo Pastikan Python sudah di-install dan di PATH
@@ -29,7 +37,7 @@ if errorlevel 1 (
 )
 
 REM Check if uvicorn installed
-python -c "import uvicorn" >nul 2>&1
+%PYTHON_CMD% -c "import uvicorn" >nul 2>&1
 if errorlevel 1 (
     echo Error: FastAPI dependencies tidak ter-install!
     echo Run: pip install -r requirements-api.txt
@@ -38,6 +46,6 @@ if errorlevel 1 (
 )
 
 REM Start server
-python -m uvicorn api:app --host 127.0.0.1 --port 8001 --reload
+%PYTHON_CMD% -m uvicorn api:app --host 127.0.0.1 --port 8001 --reload
 
 pause

@@ -1,10 +1,20 @@
-from openai import OpenAI
+from functools import lru_cache
 import os
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+@lru_cache(maxsize=1)
+def get_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is not set. Set it before calling LLM-backed features."
+        )
+    return OpenAI(api_key=api_key)
 
 def call_llm(messages, system_prompt=None, context=None):
     if isinstance(messages, str):
@@ -20,7 +30,7 @@ def call_llm(messages, system_prompt=None, context=None):
 
     final_messages.extend(messages)
 
-    response = client.chat.completions.create(
+    response = get_client().chat.completions.create(
         model="gpt-5-mini",
         messages=final_messages
     )
