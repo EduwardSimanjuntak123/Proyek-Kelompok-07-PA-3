@@ -10,6 +10,10 @@ use App\Models\Mahasiswa;
 use App\Models\Bimbingan;
 use App\Models\pembimbing;
 use App\Models\Nilai_Mahasiswa;
+use App\Models\Nilai_Seminar;
+use App\Models\Nilai_Administrasi;
+use App\Models\Nilai_Bimbingan;
+use App\Models\PengumpulanTugas;
 use App\Models\Penguji;
 use App\Models\Pengumuman;
 use App\Models\Tugas;
@@ -201,470 +205,599 @@ class dashboard_Controller extends Controller
     }
 
     public function detailAdministratif()
-{
-    $KPA_id = session('KPA_id');
-    $prodi_id = session('prodi_id');
-    $TM_id = session('TM_id');
-    $user_id = session('user_id');
+    {
+        $KPA_id = session('KPA_id');
+        $prodi_id = session('prodi_id');
+        $TM_id = session('TM_id');
+        $user_id = session('user_id');
 
-    // =========================
-    // FILTER & SORTING
-    // =========================
+        // =========================
+        // FILTER & SORTING
+        // =========================
 
-    $statusFilter = request('status');
-    $sortFilter = request('sort');
+        $statusFilter = request('status');
+        $sortFilter = request('sort');
 
-    // =========================
-    // QUERY DATA KELOMPOK
-    // =========================
+        // =========================
+        // QUERY DATA KELOMPOK
+        // =========================
 
-    $daftar_kelompok = Kelompok::with(['jadwal'])
+        $daftar_kelompok = Kelompok::with(['jadwal'])
 
-        ->withCount([
+            ->withCount([
 
-            // Jumlah anggota kelompok
-            'KelompokMahasiswa as jumlah_anggota',
+                // Jumlah anggota kelompok
+                'KelompokMahasiswa as jumlah_anggota',
 
-            // Jumlah bimbingan selesai
-            'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
-                $q->where('status', 'selesai');
-            },
+                // Jumlah bimbingan selesai
+                'bimbingan as jumlah_bimbingan_selesai' => function ($q) {
+                    $q->where('status', 'selesai');
+                },
 
-            // Jumlah artefak submit
-            'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
-                $q->whereHas('tugas', function ($query) {
-                    $query->where('kategori_tugas', 'Artefak');
-                })
-                ->whereIn('status', ['Submitted', 'Late']);
+                // Jumlah artefak submit
+                'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
+                    $q->whereHas('tugas', function ($query) {
+                        $query->where('kategori_tugas', 'Artefak');
+                    })
+                        ->whereIn('status', ['Submitted', 'Late']);
+                }
+
+            ])
+
+            // Cek apakah sudah punya jadwal seminar
+            ->withExists([
+                'jadwal as sudah_memiliki_jadwal'
+            ])
+
+            // Rata-rata nilai akhir
+            ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
+
+            // Filter data
+            ->where('KPA_id', $KPA_id)
+            ->where('prodi_id', $prodi_id)
+            ->where('TM_id', $TM_id)
+
+            ->get();
+        // Total asli semua kelompok
+        $total_kelompok = $daftar_kelompok->count();
+
+        // =========================
+        // HITUNG STATUS MONITORING
+        // =========================
+
+        $daftar_kelompok = $daftar_kelompok->map(function ($kelompok) {
+
+            $progressCount = 0;
+
+            // 1. Bimbingan minimal 8x
+            if (($kelompok->jumlah_bimbingan_selesai ?? 0) >= 8) {
+                $progressCount++;
             }
 
-        ])
+            // 2. Artefak sudah submit
+            if (($kelompok->jumlah_artefak_submit ?? 0) > 0) {
+                $progressCount++;
+            }
 
-        // Cek apakah sudah punya jadwal seminar
-        ->withExists([
-            'jadwal as sudah_memiliki_jadwal'
-        ])
+            // 3. Seminar sudah terjadwal
+            if ($kelompok->sudah_memiliki_jadwal) {
+                $progressCount++;
+            }
 
-        // Rata-rata nilai akhir
-        ->withAvg('nilaiMahasiswa as rata_nilai_akhir', 'nilai_akhir')
+            // Simpan progress
+            $kelompok->progress_count = $progressCount;
 
-        // Filter data
-        ->where('KPA_id', $KPA_id)
-        ->where('prodi_id', $prodi_id)
-        ->where('TM_id', $TM_id)
+            // Status monitoring
+            if ($progressCount == 3) {
 
-        ->get();
-        // Total asli semua kelompok
-         $total_kelompok = $daftar_kelompok->count();
+                $kelompok->status_monitoring = 'Selesai';
 
-    // =========================
-    // HITUNG STATUS MONITORING
-    // =========================
+            } else {
 
-    $daftar_kelompok = $daftar_kelompok->map(function ($kelompok) {
-
-        $progressCount = 0;
-
-        // 1. Bimbingan minimal 8x
-        if (($kelompok->jumlah_bimbingan_selesai ?? 0) >= 8) {
-            $progressCount++;
-        }
-
-        // 2. Artefak sudah submit
-        if (($kelompok->jumlah_artefak_submit ?? 0) > 0) {
-            $progressCount++;
-        }
-
-        // 3. Seminar sudah terjadwal
-        if ($kelompok->sudah_memiliki_jadwal) {
-            $progressCount++;
-        }
-
-        // Simpan progress
-        $kelompok->progress_count = $progressCount;
-
-        // Status monitoring
-        if ($progressCount == 3) {
-
-        $kelompok->status_monitoring = 'Selesai';
-
-        } else {
-
-        $kelompok->status_monitoring = 'Berlangsung';
-        }
+                $kelompok->status_monitoring = 'Berlangsung';
+            }
 
             return $kelompok;
         });
 
-    // =========================
-    // FILTER STATUS
-    // =========================
+        // =========================
+        // FILTER STATUS
+        // =========================
 
-    if ($statusFilter) {
+        if ($statusFilter) {
 
-    $daftar_kelompok = $daftar_kelompok->where(
-        'status_monitoring',
-        $statusFilter
-    );
-}
+            $daftar_kelompok = $daftar_kelompok->where(
+                'status_monitoring',
+                $statusFilter
+            );
+        }
 
-    // =========================
-    // SORTING
-    // =========================
+        // =========================
+        // SORTING
+        // =========================
 
-    if ($sortFilter == 'tinggi') {
+        if ($sortFilter == 'tinggi') {
 
-        $daftar_kelompok = $daftar_kelompok->sortByDesc('progress_count');
+            $daftar_kelompok = $daftar_kelompok->sortByDesc('progress_count');
 
-    } elseif ($sortFilter == 'rendah') {
+        } elseif ($sortFilter == 'rendah') {
 
-        $daftar_kelompok = $daftar_kelompok->sortBy('progress_count');
+            $daftar_kelompok = $daftar_kelompok->sortBy('progress_count');
 
-    } elseif ($sortFilter == 'terbaru') {
+        } elseif ($sortFilter == 'terbaru') {
 
-        $daftar_kelompok = $daftar_kelompok->sortByDesc('created_at');
+            $daftar_kelompok = $daftar_kelompok->sortByDesc('created_at');
+        }
+
+        // Reset index collection
+        $daftar_kelompok = $daftar_kelompok->values();
+
+        // =========================
+        // STATISTIK DASHBOARD
+        // =========================
+
+        $jumlah_kelompok = $total_kelompok;
+
+        $selesai = $daftar_kelompok
+            ->where('status_monitoring', 'Selesai')
+            ->count();
+
+        $berlangsung = $daftar_kelompok
+            ->where('status_monitoring', 'Berlangsung')
+            ->count();
+
+        // =========================
+        // PAGINATION MANUAL
+        // =========================
+
+        $perPage = 10;
+        $currentPage = request()->get('page', 1);
+
+        $pagedData = $daftar_kelompok->slice(
+            ($currentPage - 1) * $perPage,
+            $perPage
+        );
+
+        $daftar_kelompok = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pagedData,
+            $daftar_kelompok->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        // =========================
+        // RETURN VIEW
+        // =========================
+
+        return view(
+            'pages.Koordinator.Detail.detail-administratif',
+            compact(
+                'daftar_kelompok',
+                'jumlah_kelompok',
+                'selesai',
+                'berlangsung',
+                'KPA_id',
+                'prodi_id',
+                'TM_id',
+                'user_id'
+            )
+        );
     }
 
-    // Reset index collection
-    $daftar_kelompok = $daftar_kelompok->values();
-
-    // =========================
-    // STATISTIK DASHBOARD
-    // =========================
-
-    $jumlah_kelompok = $total_kelompok;
-
-    $selesai = $daftar_kelompok
-        ->where('status_monitoring', 'Selesai')
-        ->count();
-
-    $berlangsung = $daftar_kelompok
-        ->where('status_monitoring', 'Berlangsung')
-        ->count();
-
-    // =========================
-    // PAGINATION MANUAL
-    // =========================
-
-    $perPage = 10;
-    $currentPage = request()->get('page', 1);
-
-    $pagedData = $daftar_kelompok->slice(
-        ($currentPage - 1) * $perPage,
-        $perPage
-    );
-
-    $daftar_kelompok = new \Illuminate\Pagination\LengthAwarePaginator(
-        $pagedData,
-        $daftar_kelompok->count(),
-        $perPage,
-        $currentPage,
-        [
-            'path' => request()->url(),
-            'query' => request()->query(),
-        ]
-    );
-
-    // =========================
-    // RETURN VIEW
-    // =========================
-
-    return view(
-        'pages.Koordinator.Detail.detail-administratif',
-        compact(
-            'daftar_kelompok',
-            'jumlah_kelompok',
-            'selesai',
-            'berlangsung',
-            'KPA_id',
-            'prodi_id',
-            'TM_id',
-            'user_id'
-        )
-    );
-}
 
 
+    public function pembimbing()
+    {
+        $KPA_id = session('KPA_id');
+        $prodi_id = session('prodi_id');
+        $TM_id = session('TM_id');
+        $user_id = session('user_id');
+        $token = session('token');
 
-public function pembimbing()
-{
-    $KPA_id = session('KPA_id');
-    $prodi_id = session('prodi_id');
-    $TM_id = session('TM_id');
-    $user_id = session('user_id');
-    $token = session('token');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Kelompok IDs
-    |--------------------------------------------------------------------------
-    */
-    $kelompokIds = pembimbing::where('user_id', $user_id)
-        ->whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
-            $q->where([
-                'KPA_id' => $KPA_id,
-                'prodi_id' => $prodi_id,
-                'TM_id' => $TM_id
-            ]);
-        })
-        ->pluck('kelompok_id')
-        ->unique()
-        ->values();
-
-    $jumlah_kelompok = $kelompokIds->count();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Base Collections
-    |--------------------------------------------------------------------------
-    */
-    $kelompokMap = Kelompok::whereIn('id', $kelompokIds)
-        ->get(['id', 'nomor_kelompok', 'status'])
-        ->keyBy('id');
-
-    $anggotaRaw = KelompokMahasiswa::whereIn('kelompok_id', $kelompokIds)
-        ->get(['kelompok_id', 'user_id']);
-
-    $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
-
-    $mahasiswaMap = Mahasiswa::whereIn(
-        'user_id',
-        $anggotaRaw->pluck('user_id')->unique()
-    )
-        ->get(['user_id', 'nama', 'nim'])
-        ->keyBy('user_id');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Statistik Bimbingan
-    |--------------------------------------------------------------------------
-    */
-    $bimbinganStats = DB::table('request_bimbingan')
-        ->select(
-            'kelompok_id',
-            DB::raw('COUNT(*) as total_sesi'),
-            DB::raw('MAX(rencana_selesai) as terakhir_bimbingan')
-        )
-        ->whereIn('kelompok_id', $kelompokIds)
-        ->where('status', 'selesai')
-        ->groupBy('kelompok_id')
-        ->get()
-        ->keyBy('kelompok_id');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pembimbing Map
-    |--------------------------------------------------------------------------
-    */
-    $pembimbingMap = pembimbing::whereIn('kelompok_id', $kelompokIds)
-        ->get()
-        ->groupBy('kelompok_id');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Kelompok List
-    |--------------------------------------------------------------------------
-    */
-    $kelompokList = $kelompokIds->map(function ($kelompokId) use (
-        $kelompokMap,
-        $anggotaPerKelompok,
-        $mahasiswaMap,
-        $bimbinganStats,
-        $pembimbingMap,
-        $user_id
-    ) {
-
-        $kelompok = $kelompokMap[$kelompokId] ?? null;
-
-        $anggota = collect($anggotaPerKelompok[$kelompokId] ?? [])
-            ->map(function ($member) use ($mahasiswaMap) {
-
-                $mahasiswa = $mahasiswaMap[$member->user_id] ?? null;
-
-                return [
-                    'user_id' => $member->user_id,
-                    'nama' => $mahasiswa->nama ?? 'Tidak ditemukan',
-                    'nim' => $mahasiswa->nim ?? '-',
-                ];
+        /*
+        |--------------------------------------------------------------------------
+        | Kelompok IDs
+        |--------------------------------------------------------------------------
+        */
+        //DAFTAR KELOMPOK YANG DIBIMBING
+        $kelompokIds = pembimbing::where('user_id', $user_id)
+            ->whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
+                $q->where([
+                    'KPA_id' => $KPA_id,
+                    'prodi_id' => $prodi_id,
+                    'TM_id' => $TM_id
+                ]);
             })
+            ->pluck('kelompok_id')
+            ->unique()
             ->values();
+        $aktivitasBulanan = Bimbingan::select(
+            DB::raw('MONTH(rencana_mulai) as bulan'),
+            DB::raw('COUNT(*) as total')
+        )
+            ->where('status', 'selesai')
+            ->whereIn('kelompok_id', $kelompokIds)
+            ->whereYear('rencana_mulai', date('Y'))
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->pluck('total', 'bulan')
+            ->toArray();
 
-        $stat = $bimbinganStats[$kelompokId] ?? null;
+        $dataChart = [];
 
-        $totalSesi = (int) ($stat->total_sesi ?? 0);
+        for ($i = 1; $i <= 6; $i++) {
+            $dataChart[] = $aktivitasBulanan[$i] ?? 0;
+        }
+        $detailBulanan = Bimbingan::join('kelompok', 'request_bimbingan.kelompok_id', '=', 'kelompok.id')
+            ->select(
+                DB::raw('MONTH(request_bimbingan.rencana_mulai) as bulan'),
+                'kelompok.nomor_kelompok',
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('request_bimbingan.status', 'selesai')
+            ->whereIn('request_bimbingan.kelompok_id', $kelompokIds)
+            ->whereYear('request_bimbingan.rencana_mulai', date('Y'))
+            ->groupBy('bulan', 'kelompok.nomor_kelompok')
+            ->get();
+        $detailChart = [];
 
-        $pembimbingList = collect($pembimbingMap[$kelompokId] ?? []);
+        foreach ($detailBulanan as $item) {
+            $detailChart[$item->bulan][] = [
+                'kelompok' => 'Kelompok ' . $item->nomor_kelompok,
+                'total' => $item->total
+            ];
+        }
+        // Jumlah kelompok yang dibimbing
+        $jumlah_kelompok = $kelompokIds->count();
+        // Atribut kelompok yang dibimbing
+        $kelompokMap = Kelompok::whereIn('id', $kelompokIds)
+            ->get(['id', 'nomor_kelompok', 'status'])
+            ->keyBy('id');
 
-        $posisiPembimbing = $pembimbingList
-            ->search(fn($item) => $item->user_id == $user_id);
+        // Anggota kelompok yang dibimbing
+        $anggotaRaw = KelompokMahasiswa::whereIn('kelompok_id', $kelompokIds)
+            ->get(['kelompok_id', 'user_id']);
+        $anggotaPerKelompok = $anggotaRaw->groupBy('kelompok_id');
+        // Data mahasiswa untuk anggota kelompok yang dibimbing
+        $mahasiswaMap = Mahasiswa::whereIn(
+            'user_id',
+            $anggotaRaw->pluck('user_id')->unique()
+        )
+            ->get(['user_id', 'nama', 'nim'])
+            ->keyBy('user_id');
+        //
+        $jumlahMahasiswa = $mahasiswaMap->count();
+        $jadwalMap = Jadwal::whereIn('kelompok_id', $kelompokIds)
+            ->get()
+            ->keyBy('kelompok_id');
+        $bimbinganStats = DB::table('request_bimbingan')
+            ->select(
+                'kelompok_id',
+                DB::raw('COUNT(*) as total_sesi'),
+                DB::raw('MAX(rencana_selesai) as terakhir_bimbingan')
+            )
+            ->whereIn('kelompok_id', $kelompokIds)
+            ->where('status', 'selesai')
+            ->groupBy('kelompok_id')
+            ->get()
+            ->keyBy('kelompok_id');
 
-        return [
-            'kelompok_id' => $kelompokId,
-            'nomor_kelompok' => $kelompok->nomor_kelompok ?? '-',
-            'status_kelompok' => $kelompok->status ?? '-',
+        $artefakStats = Kelompok::withCount([
+            'pengumpulanTugas as jumlah_artefak_submit' => function ($q) {
+                $q->whereHas('tugas', function ($query) {
+                    $query->where('kategori_tugas', 'Artefak');
+                })
+                    ->whereIn('status', ['Submitted', 'Late']);
+            }
+        ])
+            ->whereIn('id', $kelompokIds)
+            ->get()
+            ->keyBy('id');
+        $nilaiStats = Kelompok::withAvg(
+            'nilaiMahasiswa as rata_nilai_akhir',
+            'nilai_akhir'
+        )
+            ->whereIn('id', $kelompokIds)
+            ->get()
+            ->keyBy('id');
+        /*
+        |--------------------------------------------------------------------------
+        | Kelompok List
+        |--------------------------------------------------------------------------
+        */
+        $kelompokList = $kelompokIds->map(function ($kelompokId) use ($kelompokMap, $anggotaPerKelompok, $jadwalMap, $mahasiswaMap, $bimbinganStats, $artefakStats, $nilaiStats, $user_id) {
 
-            'jumlah_anggota' => $anggota->count(),
-            'anggota' => $anggota,
+            $kelompok = $kelompokMap[$kelompokId] ?? null;
 
-            'total_sesi_bimbingan' => $totalSesi,
+            $anggota = collect($anggotaPerKelompok[$kelompokId] ?? [])
+                ->map(function ($member) use ($mahasiswaMap) {
 
-            'terakhir_bimbingan' => $stat->terakhir_bimbingan ?? null,
+                    $mahasiswa = $mahasiswaMap[$member->user_id] ?? null;
 
-            'status_bimbingan' => $totalSesi > 0
-                ? 'Sudah Ada Catatan'
-                : 'Belum Ada Catatan',
+                    return [
+                        'user_id' => $member->user_id,
+                        'nama' => $mahasiswa->nama ?? 'Tidak ditemukan',
+                        'nim' => $mahasiswa->nim ?? '-',
+                    ];
+                })
+                ->values();
 
-            'posisi_pembimbing' => $posisiPembimbing !== false
-                ? $posisiPembimbing + 1
-                : null,
+            $stat = $bimbinganStats[$kelompokId] ?? null;
 
-            'jumlah_pembimbing' => $pembimbingList->count(),
+            $totalSesi = (int) ($stat->total_sesi ?? 0);
 
-            // dummy nilai sementara
-            'nilai_rata' => rand(70, 95),
-        ];
-    })
-        ->sortBy(fn($item) => (int) preg_replace('/\D/', '', $item['nomor_kelompok']))
-        ->values();
+            $jumlahArtefak =
+                $artefakStats[$kelompokId]->jumlah_artefak_submit ?? 0;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Statistik Dashboard
-    |--------------------------------------------------------------------------
-    */
-    $jumlah_pengumuman = Pengumuman::where([
-        'KPA_id' => $KPA_id,
-        'prodi_id' => $prodi_id,
-        'TM_id' => $TM_id
-    ])->count();
+            $nilaiRata = round(
+                $nilaiStats[$kelompokId]->rata_nilai_akhir ?? 0,
+                2
+            );
 
-    $jumlah_tugas = Tugas::where([
-        'KPA_id' => $KPA_id,
-        'prodi_id' => $prodi_id,
-        'TM_id' => $TM_id
-    ])->count();
+            $pembimbingList = collect(
+                $pembimbingMap[$kelompokId] ?? []
+            );
 
-    /*
-    |--------------------------------------------------------------------------
-    | Jadwal Seminar
-    |--------------------------------------------------------------------------
-    */
-    $events = Jadwal::with('kelompok')
-        ->where([
+            $posisiPembimbing = $pembimbingList
+                ->search(fn($item) => $item->user_id == $user_id);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Monitoring Progress
+            |--------------------------------------------------------------------------
+            */
+
+            $progressCount = 0;
+
+            // Minimal 8 kali bimbingan
+            if ($totalSesi >= 8) {
+                $progressCount++;
+            }
+
+            // Sudah submit artefak
+            if ($jumlahArtefak > 0) {
+                $progressCount++;
+            }
+
+            $statusMonitoring =
+                $progressCount >= 2
+                ? 'Selesai'
+                : 'Berlangsung';
+
+            return [
+
+                'kelompok_id' => $kelompokId,
+
+                'nomor_kelompok' =>
+                    $kelompok->nomor_kelompok ?? '-',
+                'jadwal_seminar' =>
+                    $jadwalMap[$kelompokId]->waktu_mulai ?? null,
+
+                'status_kelompok' =>
+                    $kelompok->status ?? '-',
+
+                'jumlah_anggota' =>
+                    $anggota->count(),
+
+                'anggota' =>
+                    $anggota,
+
+                'total_sesi_bimbingan' =>
+                    $totalSesi,
+
+                'jumlah_artefak_submit' =>
+                    $jumlahArtefak,
+
+                'terakhir_bimbingan' =>
+                    $stat->terakhir_bimbingan ?? null,
+
+                'nilai_rata' =>
+                    $nilaiRata,
+
+                'progress_count' =>
+                    $progressCount,
+
+                'status_monitoring' =>
+                    $statusMonitoring,
+
+                'status_bimbingan' =>
+                    $totalSesi >= 8
+                    ? 'Aktif'
+                    : 'Berlangsung',
+
+                'jumlah_pembimbing' =>
+                    $pembimbingList->count(),
+
+                'posisi_pembimbing' =>
+                    $posisiPembimbing,
+            ];
+
+        })
+            ->sortBy(
+                fn($item) =>
+                (int) preg_replace(
+                    '/\D/',
+                    '',
+                    $item['nomor_kelompok']
+                )
+            )
+            ->values();
+        /*
+        |--------------------------------------------------------------------------
+        | Statistik Dashboard
+        |--------------------------------------------------------------------------
+        */
+        $jumlah_bimbingan = $kelompokList->sum('total_sesi_bimbingan');
+        $jumlah_pengumuman = Pengumuman::where([
             'KPA_id' => $KPA_id,
             'prodi_id' => $prodi_id,
             'TM_id' => $TM_id
-        ])
-        ->get()
-        ->map(function ($item) {
-            return [
-                'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok,
-                'start' => Carbon::parse($item->waktu_mulai)->toIso8601String(),
-                'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
-            ];
-        });
+        ])->count();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Role Dosen
-    |--------------------------------------------------------------------------
-    */
-    $roles = DosenRole::where('user_id', $user_id)
-        ->where('status', 'Aktif')
-        ->whereIn('role_id', [3, 5])
-        ->get();
+        $jumlah_tugas = Tugas::where([
+            'KPA_id' => $KPA_id,
+            'prodi_id' => $prodi_id,
+            'TM_id' => $TM_id
+        ])->count();
 
-    $prodi_ids = $roles->pluck('prodi_id')->unique();
-    $TM_ids = $roles->pluck('TM_id')->unique();
-    $KPA_ids = $roles->pluck('KPA_id')->unique();
+        /*
+        |--------------------------------------------------------------------------
+        | Jadwal Seminar
+        |--------------------------------------------------------------------------
+        */
+        $events = Jadwal::with('kelompok')
+            ->where([
+                'KPA_id' => $KPA_id,
+                'prodi_id' => $prodi_id,
+                'TM_id' => $TM_id
+            ])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok,
+                    'start' => Carbon::parse($item->waktu_mulai)->toIso8601String(),
+                    'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
+                ];
+            });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pengumuman
-    |--------------------------------------------------------------------------
-    */
-    $pengumuman = Pengumuman::with(['prodi', 'kategoriPA'])
-        ->whereIn('prodi_id', $prodi_ids)
-        ->whereIn('TM_id', $TM_ids)
-        ->whereIn('KPA_id', $KPA_ids)
-        ->where('status', 'aktif')
-        ->get();
+        /*
+        |--------------------------------------------------------------------------
+        | Role Dosen
+        |--------------------------------------------------------------------------
+        */
+        $roles = DosenRole::where('user_id', $user_id)
+            ->where('status', 'Aktif')
+            ->whereIn('role_id', [3, 5])
+            ->get();
 
-    /*
-    |--------------------------------------------------------------------------
-    | API Dosen
-    |--------------------------------------------------------------------------
-    */
-    $responseDosen = Http::withHeaders([
-        'Authorization' => "Bearer $token"
-    ])->get(env('API_URL') . "library-api/dosen");
+        $prodi_ids = $roles->pluck('prodi_id')->unique();
+        $TM_ids = $roles->pluck('TM_id')->unique();
+        $KPA_ids = $roles->pluck('KPA_id')->unique();
 
-    $dosen_map = collect(
-        $responseDosen->successful()
+        /*
+        |--------------------------------------------------------------------------
+        | Pengumuman
+        |--------------------------------------------------------------------------
+        */
+        $pengumuman = Pengumuman::with(['prodi', 'kategoriPA'])
+            ->whereIn('prodi_id', $prodi_ids)
+            ->whereIn('TM_id', $TM_ids)
+            ->whereIn('KPA_id', $KPA_ids)
+            ->where('status', 'aktif')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | API Dosen
+        |--------------------------------------------------------------------------
+        */
+        $responseDosen = Http::withHeaders([
+            'Authorization' => "Bearer $token"
+        ])->get(env('API_URL') . "library-api/dosen");
+
+        $dosen_map = collect(
+            $responseDosen->successful()
             ? ($responseDosen->json()['data']['dosen'] ?? [])
             : []
-    )->keyBy('user_id');
+        )->keyBy('user_id');
 
-    $pengumuman->each(function ($item) use ($dosen_map) {
-        $item->nama = $dosen_map[$item->user_id]['nama'] ?? 'N/A';
-    });
+        $pengumuman->each(function ($item) use ($dosen_map) {
+            $item->nama = $dosen_map[$item->user_id]['nama'] ?? 'N/A';
+        });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Chart Data
-    |--------------------------------------------------------------------------
-    */
-    $chart_kelompok_labels = $kelompokList->map(
-        fn($item) => 'Kelompok ' . $item['nomor_kelompok']
-    );
+        /*
+        |--------------------------------------------------------------------------
+        | Chart Data
+        |--------------------------------------------------------------------------
+        */
+        $chart_kelompok_labels = $kelompokList->map(
+            fn($item) => 'Kelompok ' . $item['nomor_kelompok']
+        );
 
-    $chart_bimbingan_data = $kelompokList->pluck('total_sesi_bimbingan');
+        $chart_bimbingan_data = $kelompokList->pluck('total_sesi_bimbingan');
 
-    $chart_nilai_kelompok = $kelompokList->pluck('nilai_rata');
+        $chart_nilai_kelompok = $kelompokList->pluck('nilai_rata');
 
-    $chart_kelompok_group = $kelompokList
-        ->take(3)
-        ->pluck('nomor_kelompok');
+        $chart_kelompok_group = $kelompokList
+            ->take(3)
+            ->pluck('nomor_kelompok');
+        /*
+|--------------------------------------------------------------------------
+| Chart Data
+|--------------------------------------------------------------------------
+*/
 
-    $chart_tugas = collect([85, 90, 75]);
-    $chart_presentasi = collect([80, 88, 70]);
-    $chart_laporan = collect([78, 92, 74]);
+        $chart_nilai_seminar = $kelompokIds->map(function ($kelompokId) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Donut Statistik
-    |--------------------------------------------------------------------------
-    */
-    $artefak_disetujui = 12;
-    $artefak_revisi = 5;
-    $artefak_belum = 3;
-    $artefak_lainnya = 1;
+            return Nilai_Seminar::where('kelompok_id', $kelompokId)
+                ->avg('nilai_seminar') ?? 0;
+        })->values();
+        $chart_nilai_pameran = $kelompokIds->map(function ($kelompokId) {
 
-    return view('pages.Pembimbing.dashboard', compact(
-        'jumlah_kelompok',
-        'jumlah_pengumuman',
-        'jumlah_tugas',
+            return Nilai_Administrasi::where('kelompok_id', $kelompokId)
+                ->avg('Pameran') ?? 0;
+        })->values();
+        $chart_nilai_administrasi = $kelompokIds->map(function ($kelompokId) {
 
-        'events',
-        'pengumuman',
+            return Nilai_Administrasi::where('kelompok_id', $kelompokId)
+                ->avg('Administrasi') ?? 0;
+        })->values();
+        $nilaiBimbinganMap = DB::table('kelompok_mahasiswa')
+            ->leftJoin(
+                'nilai_bimbingan',
+                'kelompok_mahasiswa.user_id',
+                '=',
+                'nilai_bimbingan.user_id'
+            )
+            ->select(
+                'kelompok_mahasiswa.kelompok_id',
+                DB::raw('SUM(COALESCE(nilai_bimbingan.Total,0)) / COUNT(kelompok_mahasiswa.user_id) as rata_bimbingan')
+            )
+            ->groupBy('kelompok_mahasiswa.kelompok_id')
+            ->get()
+            ->keyBy('kelompok_id');
+        $chart_nilai_bimbingan = $kelompokList
+            ->map(function ($item) use ($nilaiBimbinganMap) {
 
-        'kelompokList',
+                return round(
+                    $nilaiBimbinganMap[$item['kelompok_id']]->rata_bimbingan ?? 0,
+                    2
+                );
 
-        'chart_kelompok_labels',
-        'chart_bimbingan_data',
-        'chart_nilai_kelompok',
-        'chart_kelompok_group',
+            })
+            ->values()
+            ->toArray();
 
-        'chart_tugas',
-        'chart_presentasi',
-        'chart_laporan',
 
-        'artefak_disetujui',
-        'artefak_revisi',
-        'artefak_belum',
-        'artefak_lainnya'
-    ));
-}
+
+        return view('pages.Pembimbing.dashboard', compact(
+            'jumlah_kelompok',
+            'jumlah_pengumuman',
+            'jumlah_bimbingan',
+            'jumlah_tugas',
+            'jumlahMahasiswa',
+            'events',
+            'pengumuman',
+
+            'kelompokList',
+            'dataChart',
+            'detailChart',
+            'chart_nilai_seminar',
+            'chart_nilai_pameran',
+            'chart_nilai_administrasi',
+            'chart_nilai_bimbingan',
+
+            'chart_kelompok_labels',
+            'chart_bimbingan_data',
+            'chart_nilai_kelompok',
+            'chart_kelompok_group'
+
+        ));
+    }
 
 
     public function penguji()

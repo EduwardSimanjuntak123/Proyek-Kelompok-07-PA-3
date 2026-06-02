@@ -40,7 +40,7 @@
                                 <h4>Mahasiswa</h4>
                             </div>
                             <div class="card-body">
-                                {{ $jumlah_mahasiswa ?? 0 }}
+                                {{ $jumlahMahasiswa ?? 0 }}
                             </div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                                 <h4>Bimbingan</h4>
                             </div>
                             <div class="card-body">
-                                {{ $total_sesi ?? 0 }}
+                                {{ $jumlah_bimbingan ?? 0 }}
                             </div>
                         </div>
                     </div>
@@ -67,114 +67,7 @@
             {{-- =============================================
              KALENDER + PENGUMUMAN
         ============================================= --}}
-            <div class="row mb-5">
 
-                <div class="col-lg-8 col-md-7 col-sm-12 mb-4">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="col-12">
-                            <h2 class="text-center mb-4"><br>Kalender Jadwal Seminar</h2>
-                            <div class="card shadow">
-                                <div class="card-body">
-                                    <div id="calendar"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-5 col-sm-12 mb-4">
-
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-white">
-                            <h4 class="mb-0">
-                                Pengumuman
-                            </h4>
-                        </div>
-
-                        <div class="card-body">
-
-                            @if ($pengumuman->isEmpty())
-                                <p class="text-muted">
-                                    Belum ada pengumuman.
-                                </p>
-                            @else
-                                <ul class="list-group list-group-flush">
-
-                                    @foreach ($pengumuman as $index => $item)
-                                        <li class="list-group-item">
-
-                                            <strong>
-                                                {{ $index + 1 }}.
-                                            </strong>
-
-                                            <a href="{{ route('pengumuman.pembimbing.show', $item->id) }}">
-                                                {{ $item->judul }}
-                                            </a>
-
-                                        </li>
-                                    @endforeach
-
-                                </ul>
-
-                            @endif
-
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-            {{-- <div class="row mb-5">
-
-                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-warning">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="card-wrap">
-                            <div class="card-header">
-                                <h4>Artefak Belum Cek</h4>
-                            </div>
-                            <div class="card-body">
-                                {{ $jumlah_tugas }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-success">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="card-wrap">
-                            <div class="card-header">
-                                <h4>Aktif</h4>
-                            </div>
-                            <div class="card-body">
-                                {{ $kelompok_aktif ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 col-sm-6 col-12">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="card-wrap">
-                            <div class="card-header">
-                                <h4>Bermasalah</h4>
-                            </div>
-                            <div class="card-body">
-                                {{ $kelompok_bermasalah ?? 0 }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
 
             {{-- =============================================
              VISUALIZATION GRID ROW 1
@@ -278,7 +171,7 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white">
-                            <h4>Nilai Tiap Anggota</h4>
+                            <h4>Nilai Pameran VS Bimbingan VS Administrasi Tiap Kelompok</h4>
                         </div>
 
                         <div class="card-body">
@@ -294,7 +187,7 @@
             {{-- =============================================
                      PROGRESS TIMELINE
                 ============================================= --}}
-            <div class="col-12 mb-4">
+            {{-- <div class="col-12 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-bottom-0 text-center">
                         <h4 class="mb-0">Alur Progress Bimbingan</h4>
@@ -330,7 +223,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- =============================================
                      MONITORING TABLE
@@ -360,7 +253,7 @@
                                         <th>Kelompok</th>
                                         <th>Jumlah Bimbingan</th>
                                         <th>Status Artefak</th>
-                                        <th>Nilai Rata-rata</th>
+                                        <th>Jadwal Seminar</th>
                                         <th>Status Akhir</th>
                                         <th></th>
                                     </tr>
@@ -380,32 +273,35 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                @php
-                                                    $statusMap = [
-                                                        'lengkap' => ['badge-success', 'Lengkap'],
-                                                        'revisi' => ['badge-warning', 'Perlu Revisi'],
-                                                        'belum' => ['badge-danger', 'Belum Submit'],
-                                                    ];
-                                                    $artefakStatus = strtolower(
-                                                        $kelompok['status_bimbingan'] ?? 'belum',
-                                                    );
-                                                    [$badgeClass, $badgeLabel] = $statusMap[$artefakStatus] ?? [
-                                                        'badge-secondary',
-                                                        ucfirst($artefakStatus),
-                                                    ];
-                                                @endphp
-                                                <span class="badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
+                                                @if ($kelompok['jumlah_artefak_submit'] > 0)
+                                                    <span class="badge badge-success">
+                                                        Lengkap
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-danger">
+                                                        Belum Submit
+                                                    </span>
+                                                @endif
+                                                {{-- <span class="badge {{ $badgeClass }}">{{ $badgeLabel }}</span> --}}
                                             </td>
 
-                                            <td>{{ $kelompok['nilai_rata'] ?? '-' }}</td>
+                                            <td>
+                                                @if (!empty($kelompok['jadwal_seminar']))
+                                                    {{ \Carbon\Carbon::parse($kelompok['jadwal_seminar'])->format('d M Y H:i') }}
+                                                @else
+                                                    <span class="text-muted">Belum Dijadwalkan</span>
+                                                @endif
+                                            </td>
 
                                             <td>
-                                                @if ($kelompok['status_bimbingan'] === 'Aktif')
-                                                    <span class="badge badge-primary">Bimbingan Aktif</span>
-                                                @elseif ($kelompok['status_bimbingan'] === 'Bermasalah')
-                                                    <span class="badge badge-danger">Bermasalah</span>
+                                                @if ($kelompok['status_monitoring'] === 'Selesai')
+                                                    <span class="badge badge-success">
+                                                        Selesai
+                                                    </span>
                                                 @else
-                                                    <span class="badge badge-warning text-dark">Pending</span>
+                                                    <span class="badge badge-warning">
+                                                        Berlangsung
+                                                    </span>
                                                 @endif
                                             </td>
                                             <td class="text-right">
@@ -457,7 +353,7 @@
                                                     <span
                                                         class="badge badge-info px-3 py-2">{{ $kelompok['jumlah_anggota'] }}
                                                         Mahasiswa</span>
-                                                    @if ($kelompok['posisi_pembimbing'])
+                                                    {{-- @if ($kelompok['posisi_pembimbing'])
                                                         <div class="mt-2">
                                                             <span class="badge badge-warning">Pembimbing
                                                                 {{ $kelompok['posisi_pembimbing'] }}</span>
@@ -467,7 +363,7 @@
                                                                     pembimbing</small>
                                                             @endif
                                                         </div>
-                                                    @endif
+                                                    @endif --}}
                                                 </div>
                                             </div>
 
@@ -518,6 +414,63 @@
                         @endif
                     </div>
                 </div>
+            </div>
+            <div class="row mb-5">
+
+                <div class="col-lg-8 col-md-7 col-sm-12 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="col-12">
+                            <h2 class="text-center mb-4"><br>Kalender Jadwal Seminar</h2>
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <div id="calendar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-5 col-sm-12 mb-4">
+
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white">
+                            <h4 class="mb-0">
+                                Pengumuman
+                            </h4>
+                        </div>
+
+                        <div class="card-body">
+
+                            @if ($pengumuman->isEmpty())
+                                <p class="text-muted">
+                                    Belum ada pengumuman.
+                                </p>
+                            @else
+                                <ul class="list-group list-group-flush">
+
+                                    @foreach ($pengumuman as $index => $item)
+                                        <li class="list-group-item">
+
+                                            <strong>
+                                                {{ $index + 1 }}.
+                                            </strong>
+
+                                            <a href="{{ route('pengumuman.pembimbing.show', $item->id) }}">
+                                                {{ $item->judul }}
+                                            </a>
+
+                                        </li>
+                                    @endforeach
+
+                                </ul>
+
+                            @endif
+
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>{{-- /row --}}
@@ -803,20 +756,17 @@
             const GRAY = '#74777f';
             const RED = '#ba1a1a';
             const GREEN = '#16a34a';
-
+            const detailChart = @json($detailChart);
             /* -----------------------------------------------
                1. LINE CHART — Aktivitas Bimbingan
             ----------------------------------------------- */
             new Chart(document.getElementById('chartAktivitas'), {
                 type: 'line',
                 data: {
-                    labels: ['Mgg 1', 'Mgg 2', 'Mgg 3', 'Mgg 4', 'Mgg 5', 'Mgg 6',
-                        'Mgg 7', 'Mgg 8', 'Mgg 9', 'Mgg 10', 'Mgg 11', 'Mgg 12',
-                        'Mgg 13', 'Mgg 14', 'Mgg 15', 'Mgg 16'
-                    ],
+                    labels: ['Bulan 1', 'Bulan 2', 'Bulan 3', 'Bulan 4', 'Bulan 5', 'Bulan 6'],
                     datasets: [{
                         label: 'Sesi Bimbingan',
-                        data: [2, 3, 1, 4, 5, 3, 7, 6, 8, 9, 7, 10, 9, 11, 12, 14],
+                        data: @json($dataChart),
                         borderColor: BLUE_DARK,
                         backgroundColor: BLUE_PALE + '55',
                         borderWidth: 2,
@@ -835,21 +785,27 @@
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            callbacks: {
+                                afterBody: function(context) {
+
+                                    const bulan = context[0].dataIndex + 1;
+
+                                    if (!detailChart[bulan]) {
+                                        return [];
+                                    }
+
+                                    return detailChart[bulan].map(item =>
+                                        `${item.kelompok}: ${item.total} sesi`
+                                    );
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
                             grid: {
                                 display: false
-                            },
-                            ticks: {
-                                autoSkip: false,
-                                maxRotation: 0,
-                                font: {
-                                    size: 10
-                                },
-                                callback: (val, i) => (i % 4 === 0) ? 'Mgg ' + (i + 1) : ''
                             }
                         },
                         y: {
@@ -858,18 +814,13 @@
                                 color: '#f0f0f0'
                             },
                             ticks: {
-                                font: {
-                                    size: 10
-                                },
-                                stepSize: 4
+                                stepSize: 1
                             }
                         }
                     }
                 }
             });
-
-            /* -----------------------------------------------
-               2. DONUT CHART — Status Artefak
+            /* ---         2. DONUT CHART — Status Artefak
             ----------------------------------------------- */
             new Chart(document.getElementById('chartDonut'), {
                 type: 'doughnut',
@@ -899,13 +850,16 @@
             ----------------------------------------------- */
             const bimbinganLabels = @json($chart_kelompok_labels);
             const bimbinganData = @json($chart_bimbingan_data);
+
+            const maxData = Math.max(...bimbinganData);
+
             new Chart(document.getElementById('chartBarBimbingan'), {
                 type: 'bar',
                 data: {
                     labels: bimbinganLabels,
                     datasets: [{
                         label: 'Sesi',
-                        data: @json($chart_bimbingan_data),
+                        data: bimbinganData,
                         backgroundColor: bimbinganData.map(v => v < 8 ? RED : GREEN),
                         borderRadius: 6,
                         borderSkipped: false,
@@ -923,28 +877,21 @@
                         x: {
                             grid: {
                                 display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11
-                                }
                             }
                         },
                         y: {
                             beginAtZero: true,
+                            suggestedMax: Math.max(10, maxData),
+                            ticks: {
+                                stepSize: 1
+                            },
                             grid: {
                                 color: '#f0f0f0'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 10
-                                }
                             }
                         }
                     }
                 }
             });
-
             /* -----------------------------------------------
                4. HORIZONTAL BAR — Nilai Rata-rata Kelompok
             ----------------------------------------------- */
@@ -954,7 +901,7 @@
                     labels: @json($chart_kelompok_labels),
                     datasets: [{
                         label: 'Nilai',
-                        data: @json($chart_nilai_kelompok),
+                        data: @json($chart_nilai_bimbingan),
                         backgroundColor: BLUE_DARK,
                         borderRadius: 4,
                         borderSkipped: false,
@@ -1008,23 +955,29 @@
             new Chart(document.getElementById('chartGroupedBar'), {
                 type: 'bar',
                 data: {
-                    labels: ['Kel 01', 'Kel 02', 'Kel 03'],
+                    labels: @json($chart_kelompok_labels),
                     datasets: [{
-                            label: 'Tugas',
-                            data: [85, 90, 40],
+                            label: 'Seminar',
+                            data: @json($chart_nilai_seminar),
                             backgroundColor: BLUE_DARK,
                             borderRadius: 3,
                         },
                         {
-                            label: 'Presentasi',
-                            data: [70, 88, 35],
+                            label: 'Pameran',
+                            data: @json($chart_nilai_pameran),
                             backgroundColor: BLUE_LIGHT,
                             borderRadius: 3,
                         },
                         {
-                            label: 'Laporan',
-                            data: [60, 82, 55],
+                            label: 'Bimbingan',
+                            data: @json($chart_nilai_bimbingan),
                             backgroundColor: GRAY,
+                            borderRadius: 3,
+                        },
+                        {
+                            label: 'Administrasi',
+                            data: @json($chart_nilai_administrasi),
+                            backgroundColor: '#16a34a',
                             borderRadius: 3,
                         }
                     ]
