@@ -119,22 +119,28 @@
 
     /* ── PANAH DROPDOWN LEVEL 1 ── */
     .sidebar-menu .nav-link.has-dropdown {
+        position: relative;
+        display: block !important;
         cursor: pointer;
-        display: flex !important;
-        align-items: center;
+        padding-right: 35px;
     }
 
     .sidebar-menu .nav-link.has-dropdown::after {
         content: '\203A';
+
+        position: absolute;
+        right: 15px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
         font-size: 1.1rem;
-        margin-left: auto;
-        transition: transform 0.25s;
-        line-height: 1.5;
-        flex-shrink: 0;
+
+        transition: transform .25s ease;
     }
 
     .sidebar-menu .nav-item.dropdown.open>.nav-link.has-dropdown::after {
-        transform: rotate(90deg);
+        transform: translateY(-50%) rotate(90deg);
     }
 </style>
 
@@ -220,13 +226,21 @@
                             </a>
                         </li>
                         <li
-                            class="nav-item {{ request()->routeIs('pembimbing.index') || request()->routeIs('pembimbing.create') || request()->routeIs('pembimbing.store') || request()->routeIs('pembimbing.edit') || request()->routeIs('pembimbing.update') || request()->routeIs('pembimbing.destroy') || request()->routeIs('pembimbing.show') || request()->routeIs('pembimbing2.*') ? 'active' : '' }}">
+                            class="nav-item {{ (request()->routeIs('pembimbing.*') || request()->routeIs('pembimbing2.*')) &&
+                            !request()->routeIs('pembimbing1.Nilai*') &&
+                            !request()->routeIs('pembimbing2.Nilai*')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('pembimbing.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Pembimbing</span>
                             </a>
                         </li>
                         <li
-                            class="nav-item {{ request()->routeIs('penguji.index') || request()->routeIs('penguji.create') || request()->routeIs('penguji.store') || request()->routeIs('penguji.edit') || request()->routeIs('penguji.update') || request()->routeIs('penguji.destroy') || request()->routeIs('penguji.show') || request()->routeIs('penguji2.*') ? 'active' : '' }}">
+                            class="nav-item {{ (request()->routeIs('penguji.*') || request()->routeIs('penguji2.*')) &&
+                            !request()->routeIs('penguji1.Nilai*') &&
+                            !request()->routeIs('penguji2.Nilai*')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('penguji.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Penguji</span>
                             </a>
@@ -365,16 +379,16 @@
                             </a>
                         </li>
 
-                        {{-- Nilai Pembimbing -- FIXED: hapus <li> ganda yang tidak tertutup --}}
+                        {{-- Nilai Pembimbing --}}
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.Nilai*') || request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.NilaiIndividu*') || request()->routeIs('pembimbing2.NilaiIndividu*') || request()->routeIs('pembimbing1.NilaiKelompok*') || request()->routeIs('pembimbing2.NilaiKelompok*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown">
-                                <i class="fas fa-clipboard-check"></i><span>Nilai</span>
+                                <i class="fas fa-clipboard-check"></i><span>Nilai Seminar</span>
                             </a>
                             <ul class="dropdown-menu level-1-menu">
                                 @if (in_array(3, $dosenRoles))
                                     <li
-                                        class="dropdown-submenu {{ request()->routeIs('pembimbing1.Nilai*') ? 'open' : '' }}">
+                                        class="dropdown-submenu {{ request()->routeIs('pembimbing1.NilaiIndividu*') || request()->routeIs('pembimbing1.NilaiKelompok*') ? 'open' : '' }}">
                                         <a href="#" class="submenu-toggle">
                                             <span>Dosen Pembimbing 1</span>
                                         </a>
@@ -391,18 +405,12 @@
                                                     Nilai Kelompok (Seminar)
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="{{ route('pembimbing1.NilaiBimbingan.index') }}"
-                                                    class="{{ request()->routeIs('pembimbing1.NilaiBimbingan.index') ? 'active' : '' }}">
-                                                    Nilai Bimbingan
-                                                </a>
-                                            </li>
                                         </ul>
                                     </li>
                                 @endif
                                 @if (in_array(5, $dosenRoles))
                                     <li
-                                        class="dropdown-submenu {{ request()->routeIs('pembimbing2.Nilai*') ? 'open' : '' }}">
+                                        class="dropdown-submenu {{ request()->routeIs('pembimbing2.NilaiIndividu*') || request()->routeIs('pembimbing2.NilaiKelompok*') ? 'open' : '' }}">
                                         <a href="#" class="submenu-toggle">
                                             <span>Dosen Pembimbing 2</span>
                                         </a>
@@ -419,16 +427,19 @@
                                                     Nilai Kelompok (Seminar)
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="{{ route('pembimbing2.NilaiBimbingan.index') }}"
-                                                    class="{{ request()->routeIs('pembimbing2.NilaiBimbingan.index') ? 'active' : '' }}">
-                                                    Nilai Bimbingan
-                                                </a>
-                                            </li>
                                         </ul>
                                     </li>
                                 @endif
                             </ul>
+                        </li>
+
+                        {{-- Nilai Bimbingan — flat, tidak berlevel, satu menu untuk semua pembimbing --}}
+                        <li
+                            class="nav-item {{ request()->routeIs('pembimbing1.NilaiBimbingan*') || request()->routeIs('pembimbing2.NilaiBimbingan*') ? 'active' : '' }}">
+                            <a class="nav-link"
+                                href="{{ in_array(3, $dosenRoles) ? route('pembimbing1.NilaiBimbingan.index') : route('pembimbing2.NilaiBimbingan.index') }}">
+                                <i class="fas fa-star-half-alt"></i><span>Nilai Bimbingan</span>
+                            </a>
                         </li>
 
                         <li class="nav-item {{ request()->routeIs('PembimbingPengajuanSeminar.*') ? 'active' : '' }}">
@@ -546,7 +557,9 @@
 
         // ── Toggle LEVEL 1: .has-dropdown ──
         document.querySelectorAll(".nav-link.has-dropdown").forEach(link => {
+
             link.addEventListener("click", function(e) {
+
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -558,36 +571,125 @@
 
                 const isOpen = parentLi.classList.contains("open");
 
+                // ============================
+                // TUTUP SEMUA DROPDOWN LAIN
+                // ============================
+                document.querySelectorAll(".nav-item.dropdown.open").forEach(item => {
+
+                    if (item !== parentLi) {
+
+                        item.classList.remove("open");
+
+                        const otherMenu =
+                            item.querySelector(":scope > .dropdown-menu");
+
+                        if (otherMenu) {
+                            closeMenu(otherMenu);
+                        }
+
+                        // Reset semua level 2 & 3
+                        item.querySelectorAll(".dropdown-submenu.open")
+                            .forEach(sub => {
+
+                                sub.classList.remove("open");
+
+                                const subMenu =
+                                    sub.querySelector(":scope > .submenu-level");
+
+                                if (subMenu) {
+                                    closeMenu(subMenu);
+                                }
+
+                            });
+
+                    }
+
+                });
+
                 if (isOpen) {
+
                     parentLi.classList.remove("open");
                     closeMenu(menu);
+
+                    // reset semua level 2
+                    parentLi.querySelectorAll(".dropdown-submenu.open")
+                        .forEach(sub => {
+
+                            sub.classList.remove("open");
+
+                            const subMenu =
+                                sub.querySelector(":scope > .submenu-level");
+
+                            if (subMenu) {
+                                closeMenu(subMenu);
+                            }
+
+                        });
+
                 } else {
+
                     parentLi.classList.add("open");
                     openMenu(menu);
+
                 }
+
             });
+
         });
 
         // ── Toggle LEVEL 2: .submenu-toggle ──
         document.querySelectorAll(".submenu-toggle").forEach(toggle => {
+
             toggle.addEventListener("click", function(e) {
+
                 e.preventDefault();
                 e.stopPropagation();
 
-                const parent = this.parentElement; // .dropdown-submenu
-                const submenu = parent.querySelector(":scope > .submenu-level");
+                const parent =
+                    this.closest(".dropdown-submenu");
+
+                const submenu =
+                    parent.querySelector(":scope > .submenu-level");
+
                 if (!submenu) return;
 
-                const isOpen = parent.classList.contains("open");
+                const isOpen =
+                    parent.classList.contains("open");
+
+                // Tutup sibling submenu
+                parent.parentElement
+                    .querySelectorAll(":scope > .dropdown-submenu.open")
+                    .forEach(item => {
+
+                        if (item !== parent) {
+
+                            item.classList.remove("open");
+
+                            const otherSub =
+                                item.querySelector(":scope > .submenu-level");
+
+                            if (otherSub) {
+                                closeMenu(otherSub);
+                            }
+
+                        }
+
+                    });
 
                 if (isOpen) {
+
                     parent.classList.remove("open");
                     closeMenu(submenu);
+
                 } else {
+
                     parent.classList.add("open");
                     openMenu(submenu);
+
                 }
+
             });
+
         });
 
         // ── Auto-open saat page load (jika ada class active/open dari server) ──
