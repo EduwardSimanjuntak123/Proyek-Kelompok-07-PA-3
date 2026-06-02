@@ -64,7 +64,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Route dengan middleware auth + role
 Route::middleware(['auth.api'])->group(function () {
     // Letakkan di dalam routes/web.php
-    Route::post('/send-wa', [WhatsAppController::class, 'send'])->name('whatsapp.send');
+    Route::post('/send-wa', [WhatsAppController::class, 'sendtoMahasiswa'])->name('whatsapp.sendtoMahasiswa');
+    Route::post('/send-wa-pembimbing', [WhatsAppController::class, 'sendtoPembimbing'])->name('whatsapp.sendtoPembimbing');
+    Route::post('/send-wa-penguji', [WhatsAppController::class, 'sendtoPenguji'])->name('whatsapp.sendtoPenguji');
     Route::get('/dashboard/mahasiswa', [dashboard_Controller::class, 'mahasiswa'])
         ->name('dashboard.mahasiswa')->middleware('role:Mahasiswa');
 

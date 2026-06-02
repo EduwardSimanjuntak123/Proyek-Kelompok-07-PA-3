@@ -45,7 +45,7 @@
                                         <p class="step-title">Pembagian Kelompok</p>
                                         <p class="step-desc">Buat & generate kelompok</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                            <form action="{{ route('whatsapp.send') }}" method="POST">
+                                            <form action="{{ route('whatsapp.sendtoMahasiswa') }}" method="POST">
                                                 @csrf
 
                                                 <input type="hidden" name="pesan"
@@ -78,11 +78,17 @@
                                         <p class="step-title">Assign Dosen Pembimbing</p>
                                         <p class="step-desc">Tentukan dosen pembimbing</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                            <a href="{{ route('whatsapp.send') }}" class="btn-wa"
-                                                onclick="kirimWA('pembimbing'); return false;">
-                                                <i class="fab fa-whatsapp"></i>
-                                                Kirim Notifikasi WA
-                                            </a>
+                                             <form action="{{ route('whatsapp.sendtoPembimbing') }}" method="POST">
+                                                @csrf
+
+                                                <input type="hidden" name="pesan"
+                                                    value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
+
+                                                <button type="submit" class="btn-wa">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                    Kirim Notifikasi WA
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -104,10 +110,17 @@
                                         <p class="step-title">Assign Dosen Penguji</p>
                                         <p class="step-desc">Tentukan dosen penguji</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                            <a href="#" class="btn-wa" onclick="kirimWA('penguji'); return false;">
-                                                <i class="fab fa-whatsapp"></i>
-                                                Kirim Notifikasi WA
-                                            </a>
+                                             <form action="{{ route('whatsapp.sendtoPenguji') }}" method="POST">
+                                                @csrf
+
+                                                <input type="hidden" name="pesan"
+                                                    value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
+
+                                                <button type="submit" class="btn-wa">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                    Kirim Notifikasi WA
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
