@@ -196,12 +196,12 @@
                                 <span>VokasiTera Agent</span>
                             </a>
                         </li>
-                        <li class="nav-item {{ request()->routeIs('agent.analytics.*') ? 'active' : '' }}">
+                        {{-- <li class="nav-item {{ request()->routeIs('agent.analytics.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('agent.analytics.dashboard') }}">
                                 <i class="fas fa-chart-line"></i>
                                 <span>Agent Analytics</span>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <li class="menu-header">Koordinator</li>
                         <li class="nav-item {{ request()->is('dashboard/koordinator*') ? 'active' : '' }}">
@@ -262,10 +262,10 @@
                                     <a class="nav-link {{ request()->is('NilaiAkhir*') ? 'active' : '' }}"
                                         href="{{ route('NilaiAkhir.index') }}">Nilai PA Mahasiswa</a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                     <a class="nav-link {{ request()->is('NilaiMatkul*') ? 'active' : '' }}"
                                         href="{{ route('koordinator.NilaiMatkul.index') }}">Nilai Matkul Mahasiswa</a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </li>
 

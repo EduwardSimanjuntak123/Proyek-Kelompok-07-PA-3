@@ -310,7 +310,7 @@ Route::prefix('NilaiBimbingan')->group(function () {
 
 });
 //Route untuk koordinator CRUD Nilai matakuliah
-Route::get('nilai/koordinator', [NilaiMatkulMhsController::class, 'index'])->name('koordinator.NilaiMatkul.index');
+// Route::get('nilai/koordinator', [NilaiMatkulMhsController::class, 'index'])->name('koordinator.NilaiMatkul.index');
 
 //Route untuk koordinator CRUD Nilai Administrasi
 
@@ -527,31 +527,31 @@ Route::prefix('ai-agent')->group(function () {
         ->name('ai.verificationStatus');
 
     // Analytics Dashboard
-    Route::get('/analytics', [AgentAnalyticsController::class, 'dashboard'])
-        ->name('agent.analytics.dashboard');
+    // Route::get('/analytics', [AgentAnalyticsController::class, 'dashboard'])
+    //     ->name('agent.analytics.dashboard');
 
-    Route::get('/analytics/refresh', [AgentAnalyticsController::class, 'refresh'])
-        ->name('agent.analytics.refresh');
+    // Route::get('/analytics/refresh', [AgentAnalyticsController::class, 'refresh'])
+    //     ->name('agent.analytics.refresh');
 
-    Route::get('/analytics/data', [AgentAnalyticsController::class, 'getAnalyticsData'])
-        ->name('agent.analytics.data');
+    // Route::get('/analytics/data', [AgentAnalyticsController::class, 'getAnalyticsData'])
+    //     ->name('agent.analytics.data');
 
-    Route::get('/analytics/debug', [AgentAnalyticsController::class, 'debug'])
-        ->name('agent.analytics.debug');
+    // Route::get('/analytics/debug', [AgentAnalyticsController::class, 'debug'])
+    //     ->name('agent.analytics.debug');
 
-    Route::get('/api/hari-libur', function () {
-        $tahun = request('year', date('Y'));
+    // Route::get('/api/hari-libur', function () {
+    //     $tahun = request('year', date('Y'));
 
-        $response = Http::timeout(10)
-            ->get("https://api-harilibur.vercel.app/api", [
-                'year' => $tahun
-            ]);
+    //     $response = Http::timeout(10)
+    //         ->get("https://api-harilibur.vercel.app/api", [
+    //             'year' => $tahun
+    //         ]);
 
-        if ($response->failed()) {
-            return response()->json([], 200); // Kalender tetap jalan meski API gagal
-        }
+    //     if ($response->failed()) {
+    //         return response()->json([], 200); // Kalender tetap jalan meski API gagal
+    //     }
 
-        return response()->json($response->json());
-    });
+    //     return response()->json($response->json());
+    // });
 
 });

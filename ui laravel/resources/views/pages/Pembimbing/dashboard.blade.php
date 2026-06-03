@@ -255,7 +255,6 @@
                                         <th>Status Artefak</th>
                                         <th>Jadwal Seminar</th>
                                         <th>Status Akhir</th>
-                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -303,9 +302,6 @@
                                                         Berlangsung
                                                     </span>
                                                 @endif
-                                            </td>
-                                            <td class="text-right">
-                                                <i class="fas fa-chevron-right text-muted"></i>
                                             </td>
                                         </tr>
                                     @empty
