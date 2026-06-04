@@ -213,112 +213,100 @@
                                                                             value="{{ session('user_id') }}">
 
                                                                         @php
-                                                                            $kolomKiri = [
-                                                                                [
-                                                                                    'B11',
-                                                                                    'Kontak mata dengan panelis dan kelompok',
+                                                                            $kategori = [
+                                                                                'Kemampuan Komunikasi (10%)' => [
+                                                                                    [
+                                                                                        'B11',
+                                                                                        'Kontak mata dengan panelis dan kelompok',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B12',
+                                                                                        'Penggunaan bahasa tubuh dan gesture',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B13',
+                                                                                        'Suara jelas terdengar dengan tempo cukup',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B14',
+                                                                                        'Semangat, senyum dan antusiasme',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B15',
+                                                                                        'Ide dan pembicaraan terstruktur dengan baik',
+                                                                                    ],
                                                                                 ],
-                                                                                [
-                                                                                    'B12',
-                                                                                    'Penggunaan bahasa tubuh dan gesture',
-                                                                                ],
-                                                                                [
-                                                                                    'B13',
-                                                                                    'Suara jelas terdengar dengan tempo cukup',
-                                                                                ],
-                                                                                [
-                                                                                    'B14',
-                                                                                    'Semangat, senyum dan antusiasme',
-                                                                                ],
-                                                                                [
-                                                                                    'B15',
-                                                                                    'Ide dan pembicaraan terstruktur dengan baik',
-                                                                                ],
-                                                                            ];
 
-                                                                            $kolomKanan = [
-                                                                                [
-                                                                                    'B21',
-                                                                                    'Slide presentasi mengikuti standar profesional',
+                                                                                'Presentasi dan Demonstrasi Produk (10%)' => [
+                                                                                    [
+                                                                                        'B21',
+                                                                                        'Slide presentasi mengikuti standar profesional',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B22',
+                                                                                        'Pembagian tugas anggota saat presentasi dan demo',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B23',
+                                                                                        'Isi presentasi dan alur demo terstruktur dengan baik',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B24',
+                                                                                        'Ketepatan waktu presentasi dan demo dengan jadwal',
+                                                                                    ],
+                                                                                    [
+                                                                                        'B25',
+                                                                                        'Penggunaan bahasa Inggris saat presentasi dan demo',
+                                                                                    ],
                                                                                 ],
-                                                                                [
-                                                                                    'B22',
-                                                                                    'Pembagian tugas anggota saat presentasi dan demo',
-                                                                                ],
-                                                                                [
-                                                                                    'B23',
-                                                                                    'Isi presentasi dan alur demo terstruktur dengan baik',
-                                                                                ],
-                                                                                [
-                                                                                    'B24',
-                                                                                    'Ketepatan waktu presentasi dan demo dengan jadwal',
-                                                                                ],
-                                                                                [
-                                                                                    'B25',
-                                                                                    'Penggunaan bahasa Inggris saat presentasi dan demo',
-                                                                                ],
-                                                                                [
-                                                                                    'B31',
-                                                                                    'Penguasaan materi dan konsep teknis saat sesi tanya jawab',
+
+                                                                                'Sesi Tanya Jawab (25%)' => [
+                                                                                    [
+                                                                                        'B31',
+                                                                                        'Penguasaan materi dan konsep secara teknis dalam saat sesi tanya jawab',
+                                                                                    ],
                                                                                 ],
                                                                             ];
                                                                         @endphp
 
                                                                         <div class="row">
 
-                                                                            {{-- KOLOM KIRI --}}
-                                                                            <div class="col-md-6">
+                                                                            @foreach ($kategori as $judul => $items)
+                                                                                @php
+                                                                                    $isTanyaJawab =
+                                                                                        $judul ===
+                                                                                        'Sesi Tanya Jawab (25%)';
+                                                                                @endphp
 
-                                                                                <div class="alert alert-primary">
-                                                                                    <strong>Komunikasi dan
-                                                                                        Presentasi</strong>
-                                                                                </div>
+                                                                                <div class="col-md-6 mb-4">
 
-                                                                                @foreach ($kolomKiri as [$name, $label])
-                                                                                    <div class="form-group">
-
-                                                                                        <label class="font-weight-bold">
-                                                                                            {{ $label }}
-                                                                                        </label>
-
-                                                                                        <input type="number"
-                                                                                            name="{{ $name }}"
-                                                                                            class="form-control"
-                                                                                            min="0" max="100"
-                                                                                            value="{{ old($name, $nilai->$name ?? '') }}"
-                                                                                            {{-- placeholder="Masukkan nilai" --}} required>
-
+                                                                                    {{-- HEADER KATEGORI --}}
+                                                                                    <div
+                                                                                        class="alert {{ $isTanyaJawab ? 'alert-success' : 'alert-primary' }}">
+                                                                                        <strong>{{ $judul }}</strong>
                                                                                     </div>
-                                                                                @endforeach
 
-                                                                            </div>
+                                                                                    {{-- ISI --}}
+                                                                                    @foreach ($items as [$name, $label])
+                                                                                        <div class="form-group">
 
-                                                                            {{-- KOLOM KANAN --}}
-                                                                            <div class="col-md-6">
+                                                                                            <label class="font-weight-bold">
+                                                                                                {{ $label }}
+                                                                                            </label>
 
-                                                                                <div class="alert alert-success">
-                                                                                    <strong>Presentasi, Demonstrasi dan
-                                                                                        Tanya Jawab</strong>
+                                                                                            <input type="number"
+                                                                                                name="{{ $name }}"
+                                                                                                class="form-control"
+                                                                                                min="0"
+                                                                                                max="100"
+                                                                                                value="{{ old($name, $nilai->$name ?? '') }}"
+                                                                                                required>
+
+                                                                                        </div>
+                                                                                    @endforeach
+
                                                                                 </div>
-
-                                                                                @foreach ($kolomKanan as [$name, $label])
-                                                                                    <div class="form-group">
-
-                                                                                        <label class="font-weight-bold">
-                                                                                            {{ $label }}
-                                                                                        </label>
-
-                                                                                        <input type="number"
-                                                                                            name="{{ $name }}"
-                                                                                            class="form-control"
-                                                                                            min="0" max="100"
-                                                                                            value="{{ old($name, $nilai->$name ?? '') }}"
-                                                                                            {{-- placeholder="Masukkan nilai" --}} required>
-
-                                                                                    </div>
-                                                                                @endforeach
-
-                                                                            </div>
+                                                                            @endforeach
 
                                                                         </div>
 
