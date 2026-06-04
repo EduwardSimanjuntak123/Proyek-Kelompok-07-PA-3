@@ -13,11 +13,26 @@ return new class extends Migration
     {
         Schema::create('nilai_administrasi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kelompok_id')->constrained('kelompok')->onDelete('cascade');
+
+            $table->foreignId('kelompok_id')
+                ->constrained('kelompok')
+                ->onDelete('cascade');
+
             $table->foreignId('user_id');
+
+            // Kolom lama (tetap dipertahankan)
             $table->float('Administrasi');
             $table->float('Pameran');
             $table->float('Total');
+
+            // Kolom baru rincian administrasi
+            $table->float('C1')->nullable(); // DPP
+            $table->float('C2')->nullable(); // TOR
+            $table->float('C3')->nullable(); // Bukti Kartu Bimbingan
+            $table->float('C4')->nullable(); // Turnitin
+            $table->float('C5')->nullable(); // Kode
+            $table->float('C_total')->nullable();
+
             $table->timestamps();
         });
     }

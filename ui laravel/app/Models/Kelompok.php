@@ -15,6 +15,10 @@ class Kelompok extends Model
         return $this->hasMany(Nilai_Mahasiswa::class, 'kelompok_id');
     }
 
+    public function anggota()
+{
+    return $this->hasMany(KelompokMahasiswa::class, 'kelompok_id');
+}
     public function prodi()
     {
         return $this->belongsTo(Prodi::class, 'prodi_id');

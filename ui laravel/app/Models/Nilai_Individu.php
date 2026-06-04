@@ -9,25 +9,32 @@ class Nilai_Individu extends Model
     use HasFactory;
     protected $table = 'nilai_individu';
     protected $fillable = [
-        'penilai_id', 
-        'role_id',
-        'user_id',
-        'B11',
-        'B12',
-        'B13',
-        'B14',
-        'B15',
-        'B1_total',
-        'B21',
-        'B22',
-        'B23',
-        'B24',
-        'B25',
-        'B2_total',
-        'B31',
-        'B3_total',
-        'B_total',
-    ];
+    'kelompok_id',
+    'user_id',
+    'penilai_id',
+    'role_id',
+
+    'B11',
+    'B12',
+    'B13',
+    'B14',
+    'B15',
+    'B1_total',
+
+    'B21',
+    'B22',
+    'B23',
+    'B24',
+    'B25',
+    'B2_total',
+
+    'B31',
+    'B3_total',
+
+    'D1',
+
+    'B_total',
+];
     public function Kelompok()
     {
         return $this->belongsTo(Kelompok::class,'kelompok_id');

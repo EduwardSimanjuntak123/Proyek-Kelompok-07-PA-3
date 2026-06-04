@@ -315,13 +315,38 @@ Route::prefix('NilaiBimbingan')->group(function () {
 //Route untuk koordinator CRUD Nilai Administrasi
 
 
-Route::prefix('NilaiAdministrasi')->group(function () {
-    //untuk penguji 1
-    Route::get('/koordinator', [NilaiAdministrasi_Controller::class, 'index'])->name('koordinator.NilaiAdministrasi.index');
-    Route::post('/koordinator', [NilaiAdministrasi_Controller::class, 'store'])->name('koordinator.NilaiAdministrasi.store');
-    Route::put('/koordinator/{id}', [NilaiAdministrasi_Controller::class, 'update'])->name('koordinator.NilaiAdministrasi.update');
-    Route::delete('/koordinator/{id}', [NilaiAdministrasi_Controller::class, 'destroy'])->name('koordinator.NilaiAdministrasi.destroy');
+// Route::prefix('NilaiAdministrasi')->group(function () {
+//     //untuk penguji 1
+//     Route::get('/koordinator', [NilaiAdministrasi_Controller::class, 'index'])->name('koordinator.NilaiAdministrasi.index');
+//     Route::post('/koordinator', [NilaiAdministrasi_Controller::class, 'store'])->name('koordinator.NilaiAdministrasi.store');
+//     Route::put('/koordinator/{id}', [NilaiAdministrasi_Controller::class, 'update'])->name('koordinator.NilaiAdministrasi.update');
+//     Route::delete('/koordinator/{id}', [NilaiAdministrasi_Controller::class, 'destroy'])->name('koordinator.NilaiAdministrasi.destroy');
+    
+    Route::prefix('nilai-administrasi')->group(function () {
+
+    Route::get('/', [NilaiAdministrasi_Controller::class, 'index'])
+        ->name('koordinator.NilaiAdministrasi.index');
+
+    Route::post('/', [NilaiAdministrasi_Controller::class, 'store'])
+        ->name('koordinator.NilaiAdministrasi.store');
+
+    Route::put('/{id}', [NilaiAdministrasi_Controller::class, 'update'])
+        ->name('koordinator.NilaiAdministrasi.update');
+
+    Route::delete('/{id}', [NilaiAdministrasi_Controller::class, 'destroy'])
+        ->name('koordinator.NilaiAdministrasi.destroy');
+
+    
+// Individu (Logbook)
+Route::post('/nilai-administrasi/individu/store', [NilaiAdministrasi_Controller::class, 'storeIndividu'])
+    ->name('koordinator.NilaiAdministrasi.storeIndividu');
+Route::put('/nilai-administrasi/individu/{id}', [NilaiAdministrasi_Controller::class, 'updateIndividu'])
+    ->name('koordinator.NilaiAdministrasi.updateIndividu');
+Route::delete('/nilai-administrasi/individu/{id}', [NilaiAdministrasi_Controller::class, 'destroyIndividu'])
+    ->name('koordinator.NilaiAdministrasi.destroyIndividu');
+    
 });
+
 //Route untuk dosen penguji dan pembimbing CRUD Nilai mahasiswa
 Route::prefix('NilaiKelompok')->group(function () {
     //untuk penguji 1

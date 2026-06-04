@@ -13,25 +13,50 @@ return new class extends Migration
     {
         Schema::create('nilai_individu', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('kelompok_id'); // tambahan
             $table->unsignedBigInteger('penilai_id');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+
+            $table->foreignId('role_id')
+                ->constrained('roles')
+                ->onDelete('cascade');
+
+            // Komunikasi
             $table->float('B11');
             $table->float('B12');
             $table->float('B13');
             $table->float('B14');
             $table->float('B15');
             $table->float('B1_total')->nullable();
+
+            // Presentasi & Demonstrasi
             $table->float('B21');
             $table->float('B22');
             $table->float('B23');
             $table->float('B24');
             $table->float('B25');
             $table->float('B2_total')->nullable();
+
+            // Tanya Jawab
             $table->float('B31');
             $table->float('B3_total')->nullable();
+
+            // Logbook
+            $table->float('D1')->nullable();
+
+            // Total Akhir
             $table->float('B_total')->nullable();
+
             $table->unsignedBigInteger('user_id');
+
             $table->timestamps();
+
+            $table->foreign('kelompok_id')
+                ->references('id')
+                ->on('kelompok')
+                ->onDelete('cascade');
+
+            $table->unique(['kelompok_id', 'user_id']);
         });
     }
 
@@ -42,4 +67,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('nilai_individu');
     }
-};
+};  
