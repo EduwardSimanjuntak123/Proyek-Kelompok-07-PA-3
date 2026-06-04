@@ -8,6 +8,7 @@ use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
 use App\Models\Mahasiswa;
 use App\Models\Bimbingan;
+use App\Models\kategoriPA;
 use App\Models\pembimbing;
 use App\Models\Nilai_Mahasiswa;
 use App\Models\Nilai_Seminar;
@@ -30,7 +31,8 @@ class dashboard_Controller extends Controller
         $prodi_id = session('prodi_id');
         $TM_id = session('TM_id');
         $user_id = session('user_id');
-
+        
+        $kpa = kategoriPA::find($KPA_id);
 
         $jumlah_mahasiswa = KelompokMahasiswa::with('kelompok')
             ->whereHas('kelompok', function ($q) use ($KPA_id, $prodi_id, $TM_id) {
@@ -95,6 +97,11 @@ class dashboard_Controller extends Controller
             ->where('TM_id', $TM_id)
             ->get();
 
+        $jumlah_pengumuman = Pengumuman::where('KPA_id', $KPA_id)
+            ->where('prodi_id', $prodi_id)
+            ->where('TM_id', $TM_id)
+            ->count();
+
         $events = $jadwal->map(function ($item) {
             return [
                 'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok . 'seminar  ',
@@ -102,7 +109,58 @@ class dashboard_Controller extends Controller
                 'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
             ];
         });
+        $token = session('token');
+        $user_id = session('user_id');
+        $role_ids = [2, 4];
+        $prodi_ids = DosenRole::where('user_id', $user_id)
+            ->where('status', 'Aktif')
+            ->where('role_id', $role_ids)
+            ->pluck('prodi_id');
+        $TM_ids = DosenRole::where('user_id', $user_id)
+            ->where('status', 'Aktif')
+            ->where('role_id', $role_ids)
+            ->pluck('TM_id');
+        $KPA_ids = DosenRole::where('user_id', $user_id)
+            ->where('status', 'Aktif')
+            ->where('role_id', $role_ids)
+            ->pluck('KPA_id');
+        $prodi_ids = $prodi_ids->unique();
+        $TM_ids = $TM_ids->unique();
+        $KPA_ids = $KPA_ids->unique();
+        // Mengambil pengumuman yang hanya terkait dengan prodi_id yang sesuai dan status 'aktif'
+        $pengumuman = Pengumuman::with(['prodi', 'kategoriPA'])
+            ->wherein('prodi_id', $prodi_ids)
+            ->wherein('KPA_id', $KPA_ids)
+            ->wherein('TM_id', $TM_ids)
+            ->where('status', 'aktif')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        // 
+        $responseDosen = Http::withHeaders([
+            'Authorization' => "Bearer $token"
+        ])->get(env('API_URL') . "library-api/dosen");
+        if ($responseDosen->successful()) {
+            $dosen_list = $responseDosen->json()['data']['dosen'] ?? [];
+            // Buat map user_id => nama
+            $dosen_map = collect($dosen_list)->keyBy('user_id');
 
+            $pengumuman->each(function ($item) use ($dosen_map) {
+                $item->nama = $dosen_map[$item->user_id]['nama'] ?? 'N/A';
+            });
+        } else {
+            // Tangani jika API gagal
+            $pengumuman->each(function ($item) {
+                $item->nama = 'N/A'; // Tampilkan N/A jika API gagal
+            });
+        }
+
+        $events = $jadwal->map(function ($item) {
+            return [
+                'title' => 'Kelompok ' . $item->kelompok->nomor_kelompok . 'seminar  ',
+                'start' => Carbon::parse($item->waktu_mulai)->toIso8601String(),
+                'end' => Carbon::parse($item->waktu_selesai)->toIso8601String(),
+            ];
+        });
         // Check verification status
         $verification_status = $this->checkVerificationStatus($KPA_id, $prodi_id, $TM_id);
 
@@ -184,7 +242,7 @@ class dashboard_Controller extends Controller
                 $stat_belum++;
             }
         }
-
+        // dd($KPA_id, $kpa);   
         return view('pages.Koordinator.dashboard', compact(
             'jumlah_mahasiswa',
             'daftar_kelompok',
@@ -200,7 +258,9 @@ class dashboard_Controller extends Controller
             'top_kelompok',
             'stat_lengkap',
             'stat_menunggu',
-            'stat_belum'
+            'stat_belum',
+            'kpa',
+            'pengumuman'
         ));
     }
 

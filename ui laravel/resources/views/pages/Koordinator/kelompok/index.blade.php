@@ -19,12 +19,12 @@
                                 <table class="table table-striped" id="table-2">
                                     <thead>
                                         <tr>
-                                            <th>No</th>
                                             <th>Nomor Kelompok</th>
                                             <th>Kategori Proyek</th>
                                             <th>Angkatan</th>
                                             <th>Tahun Ajaran</th>
                                             <th>Program Studi</th>
+                                            <th>Jumlah Mahasiswa</th>
                                             <th>Status</th>
                                             <th>Aksi</th>
                                         </tr>
@@ -32,7 +32,6 @@
                                     <tbody>
                                         @foreach ($kelompok as $item)
                                             <tr>
-                                                <td>{{ $item->id }}</td>
                                                 <td>{{ $item->nomor_kelompok }}</td>
                                                 <td>{{ $item->kategoripa->kategori_pa ?? 'N/A' }}</td>
                                                 <td>{{ $item->tahunMasuk->Tahun_Masuk ?? 'N/A' }}</td>
@@ -42,13 +41,14 @@
                                                     {{ $item->tahunAjaran->tahun_selesai ?? 'N/A' }}
                                                 </td>
                                                 <td>{{ $item->prodi->nama_prodi ?? 'N/A' }}</td>
+                                                <td>{{ $item->kelompok_mahasiswa_count }}</td>
                                                 <td>{{ $item->status }}</td>
                                                 <td>
                                                     <div class="d-flex">
                                                         <a href="{{ route('kelompokMahasiswa.index', $item->id) }}"
                                                             class="btn btn-primary btn-sm"><i
                                                                 class="nav-icon fas fa-cog"></i> &nbsp;
-                                                            Kelola</a>&nbsp;&nbsp;
+                                                            Kelola Anggota Kelompok</a>&nbsp;&nbsp;
                                                         <a href="{{ route('kelompok.edit', Crypt::encrypt($item->id)) }}"
                                                             class="btn btn-success btn-sm"><i
                                                                 class="nav-icon fas fa-edit"></i> &nbsp; Edit</a>

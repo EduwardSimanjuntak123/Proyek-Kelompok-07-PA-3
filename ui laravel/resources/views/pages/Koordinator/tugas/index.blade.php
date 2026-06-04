@@ -36,26 +36,19 @@
                                                 <td>
                                                     <div class="d-flex">
                                                         <a href="{{ route('tugas.show', $item->id) }}"
-                                                            class="btn btn-primary btn-sm"><i
-                                                                class="nav-icon fas fa-eye"></i> &nbsp; Show</a>&nbsp;&nbsp;
+                                                            class="btn btn-primary btn-sm">
+                                                            <i class="nav-icon fas fa-eye"></i> &nbsp; Detail Tugas
+                                                        </a>&nbsp;&nbsp;
+
                                                         <a href="{{ route('artefak.index.koordinator', $item->id) }}"
-                                                            class="btn btn-primary btn-sm"><i
-                                                                class="nav-icon fas fa-eye"></i> &nbsp; Show
-                                                            Submision</a>&nbsp;&nbsp;
+                                                            class="btn btn-primary btn-sm">
+                                                            <i class="nav-icon fas fa-eye"></i> &nbsp; Show Submission
+                                                        </a>&nbsp;&nbsp;
+
                                                         <a href="{{ route('tugas.edit', ['id' => Crypt::encrypt($item->id)]) }}"
-                                                            class="btn btn-success btn-sm"><i
-                                                                class="nav-icon fas fa-edit"></i> &nbsp; Edit</a>
-                                                        <form method="POST"
-                                                            action="{{ route('tugas.destroy', $item->id) }}">
-                                                            @csrf
-                                                            @method('delete')
-                                                            <button class="btn btn-danger btn-sm show_confirm"
-                                                                data-toggle="tooltip" title='Delete'
-                                                                style="margin-left: 8px"><i
-                                                                    class="nav-icon fas fa-trash-alt"></i> &nbsp;
-                                                                Hapus</button>
-                                                        </form>
-                                                        {{-- <a href="{{route('artefak.index.koordinator')}}" class="btn btn-primary btn-sm"><i class="nav-icon fas fa-eye"></i> &nbsp; Show Tugas</a>&nbsp;&nbsp; --}}
+                                                            class="btn btn-success btn-sm">
+                                                            <i class="nav-icon fas fa-edit"></i> &nbsp; Edit
+                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>

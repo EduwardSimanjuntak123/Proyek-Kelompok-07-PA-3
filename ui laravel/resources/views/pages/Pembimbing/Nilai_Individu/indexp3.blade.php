@@ -59,7 +59,7 @@
                     <div class="card">
 
                         <div class="card-header d-flex justify-content-between">
-                            <h4>List Nilai Bimbingan Pembimbing</h4>
+                            <h4>List Nilai Bimbingan Pembimbing (40%)</h4>
                         </div>
 
                         <div class="card-body">
@@ -207,19 +207,22 @@
                                                                         @php
 
                                                                             $komponenNilai = [
-                                                                                ['A1', 'Kemandirian bekerja'],
-                                                                                ['A2', 'Kemampuan mengelola waktu'],
+                                                                                ['A1', 'Kemandirian bekerja (10%)'],
+                                                                                [
+                                                                                    'A2',
+                                                                                    'Kemampuan mengelola waktu (10%)',
+                                                                                ],
                                                                                 [
                                                                                     'A3',
-                                                                                    'Kerjasama dalam tim dan sistematik',
+                                                                                    'Kerjasama dalam tim dan sistematik (15%)',
                                                                                 ],
                                                                                 [
                                                                                     'A4',
-                                                                                    'Pemahaman terhadap materi, inisiatif dan keaktifan selama pembimbingan',
+                                                                                    'Pemahaman terhadap materi, inisiatif dan keaktifan selama pembimbingan (40%)',
                                                                                 ],
-                                                                                [
+                                                                                [   
                                                                                     'A5',
-                                                                                    'Tingkat kelengkapan dan kualitas deliverables',
+                                                                                    'Tingkat kelengkapan dan kualitas deliverables (25%)',
                                                                                 ],
                                                                             ];
 

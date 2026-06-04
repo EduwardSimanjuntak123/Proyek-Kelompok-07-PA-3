@@ -37,8 +37,8 @@ class TugasController extends Controller
       ->get();
 
       foreach($tugas as $tugasItem){
-        if($tugasItem->tanggal_pengumpulan <=now() && $tugasItem->status !=='selesai'){
-            $tugasItem->status = 'selesai';
+        if($tugasItem->tanggal_pengumpulan <=now() && $tugasItem->status !=='Selesai'){
+            $tugasItem->status = 'Selesai';
             $tugasItem->save();
         }
       }
@@ -188,7 +188,7 @@ public function destroy($id)
 {
     $tugas = Tugas::findOrFail($id);
 
-    if ($tugas->status === 'berlangsung') {
+    if ($tugas->status === 'Berlangsung') {
         return back()->withErrors([
             'error' => 'Tidak dapat menghapus Tugas yang sedang Berlangsung.',
         ]);

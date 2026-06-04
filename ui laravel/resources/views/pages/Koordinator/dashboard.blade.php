@@ -4,21 +4,30 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h1>Dashboard Koordinator</h1>
+            <h1>
+                Dashboard Dosen Koordinator -
+                <span style="color: #4C9BC8;">
+                    {{ str_replace('PA-', 'PA ', $kpa->kategori_pa) }}
+                </span>
+            </h1>
         </div>
 
         <div class="section-body">
-            {{-- VERIFICATION FLOW --}}
+
+            {{-- ═══════════════════════════════════════════════
+             VERIFICATION FLOW
+        ════════════════════════════════════════════════ --}}
             <div class="row mb-4">
-                <div class="col-lg-12">
+                <div class="col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4>List Task Koordinator PA</h4>
+                            <h4 class="mb-0">List Task Koordinator PA</h4>
                             <button class="btn btn-sm btn-outline-secondary" id="btnRefreshStatus"
                                 onclick="refreshVerificationStatus()">
                                 <i class="fas fa-sync-alt mr-1"></i> Refresh Status
                             </button>
                         </div>
+
                         @if (session('success'))
                             <script>
                                 Swal.fire({
@@ -28,12 +37,15 @@
                                 });
                             </script>
                         @endif
+
                         <div class="card-body">
-                            <div class="verification-flow-container">
+                            <div class="verification-flow-container d-flex align-items-stretch justify-content-between flex-wrap"
+                                style="gap: 12px;">
 
                                 {{-- Step 1: Kelompok --}}
-                                <div class="verification-step" data-step="kelompok"
-                                    data-status="{{ $verification_status['kelompok'] ?? 'pending' }}">
+                                <div class="verification-step flex-fill" data-step="kelompok"
+                                    data-status="{{ $verification_status['kelompok'] ?? 'pending' }}"
+                                    style="min-width: 180px;">
                                     <div class="step-circle">
                                         <span class="step-number">1</span>
                                         <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
@@ -47,26 +59,22 @@
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
                                             <form action="{{ route('whatsapp.sendtoMahasiswa') }}" method="POST">
                                                 @csrf
-
                                                 <input type="hidden" name="pesan"
                                                     value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
-
                                                 <button type="submit" class="btn-wa">
-                                                    <i class="fab fa-whatsapp"></i>
-                                                    Kirim Notifikasi WA
+                                                    <i class="fab fa-whatsapp"></i> Kirim Notifikasi WA
                                                 </button>
                                             </form>
                                         </div>
-
                                     </div>
                                 </div>
 
-                                {{-- Arrow --}}
-                                <div class="verification-arrow">→</div>
+                                <div class="verification-arrow align-self-center">→</div>
 
                                 {{-- Step 2: Pembimbing --}}
-                                <div class="verification-step" data-step="pembimbing"
-                                    data-status="{{ $verification_status['pembimbing'] ?? 'pending' }}">
+                                <div class="verification-step flex-fill" data-step="pembimbing"
+                                    data-status="{{ $verification_status['pembimbing'] ?? 'pending' }}"
+                                    style="min-width: 180px;">
                                     <div class="step-circle">
                                         <span class="step-number">2</span>
                                         <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
@@ -78,27 +86,24 @@
                                         <p class="step-title">Assign Dosen Pembimbing</p>
                                         <p class="step-desc">Tentukan dosen pembimbing</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                             <form action="{{ route('whatsapp.sendtoPembimbing') }}" method="POST">
+                                            <form action="{{ route('whatsapp.sendtoPembimbing') }}" method="POST">
                                                 @csrf
-
                                                 <input type="hidden" name="pesan"
                                                     value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
-
                                                 <button type="submit" class="btn-wa">
-                                                    <i class="fab fa-whatsapp"></i>
-                                                    Kirim Notifikasi WA
+                                                    <i class="fab fa-whatsapp"></i> Kirim Notifikasi WA
                                                 </button>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Arrow --}}
-                                <div class="verification-arrow">→</div>
+                                <div class="verification-arrow align-self-center">→</div>
 
                                 {{-- Step 3: Penguji --}}
-                                <div class="verification-step" data-step="penguji"
-                                    data-status="{{ $verification_status['penguji'] ?? 'pending' }}">
+                                <div class="verification-step flex-fill" data-step="penguji"
+                                    data-status="{{ $verification_status['penguji'] ?? 'pending' }}"
+                                    style="min-width: 180px;">
                                     <div class="step-circle">
                                         <span class="step-number">3</span>
                                         <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
@@ -110,27 +115,24 @@
                                         <p class="step-title">Assign Dosen Penguji</p>
                                         <p class="step-desc">Tentukan dosen penguji</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
-                                             <form action="{{ route('whatsapp.sendtoPenguji') }}" method="POST">
+                                            <form action="{{ route('whatsapp.sendtoPenguji') }}" method="POST">
                                                 @csrf
-
                                                 <input type="hidden" name="pesan"
                                                     value="📢 *PENGUMUMAN PROYEK AKHIR*\n\nHalo Mahasiswa/Dosen,\n\nKelompok Proyek Akhir telah berhasil di-generate oleh sistem.\n\nSilakan cek detail pengumuman dan pembagian kelompok pada website *Vokasi Tera*.\n\nTerima kasih ">
-
                                                 <button type="submit" class="btn-wa">
-                                                    <i class="fab fa-whatsapp"></i>
-                                                    Kirim Notifikasi WA
+                                                    <i class="fab fa-whatsapp"></i> Kirim Notifikasi WA
                                                 </button>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Arrow --}}
-                                <div class="verification-arrow">→</div>
+                                <div class="verification-arrow align-self-center">→</div>
 
                                 {{-- Step 4: Jadwal --}}
-                                <div class="verification-step" data-step="jadwal"
-                                    data-status="{{ $verification_status['jadwal'] ?? 'pending' }}">
+                                <div class="verification-step flex-fill" data-step="jadwal"
+                                    data-status="{{ $verification_status['jadwal'] ?? 'pending' }}"
+                                    style="min-width: 180px;">
                                     <div class="step-circle">
                                         <span class="step-number">4</span>
                                         <svg class="status-checkmark" viewBox="0 0 24 24" fill="none"
@@ -143,8 +145,7 @@
                                         <p class="step-desc">Tentukan waktu seminar</p>
                                         <div class="wa-btn-wrapper" style="margin-top: 8px; display: none;">
                                             <a href="#" class="btn-wa" onclick="kirimWA('jadwal'); return false;">
-                                                <i class="fab fa-whatsapp"></i>
-                                                Kirim Notifikasi WA
+                                                <i class="fab fa-whatsapp"></i> Kirim Notifikasi WA
                                             </a>
                                         </div>
                                     </div>
@@ -154,15 +155,15 @@
 
                             {{-- Status Legend --}}
                             <div class="verification-legend mt-4 pt-3 border-top">
-                                <div class="legend-row">
-                                    <div class="legend-item">
+                                <div class="legend-row d-flex" style="gap: 24px;">
+                                    <div class="legend-item d-flex align-items-center" style="gap: 8px;">
                                         <span class="legend-badge"
-                                            style="background: #e8f1f7; border: 2px solid #4c9bc8;"></span>
+                                            style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#e8f1f7;border:2px solid #4c9bc8;"></span>
                                         <span>Pending - Belum diproses</span>
                                     </div>
-                                    <div class="legend-item">
+                                    <div class="legend-item d-flex align-items-center" style="gap: 8px;">
                                         <span class="legend-badge"
-                                            style="background: #d4f1e0; border: 2px solid #22c55e;"></span>
+                                            style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#d4f1e0;border:2px solid #22c55e;"></span>
                                         <span>Success - Sudah selesai</span>
                                     </div>
                                 </div>
@@ -172,9 +173,11 @@
                 </div>
             </div>
 
-            <div class="row">
-                <!-- Jumlah Mahasiswa -->
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+            {{-- ═══════════════════════════════════════════════
+             STAT CARDS
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                     <div class="card card-statistic-1">
                         <div class="card-icon bg-primary">
                             <i class="fas fa-users"></i>
@@ -190,8 +193,7 @@
                     </div>
                 </div>
 
-                <!-- Pengumuman -->
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                     <div class="card card-statistic-1">
                         <div class="card-icon bg-success">
                             <i class="fas fa-bullhorn"></i>
@@ -207,8 +209,7 @@
                     </div>
                 </div>
 
-                <!-- Jumlah Dosen -->
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                     <div class="card card-statistic-1">
                         <div class="card-icon bg-info">
                             <i class="fas fa-chalkboard-teacher"></i>
@@ -224,8 +225,7 @@
                     </div>
                 </div>
 
-                <!-- Jumlah Tugas -->
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                     <div class="card card-statistic-1">
                         <div class="card-icon bg-warning">
                             <i class="fas fa-tasks"></i>
@@ -242,12 +242,14 @@
                 </div>
             </div>
 
-            {{-- ROW: Donut Chart & Bar Chart Bimbingan --}}
-            <div class="row mt-4">
-                <div class="col-lg-12 col-md-12">
+            {{-- ═══════════════════════════════════════════════
+             BAR CHART BIMBINGAN
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
+                <div class="col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4>Jumlah Proses Bimbingan Tiap Kelompok</h4>
+                            <h4 class="mb-0">Jumlah Proses Bimbingan Tiap Kelompok</h4>
                             <span class="badge badge-info">Live Updates</span>
                         </div>
                         <div class="card-body">
@@ -257,77 +259,63 @@
                 </div>
             </div>
 
-            {{-- ROW: Histogram Nilai & Line Chart Tren --}}
-            <div class="row mt-2">
-                <div class="col-lg-6 col-md-12">
-                    <div class="card">
+            {{-- ═══════════════════════════════════════════════
+             HISTOGRAM NILAI & DONUT STATUS ADMINISTRASI
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
+                <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
+                    <div class="card h-100">
                         <div class="card-header">
-                            <h4>Distribusi Nilai Proyek</h4>
+                            <h4 class="mb-0">Distribusi Nilai Proyek</h4>
                         </div>
                         <div class="card-body">
                             <canvas id="histogramNilai" height="160"></canvas>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-lg-6 col-md-12">
-                    <div class="card">
+                    <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">
-                                Status Administrasi
-                            </h4>
+                            <h4 class="mb-0">Status Administrasi</h4>
                             <a href="{{ route('detail.administratif') }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-eye mr-1"></i>
-                                Detail
+                                <i class="fas fa-eye mr-1"></i> Detail
                             </a>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column justify-content-center">
                             <div class="dashboard-donut-wrap">
                                 <canvas id="donutChart" height="220"></canvas>
                             </div>
                             <div class="dashboard-donut-legend mt-4">
-                                <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#10b981;"></span>
+                                <div class="donut-legend-item d-flex align-items-center mb-2">
+                                    <span class="donut-legend-dot mr-2" style="background:#10b981;"></span>
                                     <span>Selesai</span>
-                                    <span class="ml-auto font-weight-bold">
-                                        {{ $stat_lengkap ?? 78 }}
-                                    </span>
+                                    <span class="ml-auto font-weight-bold">{{ $stat_lengkap ?? 78 }}</span>
                                 </div>
-                                <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#f59e0b;"></span>
+                                <div class="donut-legend-item d-flex align-items-center mb-2">
+                                    <span class="donut-legend-dot mr-2" style="background:#f59e0b;"></span>
                                     <span>Sedang Progress</span>
-                                    <span class="ml-auto font-weight-bold">
-                                        {{ $stat_menunggu ?? 32 }}
-                                    </span>
+                                    <span class="ml-auto font-weight-bold">{{ $stat_menunggu ?? 32 }}</span>
                                 </div>
-                                <div class="donut-legend-item">
-                                    <span class="donut-legend-dot" style="background:#ef4444;"></span>
+                                <div class="donut-legend-item d-flex align-items-center">
+                                    <span class="donut-legend-dot mr-2" style="background:#ef4444;"></span>
                                     <span>Belum Ada Progress</span>
-                                    <span class="ml-auto font-weight-bold">
-                                        {{ $stat_belum ?? 14 }}
-                                    </span>
+                                    <span class="ml-auto font-weight-bold">{{ $stat_belum ?? 14 }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-lg-6 col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Tren Rata-rata Nilai Mata Kuliah</h4>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="lineNilai" height="160"></canvas>
-                        </div>
-                    </div>
-                </div> --}}
             </div>
 
-            {{-- ROW: Perbandingan Nilai & Timeline Tahapan --}}
-            <div class="row mt-2">
-                <div class="col-lg-12 col-md-12">
+            {{-- ═══════════════════════════════════════════════
+             PERBANDINGAN NILAI AKHIR KELOMPOK
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
+                <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Perbandingan Nilai Akhir Kelompok (Teratas)</h4>
+                            <h4 class="mb-0">Perbandingan Nilai Akhir Kelompok (Teratas)</h4>
                         </div>
                         <div class="card-body">
                             <div class="dashboard-progress-list">
@@ -360,84 +348,24 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-lg-5 col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Monitoring Tahapan Proyek</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="dashboard-timeline">
-                                @php
-                                    $tahapan = isset($tahapan)
-                                        ? $tahapan
-                                        : [
-                                            [
-                                                'label' => 'Submit Proposal',
-                                                'desc' => 'Selesai pada 15 Feb 2024',
-                                                'status' => 'done',
-                                            ],
-                                            [
-                                                'label' => 'Verifikasi Dosen Pembimbing',
-                                                'desc' => 'Selesai pada 20 Feb 2024',
-                                                'status' => 'done',
-                                            ],
-                                            [
-                                                'label' => 'Masa Bimbingan (Berjalan)',
-                                                'desc' => 'Target Selesai: 30 April 2024',
-                                                'status' => 'active',
-                                            ],
-                                            ['label' => 'Pendaftaran Sidang', 'desc' => '', 'status' => 'pending'],
-                                            ['label' => 'Sidang Akhir', 'desc' => '', 'status' => 'pending'],
-                                        ];
-                                @endphp
-                                @foreach ($tahapan as $t)
-                                    <div class="dashboard-timeline-item {{ $t['status'] }}">
-                                        <div class="timeline-dot">
-                                            @if ($t['status'] === 'done')
-                                                <i class="fas fa-check" style="font-size:10px;color:#fff;"></i>
-                                            @elseif($t['status'] === 'active')
-                                                <span class="timeline-pulse"></span>
-                                            @endif
-                                        </div>
-                                        <div class="timeline-content">
-                                            <p class="timeline-label">{{ $t['label'] }}</p>
-                                            @if ($t['desc'])
-                                                <p class="timeline-desc">{{ $t['desc'] }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div> --}}
             </div>
 
-            {{-- Tabel Monitoring Prioritas --}}
-            <div class="row mt-2">
+            {{-- ═══════════════════════════════════════════════
+             TABEL MONITORING PRIORITAS
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header d-flex flex-wrap justify-content-between align-items-start gap-2">
+
+                        <div class="card-header">
                             <div>
                                 <h4 class="mb-0">Monitoring Prioritas</h4>
                                 <small class="text-muted">
                                     Detail kelompok yang membutuhkan perhatian khusus
                                 </small>
                             </div>
-
-                            <div class="d-flex flex-nowrap align-items-center" style="gap:8px;">
-                                <select class="form-control form-control-sm" id="filterStatus" style="min-width:150px;">
-                                    <option value="">Semua Status</option>
-                                    <option value="Belum Lengkap">Belum Lengkap</option>
-                                    <option value="Verifikasi">Verifikasi</option>
-                                    <option value="Lengkap">Lengkap</option>
-                                </select>
-
-                                <button class="btn btn-primary btn-sm text-nowrap" onclick="window.print()">
-                                    <i class="fas fa-download mr-1"></i> Export Data
-                                </button>
-                            </div>
                         </div>
+
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0" id="tabelMonitoring">
@@ -454,12 +382,10 @@
                                     <tbody>
                                         @foreach ($daftar_kelompok as $kelompok)
                                             <tr>
-                                                {{-- Kelompok --}}
                                                 <td class="font-weight-600 py-3">
                                                     Kelompok {{ $kelompok->nomor_kelompok }}
                                                 </td>
 
-                                                {{-- Status --}}
                                                 <td class="py-3">
                                                     <span class="badge badge-success px-3 py-2"
                                                         style="font-size:11px;border-radius:20px;">
@@ -467,28 +393,23 @@
                                                     </span>
                                                 </td>
 
-                                                {{-- Bimbingan --}}
-                                                <td class="text-center py-3" style="font-size:13px;font-weight:500;">
+                                                <td class="text-center py-3">
                                                     {{ $kelompok->jumlah_bimbingan_selesai }} / 12
                                                 </td>
 
-                                                {{-- Nilai --}}
-                                                <td class="text-center py-3" style="font-size:13px;font-weight:600;">
+                                                <td class="text-center py-3">
                                                     {{ number_format($kelompok->rata_nilai_akhir ?? 0, 1) }}
                                                 </td>
 
-                                                {{-- Status Sidang --}}
                                                 <td class="py-3">
                                                     @if ($kelompok->jadwal)
                                                         <span style="color:#16a34a;font-size:12px;font-weight:600;">
                                                             <i class="fas fa-circle mr-1" style="font-size:7px;"></i>
-
                                                             {{ \Carbon\Carbon::parse($kelompok->jadwal->waktu_mulai)->format('d M Y H:i') }}
                                                         </span>
                                                     @else
                                                         <span style="color:#6b7280;font-size:12px;">
                                                             <i class="fas fa-circle mr-1" style="font-size:7px;"></i>
-
                                                             Belum Terjadwal
                                                         </span>
                                                     @endif
@@ -496,25 +417,60 @@
                                             </tr>
                                         @endforeach
                                     </tbody>
+
                                 </table>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
 
-            {{-- Kalender --}}
-            <div class="row mt-2">
-                <div class="col-12">
+            {{-- ═══════════════════════════════════════════════
+             KALENDER & PENGUMUMAN (sejajar dalam satu row)
+        ════════════════════════════════════════════════ --}}
+            <div class="row mb-4">
+                <div class="col-lg-8 col-md-12 mb-4">
                     <h2 class="text-center mb-4">Kalender Jadwal Seminar</h2>
-                    <div class="card shadow">
+
+                    <div class="card shadow h-100">
                         <div class="card-body">
                             <div id="calendar"></div>
                         </div>
                     </div>
                 </div>
+
+                <div class="col-lg-4 col-md-12 mb-4">
+
+                    <h2 class="text-center mb-4">
+                        Pengumuman
+                    </h2>
+
+                    <div class="card shadow">
+                        <div class="card-body">
+                            @if ($pengumuman->isEmpty())
+                                <p class="text-muted text-center">
+                                    Belum ada pengumuman.
+                                </p>
+                            @else
+                                <ul class="list-group list-group-flush">
+                                    @foreach ($pengumuman as $index => $item)
+                                        <li class="list-group-item px-0">
+                                            <strong>{{ $index + 1 }}.</strong>
+                                            <a href="{{ route('pengumuman.penguji.show', $item->id) }}">
+                                                {{ $item->judul }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </div>
+
+                </div>
             </div>
-        </div>
+
+        </div>{{-- /section-body --}}
     </section>
 @endsection
 
@@ -608,175 +564,192 @@
             setInterval(refreshVerificationStatus, 60000);
 
             // ── 1. Donut Chart Status Administrasi ──────────────────────
-            new Chart(document.getElementById('donutChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Selesai', 'Sedang Progress', 'Belum Ada Progress'],
-                    datasets: [{
-                        data: [
-                            {{ $stat_lengkap ?? 78 }},
-                            {{ $stat_menunggu ?? 32 }},
-                            {{ $stat_belum ?? 14 }}
-                        ],
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 0,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    cutout: '72%',
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => ' ' + ctx.label + ': ' + ctx.parsed
+            var donutEl = document.getElementById('donutChart');
+            if (donutEl) {
+                new Chart(donutEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Selesai', 'Sedang Progress', 'Belum Ada Progress'],
+                        datasets: [{
+                            data: [
+                                {{ $stat_lengkap ?? 78 }},
+                                {{ $stat_menunggu ?? 32 }},
+                                {{ $stat_belum ?? 14 }}
+                            ],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                            borderWidth: 0,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        cutout: '72%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ' ' + ctx.label + ': ' + ctx.parsed
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // ── 2. Bar Chart Bimbingan Per Kelompok ─────────────────────
-            var barDataRaw = @json($bar_data);
-            var barColors = barDataRaw.map(v => v > 8 ? '#10b981' : '#f59e0b');
+            var barEl = document.getElementById('barBimbingan');
+            if (barEl) {
+                var barDataRaw = @json($bar_data);
+                var barColors = barDataRaw.map(v => v > 8 ? '#10b981' : '#f59e0b');
 
-            new Chart(document.getElementById('barBimbingan'), {
-                type: 'bar',
-                data: {
-                    labels: @json($bar_labels),
-                    datasets: [{
-                        label: 'Pertemuan Bimbingan',
-                        data: barDataRaw,
-                        backgroundColor: barColors,
-                        borderRadius: 4,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+                new Chart(barEl, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($bar_labels),
+                        datasets: [{
+                            label: 'Pertemuan Bimbingan',
+                            data: barDataRaw,
+                            backgroundColor: barColors,
+                            borderRadius: 4,
+                            borderSkipped: false,
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10,
-                            grid: {
-                                color: '#f0f0f0'
-                            },
-                            ticks: {
-                                stepSize: 2
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 10,
+                                grid: {
+                                    color: '#f0f0f0'
+                                },
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // ── 3. Histogram Distribusi Nilai ───────────────────────────
-            new Chart(document.getElementById('histogramNilai'), {
-                type: 'bar',
-                data: {
-                    labels: ['A', 'B', 'C', 'D'],
-                    datasets: [{
-                        label: 'Jumlah Kelompok',
-                        data: @json($dist_nilai),
-                        backgroundColor: '#002045',
-                        borderRadius: 6,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+            var histEl = document.getElementById('histogramNilai');
+            if (histEl) {
+                new Chart(histEl, {
+                    type: 'bar',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D'],
+                        datasets: [{
+                            label: 'Jumlah Kelompok',
+                            data: @json($dist_nilai),
+                            backgroundColor: '#002045',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f0f0f0'
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f0f0f0'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
-            // ── 4. Line Chart Tren Nilai ─────────────────────────────────
-            new Chart(document.getElementById('lineNilai'), {
-                type: 'line',
-                data: {
-                    labels: @json($tren_labels),
-                    datasets: [{
-                        label: 'Rata-rata Nilai',
-                        data: @json($tren_data),
-                        borderColor: '#002045',
-                        backgroundColor: 'rgba(0,32,69,0.08)',
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#002045',
-                        pointRadius: 4,
-                        tension: 0.35,
-                        fill: true,
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+            // ── 4. Line Chart Tren Nilai (hanya jika canvas ada di DOM) ─
+            var lineEl = document.getElementById('lineNilai');
+            if (lineEl) {
+                new Chart(lineEl, {
+                    type: 'line',
+                    data: {
+                        labels: @json($tren_labels),
+                        datasets: [{
+                            label: 'Rata-rata Nilai',
+                            data: @json($tren_data),
+                            borderColor: '#002045',
+                            backgroundColor: 'rgba(0,32,69,0.08)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#002045',
+                            pointRadius: 4,
+                            tension: 0.35,
+                            fill: true,
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: {
-                                color: '#f0f0f0'
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: '#f0f0f0'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // ── 5. Filter Tabel Monitoring ───────────────────────────────
-            document.getElementById('filterStatus').addEventListener('change', function() {
-                var val = this.value.toLowerCase();
-                document.querySelectorAll('#tabelMonitoring tbody tr').forEach(function(row) {
-                    var admin = (row.getAttribute('data-admin') || '').toLowerCase();
-                    row.style.display = (!val || admin.includes(val)) ? '' : 'none';
+            var filterStatus = document.getElementById('filterStatus');
+            if (filterStatus) {
+                filterStatus.addEventListener('change', function() {
+                    var val = this.value.toLowerCase();
+                    document.querySelectorAll('#tabelMonitoring tbody tr').forEach(function(row) {
+                        var admin = (row.getAttribute('data-admin') || '').toLowerCase();
+                        row.style.display = (!val || admin.includes(val)) ? '' : 'none';
+                    });
                 });
-            });
+            }
 
             // ── 6. FullCalendar ──────────────────────────────────────────
             var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                themeSystem: 'bootstrap5',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: ''
-                },
-                events: @json($events),
-                eventDisplay: 'block',
-            });
-            calendar.render();
+            if (calendarEl) {
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    themeSystem: 'bootstrap5',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: ''
+                    },
+                    events: @json($events),
+                    eventDisplay: 'block',
+                });
+                calendar.render();
+            }
         });
     </script>
 
@@ -939,7 +912,6 @@
             flex-shrink: 0;
         }
 
-        /* Hover: warna hijau tua yang kontras & masih terasa WA */
         .btn-wa:hover {
             background-color: #128C4D;
             color: #fff;
@@ -1077,7 +1049,6 @@
             font-weight: bold;
             flex: 0 0 auto;
             margin: 0 -5px;
-            /* sejajarkan dengan tengah step-circle */
             padding-top: 13px;
         }
 

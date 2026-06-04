@@ -58,7 +58,7 @@
 
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
-                            <h4>List Nilai Kelompok Pembimbing 2</h4>
+                            <h4>List Nilai Kelompok Pembimbing 2 (10%)</h4>
                         </div>
 
                         <div class="card-body">

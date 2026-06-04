@@ -57,8 +57,14 @@
                 <div class="col-12">
 
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            <h4>List Nilai Kelompok Pembimbing 1</h4>
+                        <div class="card-header">
+                            <h4 class="mb-0">List Nilai Kelompok Pembimbing (30%)</h4>
+                        </div>
+                        <div class="card-body pt-2">
+                            <small class="text-muted d-block" style="font-size: 0.95rem;">
+                                Bobot utama 30% untuk pembimbing. Jika terdapat 2 pembimbing, maka dibagi menjadi 20% untuk
+                                Pembimbing 1 dan 10% untuk Pembimbing 2.
+                            </small>
                         </div>
 
                         <div class="card-body">

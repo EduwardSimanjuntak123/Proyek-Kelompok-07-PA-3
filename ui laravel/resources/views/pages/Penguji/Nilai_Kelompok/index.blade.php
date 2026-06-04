@@ -57,7 +57,7 @@
                     <div class="card">
 
                         <div class="card-header d-flex justify-content-between">
-                            <h4>List Nilai Kelompok Penguji 1</h4>
+                            <h4>List Nilai Kelompok Penguji 1 (35%)</h4>
                         </div>
 
                         <div class="card-body">
@@ -215,7 +215,7 @@
                                                                             <div class="alert alert-primary">
 
                                                                                 <strong>
-                                                                                    Kualitas Produk
+                                                                                    Kualitas Produk (25%)
                                                                                 </strong>
 
                                                                             </div>
@@ -247,7 +247,7 @@
                                                                             <div class="alert alert-success">
 
                                                                                 <strong>
-                                                                                    Kualitas Laporan
+                                                                                    Kualitas Laporan (30%)
                                                                                 </strong>
 
                                                                             </div>

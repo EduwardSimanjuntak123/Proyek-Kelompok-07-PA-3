@@ -31,11 +31,16 @@ class Kelompok_Controller extends Controller
     // =========================
     // DATA KELOMPOK
     // =========================
-    $kelompok = Kelompok::with(['prodi', 'tahunMasuk', 'kategoripa'])
-        ->where('prodi_id', $prodi_id)
-        ->where('KPA_id', $KPA_id)
-        ->where('TM_id', $TM_id)
-        ->get();
+    $kelompok = Kelompok::with([
+        'prodi',
+        'tahunMasuk',
+        'kategoripa'
+    ])
+    ->withCount('KelompokMahasiswa')
+    ->where('prodi_id', $prodi_id)
+    ->where('KPA_id', $KPA_id)
+    ->where('TM_id', $TM_id)
+    ->get();
 
     // =========================
     // AMBIL TAHUN MASUK
