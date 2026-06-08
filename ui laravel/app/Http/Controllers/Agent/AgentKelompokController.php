@@ -95,7 +95,7 @@ class AgentKelompokController extends Controller
     public function callAgent(Request $request)
     {
         $traceId = Str::uuid();
-
+           
         try {
             Log::info("[$traceId] === START GENERATE AI ===");
 

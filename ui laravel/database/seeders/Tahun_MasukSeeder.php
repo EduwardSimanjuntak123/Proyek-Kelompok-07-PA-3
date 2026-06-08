@@ -20,7 +20,31 @@ class Tahun_MasukSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
                 'Status' => 'Aktif',
-            ]
+            ],
+            [
+                'Tahun_Masuk' => '2020',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'Status' => 'Tidak-Aktif',
+            ],
+            [
+                'Tahun_Masuk' => '2021',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'Status' => 'Tidak-Aktif',
+            ],
+            [
+                'Tahun_Masuk' => '2022',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'Status' => 'Aktif',
+            ],
+             [
+                'Tahun_Masuk' => '2023',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'Status' => 'Aktif',
+            ],
         ]);
     }
 }
