@@ -94,6 +94,7 @@ class AgentKelompokController extends Controller
 
     public function callAgent(Request $request)
     {
+       
         $traceId = Str::uuid();
            
         try {
@@ -149,6 +150,8 @@ class AgentKelompokController extends Controller
                 ->timeout(600)
                 ->retry(2, 500)
                 ->post('http://127.0.0.1:8002/agent', $finalPayload);
+
+            Log::info(" respons :", ['response' => $response]);
 
             Log::info("[$traceId] Agent API Status:", ['status' => $response->status()]);
             // dd($response->body());

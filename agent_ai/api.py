@@ -16,6 +16,8 @@ from datetime import datetime
 from bson import ObjectId
 from json import JSONEncoder
 
+from core.database import is_database_connection_error
+
 
 def _configure_stdio_encoding() -> None:
     """Make stdio safer for Windows terminals with legacy codepages."""
@@ -246,6 +248,18 @@ async def agent_endpoint(request: GenerateGroupingRequest):
             conversation_history=conversation_history,
             request_data=request.request_data or {}
         )
+
+        if is_database_connection_error(agent_result.get("result", "")) or is_database_connection_error(agent_result.get("error", "")):
+            logger.error(f"[{trace_id}] Database connection issue detected in agent response")
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "success": False,
+                    "result": "Koneksi ke database sedang bermasalah. Silakan coba lagi beberapa saat.",
+                    "error_type": "database_connection_error",
+                    "trace_id": trace_id,
+                },
+            )
         
         # Add user message ke Redis context (short-term)
         redis_mem.add_message(request.user_id, "user", request.prompt)
