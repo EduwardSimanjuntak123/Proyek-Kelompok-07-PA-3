@@ -20,6 +20,8 @@ class Kelompok_Controller extends Controller
     
    public function index(Request $request)
 {
+
+     
     // =========================
     // SESSION
     // =========================
@@ -27,20 +29,22 @@ class Kelompok_Controller extends Controller
     $KPA_id   = session('KPA_id');
     $TM_id    = session('TM_id');
     $token    = session('token');
+    $tahunAjaranId = session('tahun_ajaran_id');
 
     // =========================
     // DATA KELOMPOK
     // =========================
     $kelompok = Kelompok::with([
-        'prodi',
-        'tahunMasuk',
-        'kategoripa'
-    ])
-    ->withCount('KelompokMahasiswa')
-    ->where('prodi_id', $prodi_id)
-    ->where('KPA_id', $KPA_id)
-    ->where('TM_id', $TM_id)
-    ->get();
+    'prodi',
+    'tahunMasuk',
+    'kategoripa'
+])
+->withCount('KelompokMahasiswa')
+->where('prodi_id', $prodi_id)
+->where('KPA_id', $KPA_id)
+->where('TM_id', $TM_id)
+->where('tahun_ajaran_id', $tahunAjaranId)
+->get();
 
     // =========================
     // AMBIL TAHUN MASUK
@@ -67,10 +71,12 @@ class Kelompok_Controller extends Controller
     // AMBIL USER YANG SUDAH PUNYA KELOMPOK
     // =========================
     $userSudahPunyaKelompok = DB::table('kelompok_mahasiswa as km')
-        ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
-        ->where('k.KPA_id', $KPA_id)
-        ->pluck('km.user_id')
-        ->toArray();
+    ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+    ->where('k.prodi_id', $prodi_id)
+    ->where('k.KPA_id', $KPA_id)
+    ->where('k.TM_id', $TM_id)
+    ->pluck('km.user_id')
+    ->toArray();
 
     // =========================
     // FILTER MAHASISWA BELUM MASUK KELOMPOK
@@ -80,6 +86,13 @@ class Kelompok_Controller extends Controller
         ->sortBy('nim')
         ->values();
 
+
+    //     dd([
+    //     'user_id'  => session('user_id'),
+    //     'prodi_id' => session('prodi_id'),
+    //     'KPA_id'   => session('KPA_id'),
+    //     'TM_id'    => session('TM_id'),
+    // ]);
     // =========================
     // RETURN VIEW
     // =========================

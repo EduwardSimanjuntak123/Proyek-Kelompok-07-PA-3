@@ -12,34 +12,41 @@ use Illuminate\Support\Facades\Crypt;
 class Kelompok_mahasiswa_Controller extends Controller
 {
     public function index($id)
-    {
-        $token = session('token');
+{
+    $prodi_id = session('prodi_id');
+    $KPA_id   = session('KPA_id');
+    $TM_id    = session('TM_id');
 
-        // Ambil data kelompok berdasarkan ID
-        $kelompok = Kelompok::findOrFail($id);
+    // Ambil kelompok sesuai hak akses koordinator
+    $kelompok = Kelompok::where('id', $id)
+        ->where('prodi_id', $prodi_id)
+        ->where('KPA_id', $KPA_id)
+        ->where('TM_id', $TM_id)
+        ->firstOrFail();
 
+    // Ambil anggota kelompok
+    $mahasiswakelompoks = KelompokMahasiswa::where('kelompok_id', $id)->get();
 
-        // Ambil data mahasiswa yang tergabung dalam kelompok tertentu
-        $mahasiswakelompoks = KelompokMahasiswa::where('kelompok_id', $id)->get();
+    // Ambil master mahasiswa
+    $mahasiswa_map = Mahasiswa::all()->keyBy('user_id');
 
-        // Ambil data mahasiswa dari API eksternal
-        $mahasiswa_map = Mahasiswa::all()->keyBy('user_id');
+    // Gabungkan data mahasiswa
+    $mahasiswakelompoks->transform(function ($item) use ($mahasiswa_map) {
 
-        // $mahasiswa_map = collect();
+        $mhs = $mahasiswa_map->get($item->user_id);
 
+        $item->nama      = $mhs->nama ?? 'N/A';
+        $item->nim       = $mhs->nim ?? 'N/A';
+        $item->angkatan  = $mhs->angkatan ?? 'N/A';
 
-        // Gabungkan data user_id lokal + data dari API
-        $mahasiswakelompoks->transform(function ($item) use ($mahasiswa_map) {
-            $mhs = $mahasiswa_map->get($item->user_id);
-            $item->nama = $mhs['nama'] ?? 'N/A';
-            $item->nim = $mhs['nim'] ?? 'N/A';
-            $item->angkatan = $mhs['angkatan'] ?? 'N/A';
-            return $item;
-        });
+        return $item;
+    });
 
-        // Kirim juga $kelompok ke view
-        return view('pages.Koordinator.kelompok-mahasiswa.index', compact('mahasiswakelompoks', 'kelompok'));
-    }
+    return view(
+        'pages.Koordinator.kelompok-mahasiswa.index',
+        compact('mahasiswakelompoks', 'kelompok')
+    );
+}
 
     public function create($id)
     {
@@ -55,12 +62,17 @@ class Kelompok_mahasiswa_Controller extends Controller
             ->get();
         // dd($mahasiswa);
         $kelompok = Kelompok::findOrFail($id);
-        $kpaId = $kelompok->KPA_id;
+        $kpaId   = $kelompok->KPA_id;
+$prodiId = $kelompok->prodi_id;
+$tmId    = $kelompok->TM_id;
 
-        $user_idsudahpunyakelompok = DB::table('kelompok_mahasiswa as km')
-            ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
-            ->where('KPA_id', $kpaId)
-            ->pluck('user_id')->toArray();
+$user_idsudahpunyakelompok = DB::table('kelompok_mahasiswa as km')
+    ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+    ->where('k.KPA_id', $kpaId)
+    ->where('k.prodi_id', $prodiId)
+    ->where('k.TM_id', $tmId)
+    ->pluck('km.user_id')
+    ->toArray();
         $mahasiswabelummasuk = $mahasiswa->filter(function ($mhs) use ($user_idsudahpunyakelompok) {
             return !in_array($mhs['user_id'], $user_idsudahpunyakelompok);
         })->values();
@@ -114,13 +126,16 @@ class Kelompok_mahasiswa_Controller extends Controller
             ])->withInput();
         }
 
-        // Cek apakah user_id sudah terdaftar di kelompok manapun
-        $existingUsers = DB::table('kelompok_mahasiswa as km')
-            ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
-            ->where('k.KPA_id', $kpaId)
-            ->whereIn('km.user_id', $userIds)
-            ->pluck('km.user_id')
-            ->toArray();
+        $kelompok = Kelompok::findOrFail($kelompokId);
+
+$existingUsers = DB::table('kelompok_mahasiswa as km')
+    ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+    ->where('k.KPA_id', $kelompok->KPA_id)
+    ->where('k.prodi_id', $kelompok->prodi_id)
+    ->where('k.TM_id', $kelompok->TM_id)
+    ->whereIn('km.user_id', $userIds)
+    ->pluck('km.user_id')
+    ->toArray();
         if (!empty($existingUsers)) {
             return back()->withErrors([
                 'user_id' => 'Beberapa Mahasiswa sudah tergabung dalam kelompok lain: ' . implode(', ', $existingUsers)
@@ -153,8 +168,15 @@ class Kelompok_mahasiswa_Controller extends Controller
             ->orderBy('nim')
             ->get();
 
-        //cek apakah sudah ada kelompok
-        $user_idsudahpunyakelompok = DB::table('kelompok_mahasiswa')->pluck('user_id')->toArray();
+        $kelompok = Kelompok::findOrFail($kelompokMahasiswa->kelompok_id);
+
+$user_idsudahpunyakelompok = DB::table('kelompok_mahasiswa as km')
+    ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+    ->where('k.KPA_id', $kelompok->KPA_id)
+    ->where('k.prodi_id', $kelompok->prodi_id)
+    ->where('k.TM_id', $kelompok->TM_id)
+    ->pluck('km.user_id')
+    ->toArray();
         $mahasiswabelummasuk = $mahasiswaData->filter(function ($mhs) use ($user_idsudahpunyakelompok) {
             return !in_array($mhs['user_id'], $user_idsudahpunyakelompok);
         });
@@ -181,10 +203,16 @@ class Kelompok_mahasiswa_Controller extends Controller
         );
         $kelompokMahasiswa = KelompokMahasiswa::findOrFail($id);
 
-        // Cek apakah mahasiswa baru sudah tergabung di kelompok lain
-        $sudahAda = KelompokMahasiswa::where('user_id', $request->user_id)
-            ->where('id', '!=', $id)
-            ->exists();
+        $kelompok = Kelompok::findOrFail($kelompokMahasiswa->kelompok_id);
+
+$sudahAda = DB::table('kelompok_mahasiswa as km')
+    ->join('kelompok as k', 'km.kelompok_id', '=', 'k.id')
+    ->where('km.user_id', $request->user_id)
+    ->where('km.id', '!=', $id)
+    ->where('k.KPA_id', $kelompok->KPA_id)
+    ->where('k.prodi_id', $kelompok->prodi_id)
+    ->where('k.TM_id', $kelompok->TM_id)
+    ->exists();
 
         if ($sudahAda) {
             return back()->withErrors(['user_id' => 'Mahasiswa sudah tergabung di kelompok lain.'])->withInput();
