@@ -83,6 +83,7 @@ class NilaiIndividu_Controller extends Controller
         if ($includeUserPenilai) {
             $rules['user_id']    = 'required';
             $rules['penilai_id'] = 'required';
+             $rules['kelompok_id'] = 'required'; // ✅ TAMBAH INI
         }
 
         return $rules;
@@ -170,35 +171,42 @@ class NilaiIndividu_Controller extends Controller
      * Simpan nilai individu baru.
      */
     private function storeNilai(Request $request, int $roleId, string $redirectRoute)
-    {
-        $userId = session('user_id');
-        $request->validate($this->validasiRules(true));
+{
+    // ❌ HAPUS BARIS INI — ini yang memblokir semua eksekusi:
+    // dd($request->only(['user_id','kelompok_id','penilai_id','role_id']));
 
-        $komponen = $this->hitungKomponenB($request);
+    $userId = session('user_id');
+    $request->validate($this->validasiRules(true));
 
-        Nilai_Individu::create([
-            'user_id'    => $request->user_id,
-            'penilai_id' => $userId,
-            'role_id'    => $roleId,
-            'B11'        => $request->B11,
-            'B12'        => $request->B12,
-            'B13'        => $request->B13,
-            'B14'        => $request->B14,
-            'B15'        => $request->B15,
-            'B1_total'   => $komponen['B1_total'],
-            'B21'        => $request->B21,
-            'B22'        => $request->B22,
-            'B23'        => $request->B23,
-            'B24'        => $request->B24,
-            'B25'        => $request->B25,
-            'B2_total'   => $komponen['B2_total'],
-            'B31'        => $request->B31,
-            'B3_total'   => $komponen['B3_total'],
-            'B_total'    => $komponen['B_total'],
-        ]);
+    $komponen = $this->hitungKomponenB($request);
 
-        return redirect()->route($redirectRoute)->with('success', 'Nilai berhasil disimpan.');
-    }
+    Nilai_Individu::create([
+        'kelompok_id' => $request->kelompok_id, // ✅ pastikan form mengirim ini
+        'user_id'     => $request->user_id,
+        'penilai_id'  => $userId,
+        'role_id'     => $roleId,
+
+        'B11' => $request->B11,
+        'B12' => $request->B12,
+        'B13' => $request->B13,
+        'B14' => $request->B14,
+        'B15' => $request->B15,
+        'B1_total' => $komponen['B1_total'],
+
+        'B21' => $request->B21,
+        'B22' => $request->B22,
+        'B23' => $request->B23,
+        'B24' => $request->B24,
+        'B25' => $request->B25,
+        'B2_total' => $komponen['B2_total'],
+
+        'B31'     => $request->B31,
+        'B3_total' => $komponen['B3_total'],
+        'B_total'  => $komponen['B_total'],
+    ]);
+
+    return redirect()->route($redirectRoute)->with('success', 'Nilai berhasil disimpan.');
+}
 
     /**
      * Perbarui nilai individu.

@@ -188,6 +188,10 @@
                                                                             @method('PUT')
                                                                         @endif
 
+
+
+                                                                        <input type="hidden" name="kelompok_id"
+                                                                            value="{{ $mhs->kelompok_id }}">
                                                                         <input type="hidden" name="user_id"
                                                                             value="{{ $mhs->user_id }}">
 
