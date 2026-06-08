@@ -27,6 +27,8 @@
         @yield('content')
       </div>
 
+      @includeWhen(session('role') === 'Dosen' && in_array(1, session('dosen_roles', []), true) && !request()->routeIs('ai.kelompok'), 'partials.agent-float')
+
       {{-- Footer --}}
       @include('partials.footer')
     </div>

@@ -126,10 +126,10 @@ class WhatsAppController extends Controller
 
             if (!$response->successful()) {
 
-                dd([
-                    'gagal_kirim_ke' => $nomor,
-                    'response' => $response->body()
-                ]);
+                // dd([
+                //     'gagal_kirim_ke' => $nomor,
+                //     'response' => $response->body()
+                // ]);
             }
             sleep(2);
         }
@@ -189,10 +189,10 @@ class WhatsAppController extends Controller
 
             if (!$response->successful()) {
 
-                dd([
-                    'gagal_kirim_ke' => $nomor,
-                    'response' => $response->body()
-                ]);
+                // dd([
+                //     'gagal_kirim_ke' => $nomor,
+                //     'response' => $response->body()
+                // ]);
             }
             sleep(2);
         }

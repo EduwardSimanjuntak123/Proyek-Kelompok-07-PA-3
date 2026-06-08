@@ -6,14 +6,14 @@ use App\Models\DosenRole;
 use App\Models\Dosen;
 use App\Models\Kelompok;
 use App\Models\KelompokMahasiswa;
-use App\Models\Mahasiswa;
 use App\Models\pembimbing as PembimbingModel;
 use App\Models\Penguji as PengujiModel;
 use App\Models\Jadwal;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-  use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AgentKelompokController extends Controller
@@ -145,19 +145,33 @@ class AgentKelompokController extends Controller
             Log::info("[$traceId] Final Payload:", $finalPayload);
             Log::info("[$traceId] Sending request to AI Agent API...");
 
-            $response = Http::timeout(600)
+            $response = Http::connectTimeout(5)
+                ->timeout(600)
+                ->retry(2, 500)
                 ->post('http://127.0.0.1:8002/agent', $finalPayload);
 
             Log::info("[$traceId] Agent API Status:", ['status' => $response->status()]);
             // dd($response->body());
             if (!$response->successful()) {
+                $friendlyMessage = 'Layanan agent sedang bermasalah. Silakan coba lagi beberapa saat.';
+
+                if ($response->status() >= 500) {
+                    $friendlyMessage = 'Layanan agent sedang tidak tersedia. Silakan coba lagi beberapa saat.';
+                } elseif ($response->status() === 404) {
+                    $friendlyMessage = 'Layanan agent tidak ditemukan. Periksa konfigurasi integrasinya.';
+                }
+
                 Log::error("[$traceId] FastAPI ERROR RESPONSE", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
 
                 return response()->json([
-                    'result' => 'FastAPI tidak merespon'
+                    'success' => false,
+                    'error_type' => 'agent_http_error',
+                    'http_status' => $response->status(),
+                    'trace_id' => $traceId,
+                    'result' => $friendlyMessage
                 ]);
             }
 
@@ -183,7 +197,20 @@ class AgentKelompokController extends Controller
                 'jadwal_meta'      => $data['jadwal_meta']      ?? $jadwalMeta ?? null,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (ConnectionException $e) {
+            Log::error("[$traceId] AGENT CONNECTION ERROR", [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error_type' => 'agent_connection_error',
+                'trace_id' => $traceId,
+                'result' => 'Layanan agent tidak dapat dihubungi. Silakan coba lagi beberapa saat.'
+            ]);
+        } catch (\Throwable $e) {
             Log::error("[$traceId] EXCEPTION ERROR", [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
@@ -191,7 +218,10 @@ class AgentKelompokController extends Controller
             ]);
 
             return response()->json([
-                'result' => 'Error: ' . $e->getMessage()
+                'success' => false,
+                'error_type' => 'agent_unexpected_error',
+                'trace_id' => $traceId,
+                'result' => 'Terjadi kesalahan saat memproses permintaan agent. Silakan coba lagi beberapa saat.'
             ]);
         }
     }
