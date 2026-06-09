@@ -181,12 +181,13 @@
                                                     @if ($nk)
                                                         <button class="btn btn-primary btn-sm" type="button"
                                                             data-toggle="collapse"
-                                                            data-target="#formAnggota{{ $item->id }}">
-                                                            <i class="fas fa-user-check mr-1"></i> Beri Nilai
+                                                            data-target="#formAnggota{{ $item->id }}"
+                                                            data-toggle="tooltip" data-placement="top" title="Beri Nilai">
+                                                            <i class="fas fa-user-check"></i>
                                                         </button>
                                                     @else
                                                         <span class="text-muted" style="font-size:12px;">
-                                                            Isi nilai<br>kelompok dulu
+                                                            Isi nilai<br>kelompok terlebih dahulu
                                                         </span>
                                                     @endif
                                                 </td>
@@ -350,6 +351,10 @@
 
 @push('script')
     <script>
+        $(function() {
+            $('[data-toggle="tooltip"]').not('[data-target]').tooltip();
+        });
+
         // Konfirmasi hapus nilai kelompok
         $(document).on('click', '.show_confirm_kelompok', function(e) {
             e.preventDefault();

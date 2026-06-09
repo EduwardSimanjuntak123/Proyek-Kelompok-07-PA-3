@@ -1,0 +1,283 @@
+/* 
+ * Error Handling Styles
+ * Custom styles for error displays and notifications
+ */
+
+/* Network Error Alert */
+.network-error-alert {
+    border-radius: 0;
+    border-left: 5px solid #dc3545;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.1);
+    margin-bottom: 20px;
+}
+
+.network-error-alert .close {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Error Banner Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Error Page Styles */
+.error-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.error-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    padding: 60px 40px;
+    text-align: center;
+    max-width: 500px;
+}
+
+.error-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.error-code {
+    font-size: 80px;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 20px;
+    line-height: 1;
+}
+
+.error-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.error-message {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.error-details {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 30px;
+    text-align: left;
+    font-size: 14px;
+    color: #666;
+}
+
+.error-details ul {
+    margin-bottom: 0;
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.error-details li {
+    margin-bottom: 8px;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    display: inline-block;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f5576c;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Buttons */
+.btn-back {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+/* SweetAlert Custom Styling */
+.swal2-modal {
+    border-radius: 15px;
+}
+
+.swal2-title {
+    color: #333;
+    font-weight: 600;
+}
+
+.swal2-html-container {
+    color: #666;
+    font-size: 14px;
+}
+
+.swal2-confirm {
+    background: #667eea !important;
+    border-radius: 25px !important;
+    padding: 10px 30px !important;
+}
+
+.swal2-confirm:hover {
+    background: #5568d3 !important;
+}
+
+.swal2-cancel {
+    background: #ccc !important;
+    border-radius: 25px !important;
+}
+
+/* Validation Error Styles */
+.validation-error-list {
+    text-align: left;
+    margin: 10px 0 0 0;
+}
+
+.validation-error-list li {
+    color: #dc3545;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    min-width: 300px;
+    animation: slideUp 0.3s ease-out;
+}
+
+.toast-notification.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-notification.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-notification.info {
+    border-left: 4px solid #17a2b8;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .error-container {
+        padding: 40px 30px;
+        margin: 20px;
+    }
+
+    .error-code {
+        font-size: 60px;
+    }
+
+    .error-title {
+        font-size: 20px;
+    }
+
+    .error-message {
+        font-size: 14px;
+    }
+
+    .toast-notification {
+        min-width: auto;
+        left: 10px;
+        right: 10px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .error-container {
+        background: #1a1a1a;
+        color: #fff;
+    }
+
+    .error-code {
+        color: #667eea;
+    }
+
+    .error-title {
+        color: #fff;
+    }
+
+    .error-message {
+        color: #ccc;
+    }
+
+    .error-details {
+        background: #2a2a2a;
+        color: #ccc;
+    }
+}

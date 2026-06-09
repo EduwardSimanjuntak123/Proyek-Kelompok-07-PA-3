@@ -23,7 +23,6 @@
 
                                     <thead>
                                         <tr>
-                                            <th>No</th>
                                             <th>Nomor Kelompok</th>
                                             <th>Pembimbing 1</th>
                                             <th>Pembimbing 2</th>
@@ -40,9 +39,6 @@
                                             @endphp
 
                                             <tr>
-
-                                                <td>{{ $loop->iteration }}</td>
-
                                                 <td>
                                                     {{ $item->nomor_kelompok ?? '-' }}
                                                 </td>
@@ -58,27 +54,31 @@
                                                 <td>
                                                     @if ($item->pembimbing->count() == 0)
                                                         <a href="{{ route('pembimbing.create', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-success btn-sm">
-                                                            <i class="fas fa-plus"></i> Setting Pembimbing
+                                                            class="btn btn-success btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Tambah Pembimbing">
+                                                            <i class="fas fa-plus"></i>
                                                         </a>
                                                     @else
-                                                        <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-warning btn-sm">
-                                                            <i class="fas fa-edit"></i> Edit
-                                                        </a>
+                                                        <div class="d-flex" style="gap: 8px;">
+                                                            <a href="{{ route('pembimbing.edit', Crypt::encrypt($item->id)) }}"
+                                                                class="btn btn-warning btn-sm" data-toggle="tooltip"
+                                                                data-placement="top" title="Edit Pembimbing">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
 
-                                                        {{-- Hapus semua pembimbing dalam kelompok --}}
-                                                        <form
-                                                            action="{{ route('pembimbing.destroy', Crypt::encrypt($item->id)) }}"
-                                                            method="POST" style="display:inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit"
-                                                                class="btn btn-danger btn-sm show_confirm"
-                                                                data-toggle="tooltip" title="Hapus semua pembimbing">
-                                                                <i class="nav-icon fas fa-trash-alt"></i> Hapus Pembimbing
-                                                            </button>
-                                                        </form>
+                                                            <form
+                                                                action="{{ route('pembimbing.destroy', Crypt::encrypt($item->id)) }}"
+                                                                method="POST" style="display:inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="btn btn-danger btn-sm show_confirm"
+                                                                    data-toggle="tooltip" data-placement="top"
+                                                                    title="Hapus Pembimbing">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -118,6 +118,9 @@
                         form.submit();
                     }
                 });
+        });
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
 @endpush

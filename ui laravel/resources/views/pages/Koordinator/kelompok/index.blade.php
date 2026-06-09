@@ -44,23 +44,25 @@
                                                 <td>{{ $item->kelompok_mahasiswa_count }}</td>
                                                 <td>{{ $item->status }}</td>
                                                 <td>
-                                                    <div class="d-flex">
+                                                    <div class="d-flex" style="gap: 8px;"   >
                                                         <a href="{{ route('kelompokMahasiswa.index', $item->id) }}"
-                                                            class="btn btn-primary btn-sm"><i
-                                                                class="nav-icon fas fa-cog"></i> &nbsp;
-                                                            Kelola Anggota Kelompok</a>&nbsp;&nbsp;
+                                                            class="btn btn-primary btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Kelola Anggota Kelompok">
+                                                            <i class="fas fa-users"></i>
+                                                        </a>
                                                         <a href="{{ route('kelompok.edit', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-success btn-sm"><i
-                                                                class="nav-icon fas fa-edit"></i> &nbsp; Edit</a>
+                                                            class="btn btn-success btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
                                                         <form method="POST"
                                                             action="{{ route('kelompok.destroy', $item->id) }}">
                                                             @csrf
                                                             @method('delete')
                                                             <button class="btn btn-danger btn-sm show_confirm"
-                                                                data-toggle="tooltip" title='Delete'
-                                                                style="margin-left: 8px"><i
-                                                                    class="nav-icon fas fa-trash-alt"></i> &nbsp;
-                                                                Hapus</button>
+                                                                data-toggle="tooltip" data-placement="top" title="Hapus">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
                                                         </form>
                                                     </div>
                                                 </td>
@@ -78,6 +80,10 @@
 @endsection
 @push('script')
     <script>
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
         document.getElementById('agentBtn').addEventListener('click', function() {
 
             const mahasiswa = @json($mahasiswa);

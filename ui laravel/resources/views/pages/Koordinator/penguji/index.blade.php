@@ -23,7 +23,6 @@
 
                                     <thead>
                                         <tr>
-                                            <th>No</th>
                                             <th>Nomor Kelompok</th>
                                             <th>Penguji 1</th>
                                             <th>Penguji 2</th>
@@ -40,9 +39,6 @@
                                             @endphp
 
                                             <tr>
-
-                                                <td>{{ $loop->iteration }}</td>
-
                                                 <td>
                                                     {{ $item->nomor_kelompok ?? '-' }}
                                                 </td>
@@ -58,13 +54,15 @@
                                                 <td>
                                                     @if ($item->penguji->count() == 0)
                                                         <a href="{{ route('penguji.create', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-success btn-sm">
-                                                            <i class="fas fa-plus"></i> Setting Penguji
+                                                            class="btn btn-success btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Tambah Penguji">
+                                                            <i class="fas fa-plus"></i>
                                                         </a>
                                                     @else
                                                         <a href="{{ route('penguji.edit', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-warning btn-sm">
-                                                            <i class="fas fa-edit"></i> Edit
+                                                            class="btn btn-warning btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Edit Penguji">
+                                                            <i class="fas fa-edit"></i>
                                                         </a>
 
                                                         {{-- Hapus semua penguji dalam kelompok --}}
@@ -75,8 +73,9 @@
                                                             @method('DELETE')
                                                             <button type="submit"
                                                                 class="btn btn-danger btn-sm show_confirm"
-                                                                data-toggle="tooltip" title="Hapus semua penguji">
-                                                                <i class="nav-icon fas fa-trash-alt"></i> Hapus Penguji
+                                                                data-toggle="tooltip" data-placement="top"
+                                                                title="Hapus Penguji">
+                                                                <i class="fas fa-trash-alt"></i>
                                                             </button>
                                                         </form>
                                                     @endif
@@ -118,6 +117,9 @@
                         form.submit();
                     }
                 });
+        });
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
 @endpush

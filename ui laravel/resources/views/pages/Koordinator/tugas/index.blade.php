@@ -34,20 +34,23 @@
                                                 <td>{{ $item->kategori_tugas }}</td>
                                                 <td>{{ $item->status }}</td>
                                                 <td>
-                                                    <div class="d-flex">
+                                                    <div class="d-flex" style="gap: 8px;">
                                                         <a href="{{ route('tugas.show', $item->id) }}"
-                                                            class="btn btn-primary btn-sm">
-                                                            <i class="nav-icon fas fa-eye"></i> &nbsp; Detail Tugas
-                                                        </a>&nbsp;&nbsp;
+                                                            class="btn btn-primary btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Detail Tugas">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
 
                                                         <a href="{{ route('artefak.index.koordinator', $item->id) }}"
-                                                            class="btn btn-primary btn-sm">
-                                                            <i class="nav-icon fas fa-eye"></i> &nbsp; Show Submission
-                                                        </a>&nbsp;&nbsp;
+                                                            class="btn btn-primary btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Lihat Submitan Tugas">
+                                                            <i class="fas fa-file-upload"></i>
+                                                        </a>
 
                                                         <a href="{{ route('tugas.edit', ['id' => Crypt::encrypt($item->id)]) }}"
-                                                            class="btn btn-success btn-sm">
-                                                            <i class="nav-icon fas fa-edit"></i> &nbsp; Edit
+                                                            class="btn btn-success btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Edit">
+                                                            <i class="fas fa-edit"></i>
                                                         </a>
                                                     </div>
                                                 </td>
@@ -83,6 +86,10 @@
                         form.submit();
                     }
                 });
+        });
+
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
 @endpush

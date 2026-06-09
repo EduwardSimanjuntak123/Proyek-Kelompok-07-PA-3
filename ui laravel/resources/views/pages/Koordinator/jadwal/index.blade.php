@@ -93,39 +93,30 @@
 
                                                 {{-- Aksi --}}
                                                 <td>
-                                                    <div class="d-flex align-items-center">
-
+                                                    <div class="d-flex align-items-center" style="gap: 8px;">
                                                         <a href="{{ route('jadwal.show', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-info btn-sm me-2">
-
-                                                            <i class="nav-icon fas fa-info-circle"></i>&nbsp;Detail
-
+                                                            class="btn btn-info btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Detail">
+                                                            <i class="fas fa-info-circle"></i>
                                                         </a>
 
                                                         <a href="{{ route('jadwal.edit', Crypt::encrypt($item->id)) }}"
-                                                            class="btn btn-success btn-sm me-2">
-
-                                                            <i class="nav-icon fas fa-edit"></i>&nbsp;Edit
-
+                                                            class="btn btn-success btn-sm" data-toggle="tooltip"
+                                                            data-placement="top" title="Edit">
+                                                            <i class="fas fa-edit"></i>
                                                         </a>
 
                                                         <form method="POST"
                                                             action="{{ route('jadwal.destroy', Crypt::encrypt($item->id)) }}">
-
                                                             @csrf
                                                             @method('DELETE')
-
-                                                            <button class="btn btn-danger btn-sm show_confirm">
-
-                                                                <i class="nav-icon fas fa-trash-alt"></i>&nbsp;Hapus
-
+                                                            <button class="btn btn-danger btn-sm show_confirm"
+                                                                data-toggle="tooltip" data-placement="top" title="Hapus">
+                                                                <i class="fas fa-trash-alt"></i>
                                                             </button>
-
                                                         </form>
-
                                                     </div>
                                                 </td>
-
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -157,6 +148,10 @@
                         form.submit();
                     }
                 });
+        });
+
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
 @endpush
