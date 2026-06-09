@@ -25,7 +25,7 @@ use App\Http\Controllers\NilaiKelompok_Controller;
 use App\Http\Controllers\NilaiMahasiswa_Controller;
 use App\Http\Controllers\Agent\AgentPengujiController;
 use App\Http\Controllers\Agent\AgentAnalyticsController;
-
+Use App\Http\Controllers\ErrorLogController;
 use App\Http\Controllers\NilaiSeminar_Controller;
 use App\Http\Controllers\Penguji_Controller;
 use App\Http\Controllers\penguji_tugas_Controller;
@@ -550,6 +550,9 @@ Route::prefix('ai-agent')->group(function () {
 
     Route::get('/verification-status', [AgentKelompokController::class, 'getVerificationStatus'])
         ->name('ai.verificationStatus');
+
+    Route::get('/error-statistics', [ErrorLogController::class, 'getStatistics'])
+    ->middleware(['auth', 'role:admin']);
 
     // Analytics Dashboard
     // Route::get('/analytics', [AgentAnalyticsController::class, 'dashboard'])

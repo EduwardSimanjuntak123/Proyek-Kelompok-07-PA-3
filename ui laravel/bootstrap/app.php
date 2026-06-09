@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Log;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Handle database connection errors
         $exceptions->render(function (\Illuminate\Database\QueryException $e) {
-            \Log::error('Database Error:', [
+            Log::error('Database Error:', [
                 'message' => $e->getMessage(),
                 'sql' => $e->getSql() ?? null,
             ]);
@@ -51,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Handle HTTP request exceptions
         $exceptions->render(function (\Illuminate\Http\Client\RequestException $e) {
-            \Log::error('External API Error:', [
+            Log::error('External API Error:', [
                 'message' => $e->getMessage(),
                 'status' => $e->response?->status() ?? null,
             ]);
@@ -65,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Handle generic exceptions
         $exceptions->render(function (\Exception $e) {
-            \Log::error('Application Error:', [
+            Log::error('Application Error:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Auth;
 
 class ErrorLogController extends Controller
 {
@@ -22,7 +24,7 @@ class ErrorLogController extends Controller
                 'url' => $errorData['url'] ?? null,
                 'timestamp' => $errorData['timestamp'] ?? null,
                 'user_agent' => $errorData['userAgent'] ?? null,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'stack' => $errorData['stack'] ?? null,
             ]);
 
@@ -47,20 +49,25 @@ class ErrorLogController extends Controller
      * Get error statistics (for admin dashboard)
      */
     public function getStatistics(Request $request)
-    {
-        $this->authorize('viewAny', 'error');
+{
+    $logFile = storage_path('logs/errors.log');
 
-        // Get error count by type in last 24 hours
-        $errors = collect(
-            Log::channel('errors')->getHandlers()[0]->getRecords()
-        )->filter(function ($record) {
-            return $record['datetime']->isAfter(now()->subDay());
-        });
-
+    if (!File::exists($logFile)) {
         return response()->json([
-            'total_errors' => $errors->count(),
-            'errors_by_type' => $errors->groupBy('type')->map->count(),
-            'recent_errors' => $errors->take(10)->values()
+            'total_errors' => 0,
+            'errors_by_type' => [],
+            'recent_errors' => []
         ]);
     }
+
+    $lines = File::lines($logFile);
+
+    $logs = collect(iterator_to_array($lines));
+
+    return response()->json([
+        'total_errors' => $logs->count(),
+        'errors_by_type' => [],
+        'recent_errors' => $logs->take(-10)->values()
+    ]);
+}
 }

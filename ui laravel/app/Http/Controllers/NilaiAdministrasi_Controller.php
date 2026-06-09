@@ -182,10 +182,9 @@ public function storeIndividu(Request $request)
         'Administrasi' => $administrasi,
     ]);
 
-    return back()->with(
-        'success',
-        'Nilai logbook berhasil disimpan.'
-    );
+    return redirect()->back()
+    ->with('success', 'Nilai berhasil disimpan.')
+    ->withFragment('formAnggota' . $request->kelompok_id);
 }
 
 // ═══════════════════════════════════════════════
@@ -220,10 +219,9 @@ public function updateIndividu(Request $request, $id)
         'Administrasi' => $administrasi,
     ]);
 
-    return back()->with(
-        'success',
-        'Nilai logbook berhasil diupdate.'
-    );
+    return redirect()->back()
+    ->with('success', 'Nilai berhasil diupdate.')
+    ->withFragment('formAnggota' . $nilai->kelompok_id);
 }
 
 // ═══════════════════════════════════════════════
