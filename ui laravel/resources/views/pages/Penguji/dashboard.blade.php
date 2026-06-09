@@ -127,7 +127,8 @@
                                                                     <div>
                                                                         <div class="mahasiswa-nama">{{ $anggota['nama'] }}
                                                                         </div>
-                                                                        <small class="text-muted">NIM: {{ $anggota['nim'] }}
+                                                                        <small class="text-muted">NIM:
+                                                                            {{ $anggota['nim'] }}
                                                                             · Angkatan: {{ $anggota['angkatan'] }}</small>
                                                                     </div>
                                                                 </li>

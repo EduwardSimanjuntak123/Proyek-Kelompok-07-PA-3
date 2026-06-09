@@ -124,14 +124,11 @@
                                                         style="gap:8px;">
 
                                                         <button
-                                                            class="btn btn-sm {{ $nilai ? 'btn-success' : 'btn-primary' }} toggle-collapse d-flex align-items-center"
+                                                            class="btn {{ $nilai ? 'btn-warning' : 'btn-primary' }} tooltip-collapse"
                                                             type="button" data-toggle="collapse"
-                                                            data-target="#nilai{{ $item->id }}" aria-expanded="false">
-
-                                                            <i class="fas fa-chevron-down mr-1"></i>
-
-                                                            {{ $nilai ? 'Edit Nilai' : 'Beri Nilai' }}
-
+                                                            data-target="#nilai{{ $item->id }}" aria-expanded="false"
+                                                            data-title="{{ $nilai ? 'Edit Nilai' : 'Beri Nilai' }}">
+                                                            <i class="fas {{ $nilai ? 'fa-edit' : 'fa-user-check' }}"></i>
                                                         </button>
 
                                                         @if ($nilai)
@@ -141,13 +138,11 @@
 
                                                                 @csrf
                                                                 @method('DELETE')
-
                                                                 <button type="submit"
-                                                                    class="btn btn-sm btn-danger show_confirm">
-
-                                                                    <i class="fas fa-trash-alt mr-1"></i>
-                                                                    Hapus
-
+                                                                    class="btn btn-sm btn-danger show_confirm"
+                                                                    data-toggle="tooltip" data-placement="top"
+                                                                    title="Hapus Nilai">
+                                                                    <i class="fas fa-trash-alt"></i>
                                                                 </button>
 
                                                             </form>
@@ -290,15 +285,13 @@
                                                                     <hr>
 
                                                                     <div class="text-right">
-
-                                                                        <button type="submit" class="btn btn-success">
-
-                                                                            <i class="fas fa-save"></i>
-
-                                                                            {{ $nilai ? 'Update Nilai' : 'Simpan Nilai' }}
-
+                                                                        <button type="submit"
+                                                                            class="btn {{ $nilai ? 'btn-warning' : 'btn-success' }}"
+                                                                            data-toggle="tooltip" data-placement="top"
+                                                                            title="{{ $nilai ? 'Update Nilai' : 'Simpan Nilai' }}">
+                                                                            <i
+                                                                                class="fas {{ $nilai ? 'fa-edit' : 'fa-save' }}"></i>
                                                                         </button>
-
                                                                     </div>
 
                                                                 </form>
@@ -332,6 +325,17 @@
 
 @push('script')
     <script>
+        $(document).ready(function() {
+            $('.tooltip-collapse').each(function() {
+                $(this).tooltip({
+                    title: $(this).attr('data-title'),
+                    placement: 'top',
+                    trigger: 'hover'
+                });
+            });
+        });
+
+
         $('.show_confirm').click(function(event) {
 
             var form = $(this).closest("form");
