@@ -138,6 +138,7 @@ def execute_tool(action: str, plan: Dict) -> Dict:
         generate_pembimbing_assignments_by_context,
         get_pembimbing_list,
         get_pembimbing_by_dosen_name,
+        _extract_dosen_constraints_from_prompt,
     )
     from tools.kelompok_tools import (
         get_kelompok_by_dosen_context,
@@ -163,12 +164,15 @@ def execute_tool(action: str, plan: Dict) -> Dict:
             angkatan_id = plan.get("angkatan_id")
             prompt = plan.get("prompt")
             
+            # Extract constraints from prompt
+            constraints = _extract_dosen_constraints_from_prompt(prompt)
+            
             return generate_pembimbing_assignments_by_context(
                 prodi_id=prodi_id,
                 kategori_pa_id=kategori_pa_id,
                 angkatan_id=angkatan_id,
                 persist=plan.get("persist", False),
-                prompt=prompt
+                constraints=constraints
             )
         
         elif action == "query_kelompok":

@@ -16,7 +16,6 @@ import sys
 import traceback
 import time
 from datetime import datetime
-from bson import ObjectId
 from json import JSONEncoder
 
 from core.database import is_database_connection_error
@@ -107,15 +106,6 @@ def safe_json_response(content: dict, status_code: int = 200) -> JSONResponse:
 
 # ─────────────────────────────────────────────────────────────────────────────
 
-class MongoJSONEncoder(JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        if isinstance(o, datetime):
-            return o.isoformat()
-        return super().default(o)
-
-
 app = FastAPI(title="Agent Grouping API", version="2.0.0")
 
 
@@ -162,7 +152,7 @@ def convert_mongo_objects(obj):
         return {k: convert_mongo_objects(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [convert_mongo_objects(item) for item in obj]
-    elif isinstance(obj, ObjectId):
+    elif type(obj).__name__ == 'ObjectId':
         return str(obj)
     elif isinstance(obj, datetime):
         return obj.isoformat()
@@ -187,18 +177,6 @@ class GenerateGroupingRequest(BaseModel):
     dosen_context: List[DosenContext]
     user_id: int
     request_data: Optional[Dict[str, Any]] = None
-
-
-class GroupMember(BaseModel):
-    nim: str
-    nama: str
-    email: Optional[str]
-
-
-class GroupData(BaseModel):
-    kelompok: int
-    members: List[GroupMember]
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HEALTH & STATUS ENDPOINTS
@@ -357,7 +335,7 @@ async def debug_user_session(user_id: int):
         
         # Get recent messages from MongoDB
         try:
-            recent_messages = mongo_mem.get_conversation_history(user_id, days=1, limit=10)
+            recent_messages = mongo_mem.get_conversation_history(user_id, days=1)[:10]
             messages_count = len(recent_messages)
         except Exception as e:
             messages_count = 0

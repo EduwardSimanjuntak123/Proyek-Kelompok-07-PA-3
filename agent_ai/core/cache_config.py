@@ -179,60 +179,7 @@ class CachePolicies:
         return cls.CASCADE_RULES.get(entity_type, [])
 
 
-class CacheEvents:
-    """
-    Cache event hooks untuk monitoring dan custom logic
-    """
-    
-    # Event callbacks
-    on_cache_hit = None
-    on_cache_miss = None
-    on_cache_invalidate = None
-    on_sync_check = None
-    
-    @classmethod
-    def register_hit_callback(cls, callback):
-        """Register callback untuk cache hits"""
-        cls.on_cache_hit = callback
-    
-    @classmethod
-    def register_miss_callback(cls, callback):
-        """Register callback untuk cache misses"""
-        cls.on_cache_miss = callback
-    
-    @classmethod
-    def register_invalidate_callback(cls, callback):
-        """Register callback untuk invalidations"""
-        cls.on_cache_invalidate = callback
-    
-    @classmethod
-    def emit_hit(cls, entity_type: str, entity_id: Any):
-        """Emit cache hit event"""
-        if cls.on_cache_hit:
-            try:
-                cls.on_cache_hit(entity_type=entity_type, entity_id=entity_id)
-            except:
-                pass
-    
-    @classmethod
-    def emit_miss(cls, entity_type: str, entity_id: Any):
-        """Emit cache miss event"""
-        if cls.on_cache_miss:
-            try:
-                cls.on_cache_miss(entity_type=entity_type, entity_id=entity_id)
-            except:
-                pass
-    
-    @classmethod
-    def emit_invalidate(cls, invalidations: dict):
-        """Emit invalidation event"""
-        if cls.on_cache_invalidate:
-            try:
-                cls.on_cache_invalidate(invalidations=invalidations)
-            except:
-                pass
-
-
 # Default configuration print
 if __name__ == "__main__":
     CacheConfig.print_config()
+
