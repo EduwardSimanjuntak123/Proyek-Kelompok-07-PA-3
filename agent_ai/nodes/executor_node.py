@@ -53,6 +53,7 @@ from tools.academic_tools import get_kategori_pa_list, get_tahun_ajaran_list, ge
 from tools.roles_tools import get_roles_list
 from tools.excel_tools import generate_excel_by_context
 from tools.jadwal_seminar import JadwalSeminarTools
+from nodes.grouping_form_handler import GroupingFormHandler
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -83,6 +84,8 @@ EXECUTABLE_ACTIONS = {
     "check_penguji",
     "generate_pembimbing",
     "generate_penguji",
+    "clarify_group_requirements",
+    "process_grouping_form",
     "create_group",
     "create_group_hybrid",
     "create_group_by_grades",
@@ -1458,7 +1461,352 @@ def executor_node(state):
                     }
                     logger.info(f"[{user_id}] ✓ generate_penguji preview siap disimpan")
 
+        elif action == "clarify_group_requirements":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: clarify_group_requirements (show interactive form)")
+            
+            if not dosen_context:
+                state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+            else:
+                context = {
+                    "prodi_id": dosen_context.get("prodi_id"),
+                    "kategori_pa": dosen_context.get("kategori_pa", "Unknown PA"),
+                }
+                
+                form_html = GroupingFormHandler.generate_form_html(context)
+                state["result"] = form_html
+                state["grouping_form_shown"] = True
+                state["grouping_form_context"] = context
+                logger.info(f"[{user_id}] ✓ Form grouping ditampilkan, menunggu user input")
+        
+        elif action == "process_grouping_form":
+            logger.info(f"[{user_id}] ⚙️  TOOLS: process_grouping_form (process form submission)")
+            
+            if not dosen_context:
+                state["result"] = "❌ Dosen context tidak tersedia. Harap login terlebih dahulu."
+                logger.error(f"[{user_id}] ✗ Dosen context tidak ditemukan")
+            else:
+                # Extract form data dari request
+                form_data = state.get("request_data", {}).get("form_data", {})
+                
+                if not form_data:
+                    state["result"] = "❌ Tidak ada data form yang dikirimkan."
+                    logger.error(f"[{user_id}] ✗ Form data kosong")
+                    return state
+                
+                # Parse form submission
+                try:
+                    form_spec = GroupingFormHandler.parse_form_submission(form_data)
+                    logger.info(f"[{user_id}] 📋 Form parsed: method={form_spec.get('method')}, size_mode={form_spec.get('size_mode')}")
+                    
+                    # Build prompt dari form
+                    generated_prompt = GroupingFormHandler.build_grouping_prompt(form_spec)
+                    logger.info(f"[{user_id}] 🎯 Generated prompt:\n{generated_prompt}")
+                    
+                    # Store form spec untuk context
+                    state["grouping_form_spec"] = form_spec
+                    
+                    method = form_spec.get("method", "auto")
+                    constraints = form_spec.get("constraints", [])
+                    
+                    if method == "by_grades":
+                        # Calculate group_count
+                        try:
+                            grade_result = calculate_student_average_grades(
+                                prodi_id=dosen_context.get("prodi_id"),
+                                kategori_pa_id=dosen_context.get("kategori_pa"),
+                                angkatan_id=dosen_context.get("angkatan"),
+                                exclude_existing=True
+                            )
+                            if grade_result.get("status") == "success":
+                                available_students = len(grade_result.get("student_grades", []))
+                                if form_spec.get("size_mode") == "exact":
+                                    members_per_group = form_spec.get("exact_size") or 5
+                                else:
+                                    members_per_group = form_spec.get("max_size") or 6
+                                group_count = math.ceil(available_students / members_per_group)
+                            else:
+                                group_count = 6
+                        except Exception as e:
+                            group_count = 6
+                            logger.error(f"Error calculating group count in process_grouping_form: {e}")
 
+                        grouping_result = create_group_by_grades(
+                            prodi_id=dosen_context.get("prodi_id"),
+                            kategori_pa_id=dosen_context.get("kategori_pa"),
+                            group_count=group_count,
+                            angkatan_id=dosen_context.get("angkatan"),
+                            exclude_existing=True,
+                            randomize_ties=False,
+                            constraints=constraints,
+                        )
+                        
+                        if grouping_result.get("status") == "success":
+                            groups = grouping_result.get("groups", [])
+                            class_stats = grouping_result.get("class_statistics", {})
+                            group_stats = grouping_result.get("group_statistics", {})
+                            breakdown = grouping_result.get("breakdown", {})
+                            acceptable_range = group_stats.get("acceptable_range", {})
+                            
+                            # Display constraint warnings if any
+                            warnings_html = ""
+                            if grouping_result.get("constraint_warnings"):
+                                warnings_list = "".join(f"<li style='margin-bottom:4px;'>{html.escape(w)}</li>" for w in grouping_result.get("constraint_warnings"))
+                                warnings_html = f"""
+  <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:12px; margin-bottom:16px; color:#991b1b;">
+    <h4 style="margin-top:0; margin-bottom:8px; color:#7f1d1d; font-size:14px;">⚠️ Peringatan Constraint:</h4>
+    <ul style="margin:0; padding-left:20px; font-size:13px; color:#7f1d1d;">
+      {warnings_list}
+    </ul>
+  </div>
+"""
+                            
+                            html_result = f"""
+<div style="background:#f3f4f6; border-radius:8px; padding:16px;">
+  <h3 style="margin-top:0; color:#1f2937;">✅ Kelompok Berdasarkan Nilai Berhasil Dibuat</h3>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <p style="margin:0 0 8px 0;"><strong>📊 Kategori PA:</strong> {grouping_result.get('pa_category', 'N/A')}</p>
+    <p style="margin:0 0 8px 0;"><strong>📚 Semester yang Digunakan:</strong> {', '.join(map(str, grouping_result.get('semesters_used', [])))}</p>
+    <p style="margin:0;"><strong>🎯 Jumlah Kelompok:</strong> {len(groups)}</p>
+  </div>
+  
+  {warnings_html}
+  
+  <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#b45309;">📋 Breakdown Mahasiswa</h4>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Total Mahasiswa dalam Prodi:</strong></td>
+        <td style="padding:8px;">{breakdown.get('total_mahasiswa_dalam_prodi', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Sudah dalam Kelompok (Excluded):</strong></td>
+        <td style="padding:8px;">{breakdown.get('sudah_dalam_kelompok_excluded', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Kandidat untuk Grouping:</strong></td>
+        <td style="padding:8px;"><strong>{breakdown.get('kandidat_untuk_grouping', 0)}</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid #f59e0b;">
+        <td style="padding:8px;"><strong>Dengan Data Nilai (Nilai Aktual):</strong></td>
+        <td style="padding:8px;"><strong style="color:#10b981;">{breakdown.get('dengan_data_nilai_semesters', 0)} ✓</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:8px;"><strong>Tanpa Data Nilai (Nilai Default 0):</strong></td>
+        <td style="padding:8px;"><strong style="color:#3b82f6;">{breakdown.get('tanpa_data_nilai_semesters', 0)} ✓</strong></td>
+      </tr>
+    </table>
+    <p style="margin:12px 0 0 0; font-size:12px; color:#1f2937; font-style:italic;">
+      <strong>💡 Catatan:</strong> Semua {breakdown.get('kandidat_untuk_grouping', 0)} mahasiswa kandidat digunakan dalam grouping. 
+      {breakdown.get('catatan', '')}
+    </p>
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#374151;">📈 Statistik Kelas</h4>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Total Mahasiswa:</strong></td>
+        <td style="padding:8px;">{class_stats.get('total_students', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Rata-rata Nilai Kelas:</strong></td>
+        <td style="padding:8px;">{class_stats.get('mean', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Standar Deviasi:</strong></td>
+        <td style="padding:8px;">{class_stats.get('std_dev', 0)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px;"><strong>Range Nilai:</strong></td>
+        <td style="padding:8px;">{class_stats.get('min_grade', 0)} - {class_stats.get('max_grade', 0)}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin-bottom:16px;">
+    <h4 style="margin-top:0; color:#374151;">👥 Detail Kelompok</h4>
+"""
+                            for group in groups:
+                                members_html = "<ul style='margin:8px 0; padding-left:20px;'>"
+                                for member in group.get("members", []):
+                                    members_html += f"<li>{member.get('nim', 'N/A')} - {member.get('nama', 'N/A')} (Nilai: {member.get('average_grade', 0)})</li>"
+                                members_html += "</ul>"
+                                
+                                within_range = group.get("within_acceptable_range", False)
+                                status_icon = "✅" if within_range else "⚠️"
+                                status_color = "#059669" if within_range else "#d97706"
+                                
+                                html_result += f"""
+    <div style="border:1px solid #d1d5db; border-radius:4px; padding:12px; margin-bottom:12px; background:#f9fafb;">
+      <p style="margin:0 0 8px 0;"><strong>Kelompok {group.get('group_number')}:</strong> {group.get('member_count')} anggota</p>
+      <p style="margin:0 0 8px 0; color:{status_color};"><strong>{status_icon} Rata-rata Nilai: {group.get('group_average')} (Deviasi: {abs(group.get('deviation_from_mean', 0))})</strong></p>
+      <p style="margin:0 0 8px 0; font-size:12px; color:#6b7280;">Anggota Kelompok:</p>
+      {members_html}
+    </div>
+"""
+                            
+                            html_result += f"""
+  </div>
+  
+  <div style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:12px;">
+    <h4 style="margin-top:0; color:#374151;">✔️ Verifikasi Keseimbangan</h4>
+    <p style="margin:0 0 8px 0;"><strong>Range Nilai Acceptable:</strong> {acceptable_range.get('min', 0)} - {acceptable_range.get('max', 0)} (Center: {acceptable_range.get('center', 0)} ± {acceptable_range.get('std_dev', 0)})</p>
+    <p style="margin:0;"><strong>Status:</strong> {'✅ Semua kelompok seimbang' if group_stats.get('all_within_range') else '⚠️ Beberapa kelompok menyimpang dari range'}</p>
+  </div>
+</div>
+"""
+                            state["result"] = html_result
+                            state["grouping_payload"] = {
+                                "groups": groups,
+                                "class_statistics": class_stats,
+                                "group_statistics": group_stats,
+                            }
+                            state["grouping_meta"] = {
+                                "prodi_id": dosen_context.get("prodi_id"),
+                                "kategori_pa_id": dosen_context.get("kategori_pa"),
+                                "angkatan_id": dosen_context.get("angkatan"),
+                                "method": "by_grades",
+                                "form_spec": form_spec,
+                                "generated_prompt": generated_prompt,
+                            }
+                            logger.info(f"[{user_id}] ✓ {len(groups)} kelompok berdasarkan nilai berhasil dibuat dari form")
+                        else:
+                            state["result"] = f"<p style='color:#dc2626;'><strong>❌ Gagal membuat kelompok:</strong> {grouping_result.get('message', 'Error tidak diketahui')}</p>"
+                            logger.warning(f"[{user_id}] ✗ create_group_by_grades dari form gagal: {grouping_result.get('message')}")
+                    
+                    elif method == "auto" and constraints:
+                        # Call hybrid grouping function
+                        hybrid_result = create_group_hybrid(
+                            prompt=generated_prompt,
+                            prodi_id=dosen_context.get("prodi_id"),
+                            kategori_pa_id=dosen_context.get("kategori_pa"),
+                            angkatan_id=dosen_context.get("angkatan"),
+                            exclude_existing=True,
+                        )
+                        
+                        # Format result for display
+                        if hybrid_result.get("status") == "success":
+                            summary = hybrid_result.get("summary", {})
+                            groups = hybrid_result.get("groups", [])
+                            
+                            # Build HTML result
+                            html_result = f"""
+<div style="background:#d1fae5; border:1px solid #10b981; border-radius:8px; padding:16px; margin-bottom:16px;">
+  <h3 style="margin-top:0; color:#065f46;">✓ Kelompok Hybrid Berhasil Dibuat</h3>
+  <ul style="margin:0; padding-left:20px;">
+    <li><strong>Total Kelompok:</strong> {summary.get('total_groups', 0)}</li>
+    <li><strong>Anggota Terkontrol:</strong> {summary.get('constrained_members', 0)}</li>
+    <li><strong>Anggota Otomatis (By Grades):</strong> {summary.get('auto_grouped_members', 0)}</li>
+    <li><strong>Total Mahasiswa:</strong> {summary.get('total_candidates', 0)}</li>
+    <li><strong>Rata Kelas:</strong> {summary.get('rata_kelas', 0)}</li>
+    <li><strong>Jarak Deviasi:</strong> {summary.get('jarak_deviasi', 0)}</li>
+  </ul>
+"""
+                            
+                            if summary.get("constraint_errors"):
+                                html_result += f"""
+  <div style="margin-top:12px; padding:10px; background:#fee2e2; border-radius:4px; color:#7f1d1d;">
+    <strong>⚠️ Peringatan:</strong><br/>
+    {", ".join(summary.get('constraint_errors', []))}
+  </div>
+"""
+                            
+                            html_result += """
+  <div style="margin-top:12px;">
+    <strong>📋 Detail Kelompok:</strong>
+    <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:12px;">
+      <tr style="background:#e0f2fe;">
+        <th style="border:1px solid #94e2f0; padding:6px;">Kelompok</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">NIM</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Nama</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Nilai</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Rata-rata Kelompok</th>
+        <th style="border:1px solid #94e2f0; padding:6px;">Std Dev</th>
+      </tr>
+"""
+                            
+                            for group in groups:
+                                group_avg = group.get('rata_rata_kelompok', 0)
+                                group_std = group.get('std_dev_kelompok', 0)
+                                member_count = len(group["members"])
+                                
+                                for idx, member in enumerate(group["members"]):
+                                    # Show group number only on first row
+                                    if idx == 0:
+                                        html_result += f"""
+      <tr>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>{group['group_number']}</strong></td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nim']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nama']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center;">{member.get('nilai', 0)}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>{group_avg}</strong></td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center; vertical-align:middle; background:#f0f9ff;" rowspan="{member_count}"><strong>±{group_std}</strong></td>
+      </tr>
+"""
+                                    else:
+                                        html_result += f"""
+      <tr>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nim']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px;">{member['nama']}</td>
+        <td style="border:1px solid #94e2f0; padding:6px; text-align:center;">{member.get('nilai', 0)}</td>
+      </tr>
+"""
+                            
+                            html_result += """
+    </table>
+  </div>
+</div>
+"""
+                            state["result"] = html_result
+                            state["grouping_payload"] = {
+                                "summary": summary,
+                                "groups": groups,
+                            }
+                            state["grouping_meta"] = {
+                                "prodi_id": dosen_context.get("prodi_id"),
+                                "kategori_pa_id": dosen_context.get("kategori_pa"),
+                                "angkatan_id": dosen_context.get("angkatan"),
+                                "form_spec": form_spec,
+                                "generated_prompt": generated_prompt,
+                            }
+                            logger.info(f"[{user_id}] ✓ {len(groups)} kelompok hybrid dari form siap")
+                        else:
+                            state["result"] = f"❌ {hybrid_result.get('message', 'Gagal membuat kelompok hybrid')}"
+                            logger.warning(f"[{user_id}] ✗ create_group_hybrid dari form gagal: {hybrid_result.get('message')}")
+                    
+                    else:
+                        # Fallback to default create_group
+                        grouping_result = create_group(
+                            prompt=generated_prompt,
+                            prodi_id=dosen_context.get("prodi_id"),
+                            kategori_pa_id=dosen_context.get("kategori_pa"),
+                            angkatan_id=dosen_context.get("angkatan"),
+                            exclude_existing=True,
+                        )
+                        state["result"] = format_grouping_result(grouping_result)
+                        
+                        if grouping_result.get("status") == "success":
+                            state["grouping_payload"] = {
+                                "instruction": grouping_result.get("instruction", {}),
+                                "summary": grouping_result.get("summary", {}),
+                                "groups": grouping_result.get("groups", []),
+                            }
+                            state["grouping_meta"] = {
+                                "prodi_id": dosen_context.get("prodi_id"),
+                                "kategori_pa_id": dosen_context.get("kategori_pa"),
+                                "angkatan_id": dosen_context.get("angkatan"),
+                                "form_spec": form_spec,
+                                "generated_prompt": generated_prompt,
+                            }
+                            logger.info(f"[{user_id}] ✓ {grouping_result.get('summary', {}).get('total_groups', 0)} kelompok direkomendasikan dari form")
+                        else:
+                            logger.warning(f"[{user_id}] ✗ Grouping dari form gagal: {grouping_result.get('message')}")
+                
+                except Exception as e:
+                    logger.error(f"[{user_id}] ✗ Error processing form: {e}", exc_info=True)
+                    state["result"] = f"❌ Error memproses form: {str(e)}"
 
         elif action == "create_group":
             logger.info(f"[{user_id}] ⚙️  TOOLS: create_group (buat kelompok)")
@@ -1745,18 +2093,54 @@ def executor_node(state):
                     logger.info(f"[{user_id}] ✓ Konfirmasi recreate ditampilkan, menunggu user confirmation")
                     return state
                 
-                # Extract group count from prompt
-                group_count = None
+               # ── Parse members_per_group dengan benar ──────────────────────────────
+                # Priority 1: "minimal X orang, maksimal Y orang" → pakai MAX sebagai target
+                # Priority 2: "X orang per kelompok"
+                # Priority 3: "kelompok dengan X orang"
+                # Priority 4: "X kelompok" (fallback)
+
+                group_count      = None
                 members_per_group = None
-                
-                # Check for "X orang perkelompok" or "X orang per kelompok" pattern first
-                members_pattern = r"(\d+)\s+orang\s+per\s?kelompok"
-                members_match = re.search(members_pattern, prompt.lower())
-                if members_match:
-                    members_per_group = int(members_match.group(1))
-                    logger.info(f"[{user_id}] 👥 Detected 'orang per kelompok' pattern: {members_per_group} members per group")
-                    
-                    # Calculate available students first
+
+                # Priority 1: Range min-max
+                range_match = re.search(
+                    r'minimal\s+(\d+)\s+orang[,\s]+maksimal\s+(\d+)\s+orang',
+                    local_prompt_lower
+                )
+                if not range_match:
+                    range_match = re.search(
+                        r'min(?:imal)?\s+(\d+)[,\s]+max(?:imal)?\s+(\d+)',
+                        local_prompt_lower
+                    )
+                if range_match:
+                    min_size          = int(range_match.group(1))
+                    max_size          = int(range_match.group(2))
+                    members_per_group = max_size   # gunakan MAX agar kelompok tidak terlalu banyak
+                    logger.info(f"[{user_id}] 👥 Range pattern: min={min_size}, max={max_size} → members_per_group={members_per_group}")
+
+                # Priority 2: "X orang per kelompok"
+                if not members_per_group:
+                    m = re.search(r'(\d+)\s+orang\s+per\s?kelompok', local_prompt_lower)
+                    if m:
+                        members_per_group = int(m.group(1))
+                        logger.info(f"[{user_id}] 👥 'orang per kelompok' pattern: {members_per_group}")
+
+                # Priority 3: "kelompok dengan X orang"
+                if not members_per_group:
+                    m = re.search(r'kelompok\s+dengan\s+(\d+)\s+orang', local_prompt_lower)
+                    if m:
+                        members_per_group = int(m.group(1))
+                        logger.info(f"[{user_id}] 👥 'kelompok dengan X orang' pattern: {members_per_group}")
+
+                # Priority 4: "X kelompok" (fallback)
+                if not members_per_group:
+                    m = re.search(r'(\d+)\s+kelompok', local_prompt_lower)
+                    if m:
+                        members_per_group = int(m.group(1))
+                        logger.info(f"[{user_id}] 👥 'X kelompok' fallback: {members_per_group} members/group")
+
+                # Hitung group_count dari members_per_group
+                if members_per_group:
                     try:
                         grade_result = calculate_student_average_grades(
                             prodi_id=dosen_context.get("prodi_id"),
@@ -1767,75 +2151,21 @@ def executor_node(state):
                         if grade_result.get("status") == "success":
                             available_students = len(grade_result.get("student_grades", []))
                             group_count = math.ceil(available_students / members_per_group)
-                            logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
-                        else:
-                            # Fallback to default if calculation fails
-                            group_count = 6
-                            logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 6 orang per kelompok")
-                    except Exception as e:
-                        # Fallback to default if error
-                        group_count = 6
-                        logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 6 orang per kelompok")
-                else:
-                    # Check for "kelompok dengan X orang" pattern
-                    kelompok_dengan_pattern = r"kelompok\s+dengan\s+(\d+)\s+orang"
-                    kelompok_dengan_match = re.search(kelompok_dengan_pattern, prompt.lower())
-                    if kelompok_dengan_match:
-                        members_per_group = int(kelompok_dengan_match.group(1))
-                        logger.info(f"[{user_id}] 👥 Detected 'kelompok dengan X orang' pattern: {members_per_group} members per group")
-                        
-                        try:
-                            grade_result = calculate_student_average_grades(
-                                prodi_id=dosen_context.get("prodi_id"),
-                                kategori_pa_id=dosen_context.get("kategori_pa"),
-                                angkatan_id=dosen_context.get("angkatan"),
-                                exclude_existing=True
+                            logger.info(
+                                f"[{user_id}] ℹ️ mahasiswa={available_students}, "
+                                f"members_per_group={members_per_group} → group_count={group_count}"
                             )
-                            if grade_result.get("status") == "success":
-                                available_students = len(grade_result.get("student_grades", []))
-                                group_count = math.ceil(available_students / members_per_group)
-                                logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
-                            else:
-                                group_count = 6
-                                logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 6 orang per kelompok")
-                        except Exception as e:
+                        else:
                             group_count = 6
-                            logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 6 orang per kelompok")
-                    else:
-                        # IMPORTANT: Check for "X kelompok" pattern - but interpret as "X orang per kelompok" instead of "X groups"
-                        # This is more natural for class grouping contexts
-                        # Pattern: "buat X kelompok", "X kelompok", etc.
-                        num_kelompok_pattern = r"(\d+)\s+kelompok"
-                        num_kelompok_match = re.search(num_kelompok_pattern, prompt.lower())
-                        if num_kelompok_match:
-                            # Interpret as members per group (not group count)
-                            members_per_group = int(num_kelompok_match.group(1))
-                            logger.info(f"[{user_id}] 👥 Detected 'X kelompok' pattern - interpreting as {members_per_group} members per group (not {members_per_group} groups)")
-                            
-                            try:
-                                grade_result = calculate_student_average_grades(
-                                    prodi_id=dosen_context.get("prodi_id"),
-                                    kategori_pa_id=dosen_context.get("kategori_pa"),
-                                    angkatan_id=dosen_context.get("angkatan"),
-                                    exclude_existing=True
-                                )
-                                if grade_result.get("status") == "success":
-                                    available_students = len(grade_result.get("student_grades", []))
-                                    group_count = math.ceil(available_students / members_per_group)
-                                    logger.info(f"[{user_id}] ℹ️ Mahasiswa tersedia: {available_students}, Anggota per kelompok: {members_per_group} → {group_count} kelompok")
-                                else:
-                                    group_count = 5
-                                    logger.warning(f"[{user_id}] ⚠️ Gagal menghitung mahasiswa tersedia, menggunakan default 5 kelompok")
-                            except Exception as e:
-                                group_count = 5
-                                logger.warning(f"[{user_id}] ⚠️ Error calculating available students: {str(e)}, menggunakan default 5 kelompok")
-                
+                    except Exception as e:
+                        group_count = 6
+                        logger.warning(f"[{user_id}] ⚠️ Error: {e}, default group_count=6")
+
                 if not group_count:
-                    # Default to 6 orang per kelompok if not specified
                     group_count = 6
-                    logger.info(f"[{user_id}] ℹ️ Jumlah kelompok tidak ditentukan, menggunakan default 6 orang per kelompok")
-                
-                logger.info(f"[{user_id}] 📍 Create group by grades: prodi_id={dosen_context.get('prodi_id')}, kategori_pa_id={dosen_context.get('kategori_pa')}, group_count={group_count}")
+                    logger.info(f"[{user_id}] ℹ️ Default group_count=6")
+                constraints = GroupingFormHandler._parse_constraints(prompt)
+                logger.info(f"[{user_id}] 📍 Create group by grades: prodi_id={dosen_context.get('prodi_id')}, kategori_pa_id={dosen_context.get('kategori_pa')}, group_count={group_count}, constraints={len(constraints) if constraints else 0}")
                 
                 grouping_result = create_group_by_grades(
                     prodi_id=dosen_context.get("prodi_id"),
@@ -1844,6 +2174,7 @@ def executor_node(state):
                     angkatan_id=dosen_context.get("angkatan"),
                     exclude_existing=True,
                     randomize_ties=is_recreate_intent,
+                    constraints=constraints,
                 )
                 
                 if grouping_result.get("status") == "success":
@@ -1852,6 +2183,21 @@ def executor_node(state):
                     class_stats = grouping_result.get("class_statistics", {})
                     group_stats = grouping_result.get("group_statistics", {})
                     breakdown = grouping_result.get("breakdown", {})
+                    
+                    acceptable_range = group_stats.get("acceptable_range", {})
+                    
+                    # Display constraint warnings if any
+                    warnings_html = ""
+                    if grouping_result.get("constraint_warnings"):
+                        warnings_list = "".join(f"<li style='margin-bottom:4px;'>{html.escape(w)}</li>" for w in grouping_result.get("constraint_warnings"))
+                        warnings_html = f"""
+  <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:12px; margin-bottom:16px; color:#991b1b;">
+    <h4 style="margin-top:0; margin-bottom:8px; color:#7f1d1d; font-size:14px;">⚠️ Peringatan Constraint:</h4>
+    <ul style="margin:0; padding-left:20px; font-size:13px; color:#7f1d1d;">
+      {warnings_list}
+    </ul>
+  </div>
+"""
                     
                     html_result = f"""
 <div style="background:#f3f4f6; border-radius:8px; padding:16px;">
@@ -1862,6 +2208,8 @@ def executor_node(state):
     <p style="margin:0 0 8px 0;"><strong>📚 Semester yang Digunakan:</strong> {', '.join(map(str, grouping_result.get('semesters_used', [])))}</p>
     <p style="margin:0;"><strong>🎯 Jumlah Kelompok:</strong> {len(groups)}</p>
   </div>
+  
+  {warnings_html}
   
   <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:6px; padding:12px; margin-bottom:16px;">
     <h4 style="margin-top:0; color:#b45309;">📋 Breakdown Mahasiswa</h4>

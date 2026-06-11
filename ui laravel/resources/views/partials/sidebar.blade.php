@@ -11,7 +11,6 @@
         z-index: 100;
         transition: width 0.3s ease;
         overflow: visible !important;
-        /* KRITIS: jangan hidden, flyout harus keluar */
     }
 
     #sidebar-wrapper {
@@ -171,7 +170,6 @@
         overflow: hidden;
     }
 
-    /* Sembunyikan label teks */
     body.sidebar-mini .menu-header,
     body.sidebar-gone .menu-header {
         opacity: 0;
@@ -200,7 +198,6 @@
         width: 36px !important;
     }
 
-    /* Nav link mini: icon centered */
     body.sidebar-mini .sidebar-menu .nav-link,
     body.sidebar-gone .sidebar-menu .nav-link {
         justify-content: center !important;
@@ -221,13 +218,11 @@
         margin: 0 !important;
     }
 
-    /* Sembunyikan panah has-dropdown saat mini */
     body.sidebar-mini .sidebar-menu .nav-link.has-dropdown::after,
     body.sidebar-gone .sidebar-menu .nav-link.has-dropdown::after {
         display: none !important;
     }
 
-    /* Sembunyikan dropdown normal saat mini — flyout yang tampil */
     body.sidebar-mini .sidebar-menu .dropdown-menu,
     body.sidebar-gone .sidebar-menu .dropdown-menu {
         display: none !important;
@@ -252,7 +247,6 @@
         pointer-events: auto;
     }
 
-    /* Header flyout */
     .mini-flyout .flyout-header {
         display: block;
         padding: 10px 16px 8px;
@@ -267,7 +261,6 @@
         background: rgba(0, 0, 0, 0.15);
     }
 
-    /* Link biasa di flyout */
     .mini-flyout a.flyout-link {
         display: flex !important;
         align-items: center;
@@ -293,7 +286,6 @@
         flex-shrink: 0;
     }
 
-    /* Sub-grup title di flyout */
     .mini-flyout .flyout-group-title {
         display: block;
         padding: 8px 18px 4px;
@@ -306,7 +298,6 @@
         opacity: 0.9;
     }
 
-    /* Sub-link (level 3) di flyout */
     .mini-flyout a.flyout-sub-link {
         display: flex !important;
         align-items: center;
@@ -401,7 +392,8 @@
 
                         <li class="menu-header">Koordinator</li>
 
-                        <li class="nav-item {{ request()->is('dashboard/koordinator*') ? 'active' : '' }}">
+                        {{-- Dashboard Koordinator --}}
+                        <li class="nav-item {{ request()->routeIs('dashboard.koordinator') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.koordinator') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
                             </a>
@@ -412,8 +404,8 @@
                             </div>
                         </li>
 
-                        <li
-                            class="nav-item {{ request()->routeIs('koordinator.tugas.*') || request()->routeIs('tugas.*') ? 'active' : '' }}">
+                        {{-- Tugas Koordinator --}}
+                        <li class="nav-item {{ request()->routeIs('koordinator.tugas.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('koordinator.tugas.index') }}">
                                 <i class="fas fa-file"></i><span>Tugas</span>
                             </a>
@@ -424,7 +416,8 @@
                             </div>
                         </li>
 
-                        <li class="nav-item {{ request()->is('kelompok*') ? 'active' : '' }}">
+                        {{-- Kelompok --}}
+                        <li class="nav-item {{ request()->routeIs('kelompok.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('kelompok.index') }}">
                                 <i class="fas fa-users"></i><span>Kelompok</span>
                             </a>
@@ -435,7 +428,9 @@
                             </div>
                         </li>
 
-                        <li class="nav-item {{ request()->routeIs('jadwal.*') ? 'active' : '' }}">
+                        {{-- Jadwal Koordinator: hanya aktif di route jadwal.* yang bukan milik penguji/pembimbing/mahasiswa/baak --}}
+                        <li
+                            class="nav-item {{ request()->routeIs('jadwal.index') || request()->routeIs('jadwal.create') || request()->routeIs('jadwal.edit') || request()->routeIs('jadwal.show') || request()->routeIs('jadwal.store') || request()->routeIs('jadwal.update') || request()->routeIs('jadwal.destroy') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('jadwal.index') }}">
                                 <i class="fas fa-calendar"></i><span>Jadwal</span>
                             </a>
@@ -446,8 +441,32 @@
                             </div>
                         </li>
 
+                        {{-- Pembimbing (menu koordinator): hanya aktif di route pembimbing.index / pembimbing.* kecuali tugas, bimbingan, jadwal, nilai --}}
                         <li
-                            class="nav-item {{ (request()->routeIs('pembimbing.*') || request()->routeIs('pembimbing2.*')) && !request()->routeIs('pembimbing1.Nilai*') && !request()->routeIs('pembimbing2.Nilai*') ? 'active' : '' }}">
+                            class="nav-item {{ (request()->routeIs('pembimbing.index') ||
+                                request()->routeIs('pembimbing.create') ||
+                                request()->routeIs('pembimbing.store') ||
+                                request()->routeIs('pembimbing.edit') ||
+                                request()->routeIs('pembimbing.update') ||
+                                request()->routeIs('pembimbing.destroy') ||
+                                request()->routeIs('pembimbing.show') ||
+                                request()->routeIs('pembimbing2.index') ||
+                                request()->routeIs('pembimbing2.create') ||
+                                request()->routeIs('pembimbing2.store') ||
+                                request()->routeIs('pembimbing2.edit') ||
+                                request()->routeIs('pembimbing2.update') ||
+                                request()->routeIs('pembimbing2.destroy') ||
+                                request()->routeIs('pembimbing2.show')) &&
+                            !request()->routeIs('pembimbing.tugas.*') &&
+                            !request()->routeIs('pembimbing.bimbingan.*') &&
+                            !request()->routeIs('pembimbing.jadwal.*') &&
+                            !request()->routeIs('pembimbing1.Nilai*') &&
+                            !request()->routeIs('pembimbing2.Nilai*') &&
+                            !request()->routeIs('pembimbing1.NilaiBimbingan*') &&
+                            !request()->routeIs('pembimbing2.NilaiBimbingan*') &&
+                            !request()->routeIs('PembimbingPengajuanSeminar.*')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('pembimbing.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Pembimbing</span>
                             </a>
@@ -458,8 +477,30 @@
                             </div>
                         </li>
 
+                        {{-- Penguji (menu koordinator): hanya aktif di route penguji.index / penguji.* kecuali tugas, jadwal, nilai --}}
                         <li
-                            class="nav-item {{ (request()->routeIs('penguji.*') || request()->routeIs('penguji2.*')) && !request()->routeIs('penguji1.Nilai*') && !request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}">
+                            class="nav-item {{ (request()->routeIs('penguji.index') ||
+                                request()->routeIs('penguji.create') ||
+                                request()->routeIs('penguji.store') ||
+                                request()->routeIs('penguji.edit') ||
+                                request()->routeIs('penguji.update') ||
+                                request()->routeIs('penguji.destroy') ||
+                                request()->routeIs('penguji.show') ||
+                                request()->routeIs('penguji2.index') ||
+                                request()->routeIs('penguji2.create') ||
+                                request()->routeIs('penguji2.store') ||
+                                request()->routeIs('penguji2.edit') ||
+                                request()->routeIs('penguji2.update') ||
+                                request()->routeIs('penguji2.destroy') ||
+                                request()->routeIs('penguji2.show')) &&
+                            !request()->routeIs('penguji.tugas.*') &&
+                            !request()->routeIs('penguji.jadwal.*') &&
+                            !request()->routeIs('penguji.show.submitan') &&
+                            !request()->routeIs('penguji.feedback.*') &&
+                            !request()->routeIs('penguji1.Nilai*') &&
+                            !request()->routeIs('penguji2.Nilai*')
+                                ? 'active'
+                                : '' }}">
                             <a href="{{ route('penguji.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Penguji</span>
                             </a>
@@ -478,12 +519,12 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="nav-link {{ request()->is('NilaiAdministrasi*') ? 'active' : '' }}"
+                                    <a class="nav-link {{ request()->routeIs('koordinator.NilaiAdministrasi.*') ? 'active' : '' }}"
                                         href="{{ route('koordinator.NilaiAdministrasi.index') }}">Nilai
                                         Administrasi</a>
                                 </li>
                                 <li>
-                                    <a class="nav-link {{ request()->is('NilaiAkhir*') ? 'active' : '' }}"
+                                    <a class="nav-link {{ request()->routeIs('NilaiAkhir.*') ? 'active' : '' }}"
                                         href="{{ route('NilaiAkhir.index') }}">Nilai PA Mahasiswa</a>
                                 </li>
                             </ul>
@@ -498,7 +539,9 @@
                             </div>
                         </li>
 
-                        <li class="nav-item {{ request()->is('pengumuman*') ? 'active' : '' }}">
+                        {{-- Pengumuman Koordinator --}}
+                        <li
+                            class="nav-item {{ request()->routeIs('pengumuman.index') || request()->routeIs('pengumuman.create') || request()->routeIs('pengumuman.store') || request()->routeIs('pengumuman.edit') || request()->routeIs('pengumuman.update') || request()->routeIs('pengumuman.destroy') || request()->routeIs('pengumuman.show') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pengumuman.index') }}">
                                 <i class="fas fa-bell"></i><span>Pengumuman</span>
                             </a>
@@ -514,6 +557,7 @@
                     @if (in_array(2, $dosenRoles) || in_array(4, $dosenRoles))
                         <li class="menu-header">Penguji</li>
 
+                        {{-- Dashboard Penguji --}}
                         <li class="nav-item {{ request()->routeIs('dashboard.penguji') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.penguji') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
@@ -525,6 +569,7 @@
                             </div>
                         </li>
 
+                        {{-- Tugas Penguji --}}
                         <li
                             class="nav-item {{ request()->routeIs('penguji.tugas.*') || request()->routeIs('penguji.show.submitan') || request()->routeIs('penguji.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('penguji.tugas.index') }}">
@@ -537,6 +582,7 @@
                             </div>
                         </li>
 
+                        {{-- Jadwal Penguji --}}
                         <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('penguji.jadwal.index') }}">
                                 <i class="fas fa-calendar"></i><span>Jadwal</span>
@@ -615,7 +661,8 @@
                     @if (in_array(3, $dosenRoles) || in_array(5, $dosenRoles))
                         <li class="menu-header">Pembimbing</li>
 
-                        <li class="nav-item {{ request()->is('dashboard/pembimbing*') ? 'active' : '' }}">
+                        {{-- Dashboard Pembimbing --}}
+                        <li class="nav-item {{ request()->routeIs('dashboard.pembimbing') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.pembimbing') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
                             </a>
@@ -626,6 +673,7 @@
                             </div>
                         </li>
 
+                        {{-- Tugas Pembimbing --}}
                         <li
                             class="nav-item {{ request()->routeIs('pembimbing.tugas.*') || request()->routeIs('pembimbing.show.submitan') || request()->routeIs('pembimbing.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.tugas.index') }}">
@@ -638,8 +686,8 @@
                             </div>
                         </li>
 
-                        <li
-                            class="nav-item {{ request()->is('dosenpembimbing*') || request()->routeIs('pembimbing.bimbingan.*') ? 'active' : '' }}">
+                        {{-- Bimbingan --}}
+                        <li class="nav-item {{ request()->routeIs('pembimbing.bimbingan.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.bimbingan.index') }}">
                                 <i class="fas fa-bullhorn"></i><span>Bimbingan</span>
                             </a>
@@ -650,6 +698,7 @@
                             </div>
                         </li>
 
+                        {{-- Jadwal Pembimbing --}}
                         <li class="nav-item {{ request()->routeIs('pembimbing.jadwal.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.jadwal.index') }}">
                                 <i class="fas fa-calendar"></i><span>Jadwal</span>
@@ -663,7 +712,12 @@
 
                         {{-- Nilai Seminar Pembimbing --}}
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.NilaiIndividu*') || request()->routeIs('pembimbing2.NilaiIndividu*') || request()->routeIs('pembimbing1.NilaiKelompok*') || request()->routeIs('pembimbing2.NilaiKelompok*') ? 'active' : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.NilaiIndividu*') ||
+                            request()->routeIs('pembimbing2.NilaiIndividu*') ||
+                            request()->routeIs('pembimbing1.NilaiKelompok*') ||
+                            request()->routeIs('pembimbing2.NilaiKelompok*')
+                                ? 'active'
+                                : '' }}">
                             <a href="#" class="nav-link has-dropdown">
                                 <i class="fas fa-clipboard-check"></i><span>Nilai Seminar</span>
                             </a>
@@ -738,6 +792,7 @@
                             </div>
                         </li>
 
+                        {{-- Pengajuan Seminar --}}
                         <li class="nav-item {{ request()->routeIs('PembimbingPengajuanSeminar.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('PembimbingPengajuanSeminar.index') }}">
                                 <i class="fas fa-calendar-check"></i><span>Pengajuan Seminar</span>
@@ -752,7 +807,7 @@
                 @elseif (session('role') == 'Mahasiswa')
                     <li class="menu-header">Mahasiswa</li>
 
-                    <li class="nav-item {{ request()->is('dashboard/mahasiswa*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('dashboard.mahasiswa') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('dashboard.mahasiswa') }}">
                             <i class="fas fa-columns"></i><span>Dashboard</span>
                         </a>
@@ -761,8 +816,7 @@
                                     class="fas fa-columns"></i> Dashboard</a>
                         </div>
                     </li>
-                    <li
-                        class="nav-item {{ request()->is('Mahasiswa/Tugas*') || request()->routeIs('Mahasiswa.tugas.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('Mahasiswa.tugas.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('Mahasiswa.tugas.index') }}">
                             <i class="fas fa-file"></i><span>Tugas</span>
                         </a>
@@ -771,7 +825,7 @@
                                     class="fas fa-file"></i> Tugas</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('artefak*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('artefak.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('artefak.index') }}">
                             <i class="fas fa-file"></i><span>Artefak</span>
                         </a>
@@ -780,7 +834,7 @@
                                 Artefak</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('bimbingan*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('bimbingan.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('bimbingan.index') }}">
                             <i class="fas fa-list"></i><span>Bimbingan</span>
                         </a>
@@ -789,7 +843,7 @@
                                     class="fas fa-list"></i> Bimbingan</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('pengumuman*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('pengumuman.mahasiswa.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('pengumuman.mahasiswa.index') }}">
                             <i class="fas fa-bell"></i><span>Pengumuman</span>
                         </a>
@@ -798,7 +852,7 @@
                                     class="fas fa-bell"></i> Pengumuman</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('jadwal*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('mahasiswa.jadwal.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('mahasiswa.jadwal.index') }}">
                             <i class="fas fa-calendar"></i><span>Jadwal</span>
                         </a>
@@ -807,7 +861,7 @@
                                     class="fas fa-calendar"></i> Jadwal</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('Histori*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('Histori.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('Histori.index') }}">
                             <i class="fas fa-history"></i><span>Histori</span>
                         </a>
@@ -819,7 +873,7 @@
                 @elseif (session('role') == 'Staff')
                     <li class="menu-header">Staff</li>
 
-                    <li class="nav-item {{ request()->is('dashboard/BAAK*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('dashboard.BAAK') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('dashboard.BAAK') }}">
                             <i class="fas fa-columns"></i><span>Dashboard</span>
                         </a>
@@ -828,7 +882,7 @@
                                     class="fas fa-columns"></i> Dashboard</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('manajemen role*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('manajemen-role.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('manajemen-role.index') }}">
                             <i class="fas fa-user"></i><span>Manajemen-Role</span>
                         </a>
@@ -837,7 +891,7 @@
                                     class="fas fa-user"></i> Manajemen-Role</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('staff/jadwal*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('baak.jadwal.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('baak.jadwal.index') }}">
                             <i class="fas fa-calendar"></i><span>Jadwal</span>
                         </a>
@@ -846,7 +900,7 @@
                                     class="fas fa-calendar"></i> Jadwal</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('pengumuman/BAAK*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('pengumuman.BAAK.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('pengumuman.BAAK.index') }}">
                             <i class="fas fa-bell"></i><span>Pengumuman</span>
                         </a>
@@ -855,7 +909,7 @@
                                     class="fas fa-bell"></i> Pengumuman</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->is('TahunMasuk*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->routeIs('TahunMasuk.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('TahunMasuk.index') }}">
                             <i class="fas fa-graduation-cap"></i><span>Tahun Masuk</span>
                         </a>
@@ -909,7 +963,7 @@
             link.addEventListener("click", function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isSidebarMini()) return; // saat mini, pakai flyout
+                if (isSidebarMini()) return;
 
                 const parentLi = this.closest(".nav-item.dropdown");
                 if (!parentLi) return;
@@ -917,7 +971,6 @@
                 if (!menu) return;
                 const isOpen = parentLi.classList.contains("open");
 
-                // Tutup semua dropdown lain
                 document.querySelectorAll(".nav-item.dropdown.open").forEach(item => {
                     if (item !== parentLi) {
                         item.classList.remove("open");
@@ -1004,15 +1057,13 @@
 
         /* ══════════════════════════════════════
            FLYOUT SYSTEM
-           Pindahkan .mini-flyout ke <body> agar
-           tidak ter-clip oleh overflow parent
         ══════════════════════════════════════ */
         document.querySelectorAll(".sidebar-menu .nav-item").forEach((item, idx) => {
             const flyout = item.querySelector(":scope > .mini-flyout");
             if (!flyout) return;
             flyout.dataset.owner = "flyout-" + idx;
             item.dataset.flyoutId = "flyout-" + idx;
-            document.body.appendChild(flyout); // lepas dari sidebar
+            document.body.appendChild(flyout);
         });
 
         let activeFlyout = null;
@@ -1027,18 +1078,15 @@
             const flyout = getFlyout(item);
             if (!flyout) return;
 
-            // Sembunyikan flyout lain
             if (activeFlyout && activeFlyout !== flyout) {
                 activeFlyout.style.display = "none";
             }
 
             flyout.style.display = "block";
 
-            // Posisikan flyout tepat di kanan item
             const rect = item.getBoundingClientRect();
             flyout.style.left = rect.right + "px";
 
-            // Cegah flyout keluar dari bawah layar
             const flyH = flyout.offsetHeight;
             const winH = window.innerHeight;
             let top = rect.top;
@@ -1062,21 +1110,18 @@
 
             item.addEventListener("mouseleave", function(e) {
                 if (!flyout) return;
-                // Jangan sembunyi kalau mouse pindah ke flyout
                 if (e.relatedTarget && flyout.contains(e.relatedTarget)) return;
                 hideFlyout(flyout);
             });
 
             if (flyout) {
                 flyout.addEventListener("mouseleave", function(e) {
-                    // Jangan sembunyi kalau mouse balik ke item
                     if (item.contains(e.relatedTarget)) return;
                     hideFlyout(flyout);
                 });
             }
         });
 
-        // Klik di luar sidebar & flyout → tutup flyout
         document.addEventListener("click", function(e) {
             if (activeFlyout &&
                 !e.target.closest(".sidebar-menu") &&
@@ -1085,15 +1130,13 @@
             }
         });
 
-        /* ── Saat sidebar toggle: tutup dropdown & flyout ── */
+        /* ── Saat sidebar toggle ── */
         document.querySelectorAll('[data-toggle="sidebar"]').forEach(btn => {
             btn.addEventListener('click', function() {
                 setTimeout(() => {
-                    // Tutup flyout aktif
                     if (activeFlyout) hideFlyout(activeFlyout);
 
                     if (isSidebarMini()) {
-                        // Tutup semua dropdown yang sedang terbuka
                         document.querySelectorAll(".nav-item.dropdown.open").forEach(
                             item => {
                                 item.classList.remove("open");

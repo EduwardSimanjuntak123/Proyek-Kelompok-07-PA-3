@@ -6,6 +6,11 @@ from typing import Dict, List, Tuple
 from core.llm import call_llm
 from core.memory import SemanticMemory, LongTermMemory, LONG_TERM_STORE
 from models_documentation import get_full_model_documentation, get_model_awareness_context
+from nodes.grouping_form_handler import GroupingFormHandler
+from utils.grouping_intent import (
+    detect_grouping_request,
+    has_grouping_configuration
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -377,6 +382,36 @@ def planner_node(state):
             return state
 
         # ✨ CHECK FOR HYBRID GROUPING FIRST (constraint + optional grades)
+        # CHECK FOR SIMPLE GROUPING REQUEST (NEW: Point-and-Click Form)
+        if detect_grouping_request(prompt):
+
+            if has_grouping_configuration(prompt):
+
+                logger.info(
+                    f"[{user_id}] Group request already contains configuration"
+                )
+
+                # lanjut ke proses create group
+                # jangan tampilkan form
+
+            else:
+
+                logger.info(
+                    f"[{user_id}] Group request incomplete → show form"
+                )
+
+                plan = {
+                    "action": "clarify_group_requirements",
+                    "confidence": 0.98,
+                    "source": "rule",
+                    "reason": "Need grouping configuration",
+                    "params": extracted_params,
+                    "alternatives": [],
+                }
+
+                state["plan"] = plan
+                return state
+
         # Pattern: "X, Y, Z satu kelompok" or "nim1, nim2 harus satu" 
         # OR: Presence of "harus satu" OR "satu kelompok" + create verbs
         # THIS MUST COME BEFORE grade-based check because it's more specific!

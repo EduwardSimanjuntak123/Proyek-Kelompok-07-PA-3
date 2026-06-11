@@ -519,9 +519,6 @@
 
         // ============== JADWAL SEMINAR FUNCTIONS ==============
 
-        /**
-         * Append jadwal form action buttons (Simpan)
-         */
         function appendJadwalFormActions(wrapper) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL] Appending action buttons...`);
@@ -535,7 +532,6 @@
 
                 const actionsHost = wrapper.querySelector('#jadwal-form-actions') || bubble;
 
-                // ── Master list semua opsi ruangan (source of truth) ──
                 const allRuanganOptions = (function() {
                     const firstSel = wrapper.querySelector('.jadwal-ruangan-select');
                     if (!firstSel) return [];
@@ -547,7 +543,6 @@
                     });
                 })();
 
-                // Sync semua dropdown: tiap select hanya tampilkan opsi yang belum dipilih select lain
                 function syncAllSelects() {
                     const container = wrapper.querySelector('#jadwal-ruangan-container');
                     const allSelects = Array.from(container.querySelectorAll('.jadwal-ruangan-select'));
@@ -574,7 +569,6 @@
                         });
                     });
 
-                    // Disable tombol tambah jika semua ruangan sudah dipilih
                     const addBtn2 = wrapper.querySelector('#add-ruangan-btn');
                     if (addBtn2) {
                         const usedCount = selectedValues.filter(function(v) {
@@ -589,7 +583,6 @@
                     }
                 }
 
-                // Helper function to update remove buttons visibility
                 function updateRemoveButtons() {
                     const container = wrapper.querySelector('#jadwal-ruangan-container');
                     const rows = container.querySelectorAll('.ruangan-row');
@@ -599,17 +592,14 @@
                     });
                 }
 
-                // Pasang change listener pada select agar sync otomatis saat pilihan berubah
                 function attachSelectChangeListener(sel) {
                     sel.addEventListener('change', function() {
                         syncAllSelects();
                     });
                 }
 
-                // Pasang listener ke select yang sudah ada di DOM
                 wrapper.querySelectorAll('.jadwal-ruangan-select').forEach(attachSelectChangeListener);
 
-                // First, attach event listener to "+ Tambah Ruangan" button
                 const addBtn = wrapper.querySelector('#add-ruangan-btn');
                 if (addBtn) {
                     addBtn.onclick = function(event) {
@@ -637,7 +627,6 @@
                         select.style.background = 'white';
                         select.style.cursor = 'pointer';
 
-                        // Isi dari master list (akan di-filter oleh syncAllSelects setelah append)
                         allRuanganOptions.forEach(function(opt) {
                             const optEl = document.createElement('option');
                             optEl.value = opt.value;
@@ -663,16 +652,16 @@
                             e.stopPropagation();
                             newRow.remove();
                             updateRemoveButtons();
-                            syncAllSelects(); // kembalikan opsi yang sudah dihapus barisnya
+                            syncAllSelects();
                         };
 
                         newRow.appendChild(select);
                         newRow.appendChild(removeBtn);
                         container.appendChild(newRow);
 
-                        attachSelectChangeListener(select); // pasang listener ke select baru
+                        attachSelectChangeListener(select);
                         updateRemoveButtons();
-                        syncAllSelects(); // filter opsi yang sudah terpakai
+                        syncAllSelects();
                         console.log(`[${timestamp}] [JADWAL] ✓ Ruangan row #${rowCount + 1} added`);
                     };
                     console.log(`[${timestamp}] [JADWAL] ✓ Add ruangan button listener attached`);
@@ -681,7 +670,6 @@
                 syncAllSelects();
                 updateRemoveButtons();
 
-                // Create action buttons container
                 const actionsDiv = document.createElement('div');
                 actionsDiv.style.display = 'flex';
                 actionsDiv.style.flexDirection = 'column';
@@ -689,7 +677,6 @@
                 actionsDiv.style.marginTop = '0';
                 actionsDiv.style.width = '100%';
 
-                // Simpan button
                 const saveBtn = document.createElement('button');
                 saveBtn.type = 'button';
                 saveBtn.className = 'btn btn-sm btn-primary jadwal-submit-btn';
@@ -708,10 +695,7 @@
                 };
 
                 actionsDiv.appendChild(saveBtn);
-
-                // Store form reference for validation
                 saveBtn.jadwalFormWrapper = wrapper;
-
                 actionsHost.appendChild(actionsDiv);
 
                 console.log(`[${timestamp}] [JADWAL] ✓ Action buttons appended`);
@@ -728,14 +712,6 @@
             return;
         };
 
-        /**
-         * Convert date picker value (YYYY-MM-DD) to Indonesian format (DD bulan YYYY)
-         * @param {string} datePickerValue - ISO date format (YYYY-MM-DD)
-         * @returns {string} Indonesian formatted date (DD bulan YYYY)
-         */
-        /**
-         * Helper: Find jadwal form elements robustly
-         */
         function getJadwalFormElements(formContainer) {
             const tanggalInput = formContainer === document ?
                 document.getElementById("jadwal-tanggal") :
@@ -746,7 +722,6 @@
             const durasiMenitInput = formContainer === document ?
                 document.getElementById("jadwal-durasi-menit") :
                 (formContainer?.querySelector("#jadwal-durasi-menit") || document.getElementById("jadwal-durasi-menit"));
-
             return {
                 tanggalInput,
                 durasiJamInput,
@@ -754,9 +729,6 @@
             };
         }
 
-        /**
-         * Helper: Get ruangan list from form
-         */
         function getJadwalRuanganList() {
             const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
             const ruanganList = [];
@@ -787,10 +759,7 @@
                 let tahun, bulan, hari;
                 const dateStr = datePickerValue.toString().trim();
 
-                // Try different date formats
                 if (dateStr.includes('-')) {
-                    // Format: YYYY-MM-DD (standard HTML5 date)
-                    console.log(`[${timestamp}] [DATE-CONVERT] Detected format: YYYY-MM-DD`);
                     const parts = dateStr.split('-');
                     if (parts.length === 3) {
                         [tahun, bulan, hari] = parts;
@@ -798,53 +767,35 @@
                         return dateStr;
                     }
                 } else if (dateStr.includes('/')) {
-                    // Format: DD/MM/YYYY or MM/DD/YYYY
-                    console.log(`[${timestamp}] [DATE-CONVERT] Detected format: with slashes`);
                     const parts = dateStr.split('/');
                     if (parts.length === 3) {
                         const first = parseInt(parts[0]);
                         const second = parseInt(parts[1]);
                         const third = parts[2];
-
-                        // If first > 12, it must be DD/MM/YYYY
                         if (first > 12) {
                             hari = String(first).padStart(2, '0');
                             bulan = String(second).padStart(2, '0');
                             tahun = third;
-                            console.log(`[${timestamp}] [DATE-CONVERT] Parsed as DD/MM/YYYY: ${hari}/${bulan}/${tahun}`);
                         } else {
-                            // Assume MM/DD/YYYY (common in some locales)
                             bulan = String(first).padStart(2, '0');
                             hari = String(second).padStart(2, '0');
                             tahun = third;
-                            console.log(`[${timestamp}] [DATE-CONVERT] Parsed as MM/DD/YYYY: ${bulan}/${hari}/${tahun}`);
                         }
                     } else {
-                        console.error(`[${timestamp}] [DATE-CONVERT] Invalid slash format`);
                         return dateStr;
                     }
                 } else {
-                    // Unknown format, return as is
-                    console.log(`[${timestamp}] [DATE-CONVERT] Unknown format, returning as is: ${dateStr}`);
                     return dateStr;
                 }
 
-                // Validate parsed values
                 const bulanIdx = parseInt(bulan) - 1;
                 const hariInt = parseInt(hari);
                 const tahunInt = parseInt(tahun);
 
-                console.log(
-                    `[${timestamp}] [DATE-CONVERT] Parsed values: hari=${hariInt}, bulan=${bulanIdx+1}, tahun=${tahunInt}`
-                );
-
                 if (bulanIdx < 0 || bulanIdx > 11) {
-                    console.error(`[${timestamp}] [DATE-CONVERT] Invalid month: ${bulanIdx + 1}`);
                     return "";
                 }
-
                 if (hariInt < 1 || hariInt > 31) {
-                    console.error(`[${timestamp}] [DATE-CONVERT] Invalid day: ${hariInt}`);
                     return "";
                 }
 
@@ -852,14 +803,11 @@
                 console.log(`[${timestamp}] [DATE-CONVERT] SUCCESS: '${result}'`);
                 return result;
             } catch (e) {
-                console.error(`[${timestamp}] [DATE-CONVERT] Exception:`, e, `Input was: '${datePickerValue}'`);
+                console.error(`[${timestamp}] [DATE-CONVERT] Exception:`, e);
                 return "";
             }
         }
 
-        /**
-         * Handle jadwal seminar form submission
-         */
         window.__submitJadwal = function(event) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] [JADWAL] ▶️  __submitJadwal called`);
@@ -867,10 +815,8 @@
             try {
                 event?.preventDefault?.();
 
-                // Try to find the form container using closest()
                 let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
 
-                // If not found, try to find via the jadwal-form-actions element
                 if (!formContainer) {
                     const formActions = document.getElementById('jadwal-form-actions');
                     if (formActions) {
@@ -881,15 +827,10 @@
                     }
                 }
 
-                // If still not found, use document as fallback (will search entire page)
                 if (!formContainer) {
                     formContainer = document;
-                    console.log(`[${timestamp}] [JADWAL] Using document as fallback container`);
-                } else {
-                    console.log(`[${timestamp}] [JADWAL] ✓ Form container found`);
                 }
 
-                // Query form elements - use safe fallback chain
                 let tanggalInput = document.getElementById("jadwal-tanggal");
                 if (!tanggalInput && formContainer && formContainer !== document) {
                     tanggalInput = formContainer.querySelector("#jadwal-tanggal");
@@ -905,58 +846,26 @@
                     durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
                 }
 
-                console.log(`[${timestamp}] [JADWAL] ✓ Form elements found`);
-                console.log(
-                    `[${timestamp}] [JADWAL] tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`
-                );
-
                 const tanggalRaw = tanggalInput?.value?.trim() || "";
                 let tanggal = convertDatePickerToIndonesian(tanggalRaw);
 
-                // If conversion failed but raw value exists, use raw value
                 if (!tanggal && tanggalRaw) {
-                    console.log(`[${timestamp}] [JADWAL] Conversion failed, using raw value: ${tanggalRaw}`);
                     tanggal = tanggalRaw;
                 }
 
                 const jam = parseInt(durasiJamInput?.value || "1");
                 const menit = parseInt(durasiMenitInput?.value || "50");
 
-                // Debug: Check if input elements were found
-                console.log(
-                    `[${timestamp}] [JADWAL] Element checks: tanggalInput=${!!tanggalInput}, durasiJamInput=${!!durasiJamInput}, durasiMenitInput=${!!durasiMenitInput}`
-                );
-                console.log(
-                    `[${timestamp}] [JADWAL] Element values: tanggalInput.value='${tanggalInput?.value}', tanggalRaw='${tanggalRaw}'`
-                );
-
-                // Query ruangan selects - ALWAYS use document to find all select elements
-                // This ensures we find ruangan in the current chat message
                 let ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
-                console.log(`[${timestamp}] [JADWAL] Found ${ruanganSelects.length} ruangan select elements`);
-
                 const ruanganList = [];
                 ruanganSelects.forEach((select, idx) => {
                     const ruangan_id = select.value;
-                    console.log(
-                        `[${timestamp}] [JADWAL] Ruangan[${idx}]: value='${ruangan_id}', innerText='${select.innerText || select.textContent}'`
-                    );
                     if (ruangan_id) {
                         ruanganList.push(ruangan_id);
                     }
                 });
 
-                console.log(
-                    `[${timestamp}] [JADWAL] Raw tanggal: '${tanggalRaw}', Converted tanggal: '${tanggal}', ruangan_count: ${ruanganList.length}, durasi: ${jam}j ${menit}m`
-                );
-                console.log(
-                    `[${timestamp}] [JADWAL] Selected ruangan IDs: ${ruanganList.length > 0 ? ruanganList.join(',') : 'NONE'}`
-                );
-
                 if (!tanggalRaw) {
-                    console.log(
-                        `[${timestamp}] [JADWAL] Validation failed: tanggalRaw empty (value='${tanggalInput?.value}')`
-                    );
                     Swal.fire({
                         title: 'Validasi Form',
                         text: 'Tanggal harus diisi. Silakan pilih tanggal dari kalender.',
@@ -967,23 +876,12 @@
                 }
 
                 if (ruanganList.length === 0) {
-                    console.log(`[${timestamp}] [JADWAL] Validation failed: no ruangan selected`);
                     Swal.fire({
                         title: 'Validasi Form',
                         text: 'Minimal 1 ruangan harus dipilih',
                         icon: 'warning',
                         confirmButtonText: 'OK'
                     });
-                    if (jam < 0 || jam > 8 || menit < 0 || menit > 59) {
-                        Swal.fire({
-                            title: 'Validasi Durasi',
-                            text: 'Durasi tidak valid. Jam: 0-8, Menit: 0-59',
-                            icon: 'warning',
-                            confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-
                     return;
                 }
 
@@ -1000,22 +898,15 @@
 
                 const message =
                     `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
-                console.log(`[${timestamp}] [JADWAL] Message: ${message}`);
-
-                // Store this message for later use by save/reshuffle buttons
                 window.__lastJadwalMessage = message;
 
                 const userInput = document.getElementById("userInput");
                 if (userInput) {
                     userInput.value = message;
-                    console.log(`[${timestamp}] [JADWAL] Calling sendMessage()...`);
-
                     const submitBtn = event.target?.closest('.jadwal-submit-btn');
                     setJadwalSubmitButtonLoading(submitBtn);
-
                     window.sendMessage();
                 } else {
-                    console.error(`[${timestamp}] [JADWAL] ❌ userInput element not found`);
                     restoreJadwalSubmitButton();
                     Swal.fire({
                         title: 'Error',
@@ -1025,7 +916,7 @@
                     });
                 }
             } catch (error) {
-                console.error(`[${timestamp}] [JADWAL] ❌ Exception:`, error);
+                console.error(`[${new Date().toLocaleTimeString()}] [JADWAL] ❌ Exception:`, error);
                 restoreJadwalSubmitButton();
                 Swal.fire({
                     title: 'Error',
@@ -1038,19 +929,12 @@
 
         // ============== VERIFICATION SIDEBAR FUNCTIONS ==============
 
-        /**
-         * Load verification status dari database saat page load
-         */
         async function loadVerificationStatusFromDatabase() {
             try {
                 const response = await fetch('/ai-agent/verification-status');
                 if (!response.ok) throw new Error('Failed to fetch verification status');
-
                 const data = await response.json();
                 if (data.success && data.data) {
-                    console.log('[sidebar] Loaded verification status from database:', data.data);
-
-                    // Update setiap step dengan status dari database
                     updateSidebarStatus('kelompok', data.data.kelompok);
                     updateSidebarStatus('pembimbing', data.data.pembimbing);
                     updateSidebarStatus('penguji', data.data.penguji);
@@ -1061,24 +945,14 @@
             }
         }
 
-        /**
-         * Update status sidebar untuk tahapan verifikasi
-         * @param {string} step - 'kelompok' | 'pembimbing' | 'penguji' | 'jadwal'
-         * @param {string} status - 'pending' | 'warning' | 'success'
-         */
         function updateSidebarStatus(step, status) {
             const stepElement = document.querySelector(`.step-item[data-step="${step}"]`);
             if (!stepElement) return;
-
             const stepStatus = stepElement.querySelector('.step-status');
             const pendingIcon = stepElement.querySelector('.pending-icon');
             const successIcon = stepElement.querySelector('.success-icon');
-
-            // Update data-status attribute
             stepElement.setAttribute('data-status', status);
             stepStatus.setAttribute('data-status', status);
-
-            // Update icons based on status
             if (status === 'success' && successIcon && pendingIcon) {
                 pendingIcon.style.display = 'none';
                 successIcon.style.display = 'block';
@@ -1086,73 +960,26 @@
                 if (pendingIcon) pendingIcon.style.display = 'block';
                 if (successIcon) successIcon.style.display = 'none';
             }
-
             console.log(`[sidebar] Updated ${step} status to ${status}`);
         }
 
-        /**
-         * Get current status dari sidebar
-         * @param {string} step
-         * @returns {string} current status
-         */
         function getSidebarStatus(step) {
             const stepElement = document.querySelector(`.step-item[data-step="${step}"]`);
             if (!stepElement) return 'pending';
             return stepElement.getAttribute('data-status') || 'pending';
         }
 
-        /**
-         * Check status kelompok dan update sidebar
-         * Return true jika semua mahasiswa sudah dapat kelompok
-         */
-        function checkKelompokStatus() {
-            // Implementasi bisa melalui API atau check dari data
-            // Untuk sekarang, return true jika grouping tersimpan tanpa error
-            if (latestGroupingPayload && !isSavingGeneratedGroups) {
-                updateSidebarStatus('kelompok', 'success');
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Check status pembimbing dan update sidebar
-         */
-        function checkPembimbingStatus() {
-            if (latestPembimbingPayload && !isSavingGeneratedPembimbing) {
-                updateSidebarStatus('pembimbing', 'success');
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Check status penguji dan update sidebar
-         */
-        function checkPengujiStatus() {
-            if (latestPengujiPayload && !isSavingGeneratedPenguji) {
-                updateSidebarStatus('penguji', 'success');
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Update sidebar status ketika ada warning/issue
-         * Misalnya ada mahasiswa yang belum dapat kelompok
-         */
         function setSidebarWarning(step, hasWarning = true) {
             if (hasWarning) {
                 updateSidebarStatus(step, 'warning');
             }
         }
 
-        // Scroll to bottom smoothly
         function scrollToBottom() {
-            const chatBox = document.getElementById("chatBox");
-            if (chatBox) {
+            const el = document.getElementById("chatBox");
+            if (el) {
                 setTimeout(() => {
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                    el.scrollTop = el.scrollHeight;
                 }, 10);
             }
         }
@@ -1165,24 +992,19 @@
     <circle cx="12" cy="7" r="4"/>
 </svg>`;
 
-        // Append message with proper bubble styling
-        // ===== MESSAGE RENDER (FIXED CSS MATCH) =====
         function appendMessage(sender, text) {
             const chatBox = document.getElementById("chatBox");
 
             const row = document.createElement("div");
             row.className = `msg-row ${sender === "user" ? "user-row" : ""}`;
 
-            // Avatar
             const avatar = document.createElement("div");
             avatar.className = `msg-av ${sender === "user" ? "user-av" : "ai-av"}`;
             avatar.innerHTML = sender === "user" ? USER_ICON : AI_ICON;
 
-            // Body
             const body = document.createElement("div");
             body.className = "msg-body";
 
-            // Meta
             const meta = document.createElement("div");
             meta.className = "msg-meta";
 
@@ -1205,7 +1027,6 @@
             meta.appendChild(tag);
             meta.appendChild(time);
 
-            // Bubble
             const bubble = document.createElement("div");
             bubble.className = `msg-bubble ${sender === "user" ? "user-bubble" : "ai-bubble"}`;
 
@@ -1217,26 +1038,25 @@
 
             body.appendChild(meta);
             body.appendChild(bubble);
-
             row.appendChild(avatar);
             row.appendChild(body);
-
             chatBox.appendChild(row);
 
-            // Attach jadwal form action buttons if form is present
             if (sender === "ai" && text.includes('Input Jadwal Seminar')) {
-
                 setTimeout(() => {
-
                     appendJadwalFormActions(row);
-
-                    // Tambahan untuk kalender
                     console.log("[JADWAL] Initializing calendar...");
-
                     initJadwalCalendar();
-
                 }, 200);
+            }
 
+            // ── Pasang script dari form grouping yang baru di-render ──
+            if (sender === "ai") {
+                bubble.querySelectorAll('script').forEach(function(oldScript) {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
             }
 
             scrollToBottom();
@@ -1244,7 +1064,6 @@
 
         function appendGroupingActions() {
             const chatBox = document.getElementById("chatBox");
-
             if (!latestGroupingPayload?.groups?.length) return;
 
             const row = document.createElement("div");
@@ -1259,7 +1078,6 @@
 
             const bubble = document.createElement("div");
             bubble.className = "msg-bubble ai-bubble";
-
             bubble.innerHTML = `
         <div style="padding:8px">
             <b>Aksi Hasil Generate</b><br><br>
@@ -1271,61 +1089,41 @@
                     <i class="fas fa-random"></i> Acak Ulang Mahasiswa
                 </button>
             </div>
-        </div>
-    `;
+        </div>`;
 
             body.appendChild(bubble);
             row.appendChild(avatar);
             row.appendChild(body);
-
             chatBox.appendChild(row);
             scrollToBottom();
         }
 
         function formatJadwalPromptDisplay(message) {
-            if (typeof message !== "string") {
-                return message;
-            }
-
+            if (typeof message !== "string") return message;
             const trimmed = message.trim();
-            if (!trimmed.toLowerCase().startsWith("[jadwal]")) {
-                return message;
-            }
+            if (!trimmed.toLowerCase().startsWith("[jadwal]")) return message;
 
             const fields = {};
             trimmed.replace(/^\[jadwal\]\s*/i, "").split("|").forEach((segment) => {
                 const part = segment.trim();
-                if (!part) {
-                    return;
-                }
-
+                if (!part) return;
                 const separatorIndex = part.indexOf(":");
-                if (separatorIndex === -1) {
-                    return;
-                }
-
+                if (separatorIndex === -1) return;
                 const key = part.slice(0, separatorIndex).trim().toLowerCase();
                 const value = part.slice(separatorIndex + 1).trim();
-                if (key) {
-                    fields[key] = value;
-                }
+                if (key) fields[key] = value;
             });
 
             const action = (fields.action || "").toLowerCase();
             const prefix = (action === "save" || action === "simpan" || action === "persist") ?
                 "Simpan jadwal seminar" :
                 (action === "acak" || action === "shuffle" || action === "random") ?
-                "Acak ulang jadwal seminar" :
-                "Jadwal seminar";
+                "Acak ulang jadwal seminar" : "Jadwal seminar";
 
             const parts = [];
-
-            if (fields.tanggal) {
-                parts.push(`tanggal ${fields.tanggal}`);
-            }
+            if (fields.tanggal) parts.push(`tanggal ${fields.tanggal}`);
 
             if (fields.ruangan) {
-                // If ruangan is provided as ids (e.g. "1,14"), try to map to names from latest preview entries
                 let ruanganDisplay = fields.ruangan;
                 try {
                     const maybeIds = String(fields.ruangan).split(',').map(s => s.trim()).filter(Boolean);
@@ -1341,69 +1139,43 @@
                                 }
                             });
                         }
-
-                        // If mapping missing, try to read from DOM select options (form present)
                         if (Object.keys(idToName).length === 0) {
                             try {
                                 const opts = document.querySelectorAll('select.jadwal-ruangan-select option');
                                 opts.forEach(o => {
                                     if (o && o.value) idToName[String(o.value)] = o.textContent.trim();
                                 });
-                            } catch (e) {
-                                // ignore
-                            }
+                            } catch (e) {}
                         }
-
-                        const names = maybeIds.map(id => idToName[id] || (`Ruangan ${id}`));
-                        ruanganDisplay = names.join(', ');
+                        ruanganDisplay = maybeIds.map(id => idToName[id] || (`Ruangan ${id}`)).join(', ');
                     }
                 } catch (e) {
-                    // fallback: use raw value
                     ruanganDisplay = fields.ruangan;
                 }
                 parts.push(`ruangan ${ruanganDisplay}`);
             }
 
-            if (fields.durasi) {
-                parts.push(`durasi ${fields.durasi} menit`);
-            }
-
-            if (fields.order) {
-                parts.push(`urutan kelompok ${fields.order}`);
-            }
-
-            if (!parts.length) {
-                return prefix;
-            }
-
+            if (fields.durasi) parts.push(`durasi ${fields.durasi} menit`);
+            if (fields.order) parts.push(`urutan kelompok ${fields.order}`);
+            if (!parts.length) return prefix;
             return `${prefix} pada ${parts.join(", ")}.`;
         }
 
         function restoreJadwalSubmitButton() {
             const state = window.__jadwalSubmitState;
-            if (!state || !state.button) {
-                return;
-            }
-
-            if (typeof state.originalHtml === 'string') {
-                state.button.innerHTML = state.originalHtml;
-            }
-
+            if (!state || !state.button) return;
+            if (typeof state.originalHtml === 'string') state.button.innerHTML = state.originalHtml;
             state.button.disabled = !!state.originalDisabled;
             window.__jadwalSubmitState = null;
         }
 
         function setJadwalSubmitButtonLoading(button) {
-            if (!button) {
-                return;
-            }
-
+            if (!button) return;
             window.__jadwalSubmitState = {
-                button: button,
+                button,
                 originalHtml: button.innerHTML,
-                originalDisabled: button.disabled,
+                originalDisabled: button.disabled
             };
-
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
         }
@@ -1411,9 +1183,7 @@
         function appendPembimbingActions() {
             const chatBox = document.getElementById("chatBox");
             if (!chatBox || !latestPembimbingPayload || !Array.isArray(latestPembimbingPayload.groups) ||
-                latestPembimbingPayload.groups.length === 0) {
-                return;
-            }
+                latestPembimbingPayload.groups.length === 0) return;
 
             const wrapper = document.createElement("div");
             wrapper.className = "message-wrapper ai";
@@ -1438,8 +1208,7 @@
                     <i class="fas fa-random"></i> Acak Ulang Pembimbing
                 </button>
             </div>
-        </div>
-    `;
+        </div>`;
 
             wrapper.appendChild(bubble);
             chatBox.appendChild(wrapper);
@@ -1449,9 +1218,8 @@
                 saveButton.onclick = async function(event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__savePembimbingInline === 'function') {
-                        await window.__savePembimbingInline(event);
-                    }
+                    if (typeof window.__savePembimbingInline === 'function') await window.__savePembimbingInline(
+                        event);
                 };
             }
 
@@ -1460,9 +1228,8 @@
                 regenerateButton.onclick = async function(event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__regeneratePembimbingInline === 'function') {
-                        await window.__regeneratePembimbingInline(event);
-                    }
+                    if (typeof window.__regeneratePembimbingInline === 'function') await window
+                        .__regeneratePembimbingInline(event);
                 };
             }
 
@@ -1472,9 +1239,7 @@
         function appendPengujiActions() {
             const chatBox = document.getElementById("chatBox");
             if (!chatBox || !latestPengujiPayload || !Array.isArray(latestPengujiPayload.groups) || latestPengujiPayload
-                .groups.length === 0) {
-                return;
-            }
+                .groups.length === 0) return;
 
             const wrapper = document.createElement("div");
             wrapper.className = "message-wrapper ai";
@@ -1499,8 +1264,7 @@
                     <i class="fas fa-random"></i> Acak Ulang Penguji
                 </button>
             </div>
-        </div>
-    `;
+        </div>`;
 
             wrapper.appendChild(bubble);
             chatBox.appendChild(wrapper);
@@ -1510,9 +1274,7 @@
                 saveButton.onclick = async function(event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__savePengujiInline === 'function') {
-                        await window.__savePengujiInline(event);
-                    }
+                    if (typeof window.__savePengujiInline === 'function') await window.__savePengujiInline(event);
                 };
             }
 
@@ -1521,9 +1283,8 @@
                 regenerateButton.onclick = async function(event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__regeneratePengujiInline === 'function') {
-                        await window.__regeneratePengujiInline(event);
-                    }
+                    if (typeof window.__regeneratePengujiInline === 'function') await window
+                        .__regeneratePengujiInline(event);
                 };
             }
 
@@ -1532,16 +1293,13 @@
 
         function appendExcelDownloadButton() {
             const chatBox = document.getElementById("chatBox");
-            if (!chatBox || !latestExcelFilename) {
-                return;
-            }
+            if (!chatBox || !latestExcelFilename) return;
 
             const wrapper = document.createElement("div");
             wrapper.className = "message-wrapper ai";
 
             const bubble = document.createElement("div");
             bubble.className = "chat-message-bubble ai";
-
             bubble.innerHTML = `
         <div style="border:1px solid #93c5fd; background:#eff6ff; border-radius:10px; padding:10px;">
             <h6 style="margin:0 0 8px 0;">📥 Unduh File Excel</h6>
@@ -1549,8 +1307,7 @@
             <button type="button" class="btn btn-sm btn-info" onclick="downloadExcel('${latestExcelFilename}')">
                 <i class="fas fa-file-excel" style="color:#10b981;"></i> Unduh Excel
             </button>
-        </div>
-    `;
+        </div>`;
 
             wrapper.appendChild(bubble);
             chatBox.appendChild(wrapper);
@@ -1558,10 +1315,7 @@
         }
 
         function downloadExcel(filename) {
-            const section = document.querySelector('[data-ai-route]');
             const downloadRoute = '{{ route('ai.downloadExcel') }}';
-
-            // Create form for download
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = downloadRoute;
@@ -1588,7 +1342,6 @@
             const section = document.querySelector('[data-ai-route]');
             const checkRoute = section?.dataset.checkRoute;
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
             const response = await fetch(checkRoute, {
                 method: "POST",
                 headers: {
@@ -1597,20 +1350,15 @@
                 },
                 body: JSON.stringify({})
             });
-
             if (!response.ok) {
                 const txt = await response.text();
                 throw new Error(`Gagal cek kelompok: ${txt.substring(0, 200)}`);
             }
-
             return response.json();
         }
 
         async function saveGeneratedGroups() {
-            if (isSavingGeneratedGroups) {
-                return;
-            }
-
+            if (isSavingGeneratedGroups) return;
             if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload.groups
                 .length === 0) {
                 Swal.fire("Tidak ada data", "Generate kelompok terlebih dahulu sebelum menyimpan.", "warning");
@@ -1623,7 +1371,6 @@
 
             try {
                 isSavingGeneratedGroups = true;
-
                 let replaceExisting = false;
                 const checkResult = await checkExistingGroups();
 
@@ -1638,7 +1385,6 @@
                         denyButtonText: "Tambah saja (tanpa hapus)",
                         cancelButtonText: "Batal"
                     });
-
                     if (confirm.isConfirmed) {
                         replaceExisting = true;
                     } else if (confirm.isDenied) {
@@ -1662,43 +1408,29 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || "Gagal menyimpan kelompok.");
-                }
+                if (!response.ok || !data.success) throw new Error(data.message || "Gagal menyimpan kelompok.");
 
-                // Update sidebar status
                 updateSidebarStatus('kelompok', 'success');
-
                 Swal.fire({
                     title: "Berhasil",
-                    html: `
-                Kelompok berhasil disimpan.<br>
-                <strong>${data.saved_kelompok || 0}</strong> kelompok dan
-                <strong>${data.saved_members || 0}</strong> anggota tersimpan.
-                ${(data.skipped_existing_members || 0) > 0 ? `<br><small>${data.skipped_existing_members} mahasiswa dilewati karena sudah punya kelompok.</small>` : ''}
-            `,
+                    html: `Kelompok berhasil disimpan.<br><strong>${data.saved_kelompok || 0}</strong> kelompok dan <strong>${data.saved_members || 0}</strong> anggota tersimpan.${(data.skipped_existing_members || 0) > 0 ? `<br><small>${data.skipped_existing_members} mahasiswa dilewati karena sudah punya kelompok.</small>` : ''}`,
                     icon: "success"
                 });
 
-                // Hindari submit ganda pada payload yang sama.
                 latestGroupingPayload = null;
                 latestGroupingMeta = null;
 
-                const saveButtons = document.querySelectorAll(".save-generated-groups-btn");
-                saveButtons.forEach((btn) => {
+                document.querySelectorAll(".save-generated-groups-btn").forEach((btn) => {
                     btn.disabled = true;
                     btn.classList.add("disabled");
                     btn.innerHTML = '<i class="fas fa-check"></i> Sudah Disimpan';
                 });
-
-                const regenerateButtons = document.querySelectorAll(".regenerate-groups-btn");
-                regenerateButtons.forEach((btn) => {
+                document.querySelectorAll(".regenerate-groups-btn").forEach((btn) => {
                     btn.disabled = true;
                     btn.classList.add("disabled");
                     btn.innerHTML = '<i class="fas fa-check"></i> Acak Ulang Dinonaktifkan';
                 });
             } catch (error) {
-                // Update sidebar status to warning
                 updateSidebarStatus('kelompok', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan.", "error");
             } finally {
@@ -1707,15 +1439,9 @@
         }
 
         window.__regenerateGroupsInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            event?.stopImmediatePropagation?.();
 
             if (!latestGroupingPayload || !Array.isArray(latestGroupingPayload.groups) || latestGroupingPayload
                 .groups.length === 0) {
@@ -1727,17 +1453,12 @@
             const basePrompt = latestGroupingMeta?.prompt || latestUserPrompt || "buat kelompok mahasiswa";
             const isByGrades = String(latestGroupingMeta?.method || '').toLowerCase().includes('grade') ||
                 /berdasarkan\s+nilai|by\s+grade|by\s+grades/i.test(basePrompt);
-
             const regeneratePrompt = isByGrades ?
                 `${basePrompt} dan acak ulang komposisi mahasiswa antar kelompok` :
                 `${basePrompt} dan acak ulang mahasiswa`;
 
-            if (input) {
-                input.value = regeneratePrompt;
-            }
-            if (typeof window.sendMessage === 'function') {
-                window.sendMessage();
-            }
+            if (input) input.value = regeneratePrompt;
+            if (typeof window.sendMessage === 'function') window.sendMessage();
         };
 
         function switchToChat() {
@@ -1747,10 +1468,7 @@
         }
 
         async function saveGeneratedPembimbing() {
-            if (isSavingGeneratedPembimbing) {
-                return;
-            }
-
+            if (isSavingGeneratedPembimbing) return;
             if (!latestPembimbingPayload || !Array.isArray(latestPembimbingPayload.groups) || latestPembimbingPayload
                 .groups.length === 0) {
                 Swal.fire("Tidak ada data", "Generate pembimbing terlebih dahulu sebelum menyimpan.", "warning");
@@ -1778,7 +1496,6 @@
 
             try {
                 isSavingGeneratedPembimbing = true;
-
                 let response = await submitSave(false);
                 let data = await response.json();
 
@@ -1791,42 +1508,28 @@
                         confirmButtonText: "Hapus lama & Simpan baru",
                         cancelButtonText: "Batal"
                     });
-
-                    if (!confirm.isConfirmed) {
-                        return;
-                    }
-
+                    if (!confirm.isConfirmed) return;
                     response = await submitSave(true);
                     data = await response.json();
                 }
 
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || "Gagal menyimpan pembimbing.");
-                }
+                if (!response.ok || !data.success) throw new Error(data.message || "Gagal menyimpan pembimbing.");
 
-                // Update sidebar status
                 updateSidebarStatus('pembimbing', 'success');
-
                 Swal.fire({
                     title: "Berhasil",
-                    html: `
-                Pembimbing berhasil disimpan.<br>
-                <strong>${data.saved_assignments || 0}</strong> assignment tersimpan.
-            `,
+                    html: `Pembimbing berhasil disimpan.<br><strong>${data.saved_assignments || 0}</strong> assignment tersimpan.`,
                     icon: "success"
                 });
 
                 latestPembimbingPayload = null;
                 latestPembimbingMeta = null;
-
-                const saveButtons = document.querySelectorAll(".save-generated-pembimbing-btn");
-                saveButtons.forEach((btn) => {
+                document.querySelectorAll(".save-generated-pembimbing-btn").forEach((btn) => {
                     btn.disabled = true;
                     btn.classList.add("disabled");
                     btn.innerHTML = '<i class="fas fa-check"></i> Pembimbing Sudah Disimpan';
                 });
             } catch (error) {
-                // Update sidebar status to warning
                 updateSidebarStatus('pembimbing', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan pembimbing.", "error");
             } finally {
@@ -1838,7 +1541,6 @@
             const section = document.querySelector('[data-ai-route]');
             const checkRoute = section?.dataset.checkPembimbingRoute || '/ai-agent/ai-pembimbing/check';
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
             const response = await fetch(checkRoute, {
                 method: "POST",
                 headers: {
@@ -1847,12 +1549,10 @@
                 },
                 body: JSON.stringify({})
             });
-
             if (!response.ok) {
                 const txt = await response.text();
                 throw new Error(`Gagal cek pembimbing: ${txt.substring(0, 200)}`);
             }
-
             return response.json();
         }
 
@@ -1860,7 +1560,6 @@
             const section = document.querySelector('[data-ai-route]');
             const checkRoute = section?.dataset.checkPengujiRoute || '/ai-agent/ai-penguji/check';
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
             const response = await fetch(checkRoute, {
                 method: "POST",
                 headers: {
@@ -1869,20 +1568,15 @@
                 },
                 body: JSON.stringify({})
             });
-
             if (!response.ok) {
                 const txt = await response.text();
                 throw new Error(`Gagal cek penguji: ${txt.substring(0, 200)}`);
             }
-
             return response.json();
         }
 
         async function saveGeneratedPenguji() {
-            if (isSavingGeneratedPenguji) {
-                return;
-            }
-
+            if (isSavingGeneratedPenguji) return;
             if (!latestPengujiPayload || !Array.isArray(latestPengujiPayload.groups) || latestPengujiPayload.groups
                 .length === 0) {
                 Swal.fire("Tidak ada data", "Generate penguji terlebih dahulu sebelum menyimpan.", "warning");
@@ -1910,7 +1604,6 @@
 
             try {
                 isSavingGeneratedPenguji = true;
-
                 let response = await submitSave(false);
                 let data = await response.json();
 
@@ -1923,42 +1616,28 @@
                         confirmButtonText: "Hapus lama & Simpan baru",
                         cancelButtonText: "Batal"
                     });
-
-                    if (!confirm.isConfirmed) {
-                        return;
-                    }
-
+                    if (!confirm.isConfirmed) return;
                     response = await submitSave(true);
                     data = await response.json();
                 }
 
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || "Gagal menyimpan penguji.");
-                }
+                if (!response.ok || !data.success) throw new Error(data.message || "Gagal menyimpan penguji.");
 
-                // Update sidebar status
                 updateSidebarStatus('penguji', 'success');
-
                 Swal.fire({
                     title: "Berhasil",
-                    html: `
-                Penguji berhasil disimpan.<br>
-                <strong>${data.saved_assignments || 0}</strong> assignment tersimpan.
-            `,
+                    html: `Penguji berhasil disimpan.<br><strong>${data.saved_assignments || 0}</strong> assignment tersimpan.`,
                     icon: "success"
                 });
 
                 latestPengujiPayload = null;
                 latestPengujiMeta = null;
-
-                const saveButtons = document.querySelectorAll(".save-generated-penguji-btn");
-                saveButtons.forEach((btn) => {
+                document.querySelectorAll(".save-generated-penguji-btn").forEach((btn) => {
                     btn.disabled = true;
                     btn.classList.add("disabled");
                     btn.innerHTML = '<i class="fas fa-check"></i> Penguji Sudah Disimpan';
                 });
             } catch (error) {
-                // Update sidebar status to warning
                 updateSidebarStatus('penguji', 'warning');
                 Swal.fire("Error", error.message || "Terjadi kesalahan saat menyimpan penguji.", "error");
             } finally {
@@ -1967,37 +1646,20 @@
         }
 
         window.__savePembimbingInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            event?.stopImmediatePropagation?.();
             await saveGeneratedPembimbing();
         };
 
         window.__regeneratePembimbingInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
-
-            if (isLoadingPembimbingCheck) {
-                return;
-            }
-
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            event?.stopImmediatePropagation?.();
+            if (isLoadingPembimbingCheck) return;
             try {
                 isLoadingPembimbingCheck = true;
                 const checkResult = await checkExistingPembimbing();
-
                 if (checkResult?.exists) {
                     const confirm = await Swal.fire({
                         title: "Validasi Pembimbing",
@@ -2007,21 +1669,13 @@
                         confirmButtonText: "Lanjut Acak Ulang",
                         cancelButtonText: "Batal"
                     });
-
-                    if (!confirm.isConfirmed) {
-                        return;
-                    }
+                    if (!confirm.isConfirmed) return;
                 }
-
                 const input = document.getElementById("userInput");
                 const regeneratePrompt = latestPembimbingMeta?.prompt || latestUserPrompt ||
                     "generate pembimbing kelompok";
-                if (input) {
-                    input.value = regeneratePrompt;
-                }
-                if (typeof window.sendMessage === 'function') {
-                    window.sendMessage();
-                }
+                if (input) input.value = regeneratePrompt;
+                if (typeof window.sendMessage === 'function') window.sendMessage();
             } catch (error) {
                 Swal.fire("Error", error.message || "Gagal validasi pembimbing.", "error");
             } finally {
@@ -2030,37 +1684,20 @@
         };
 
         window.__savePengujiInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            event?.stopImmediatePropagation?.();
             await saveGeneratedPenguji();
         };
 
         window.__regeneratePengujiInline = async function(event) {
-            if (event && typeof event.preventDefault === "function") {
-                event.preventDefault();
-            }
-            if (event && typeof event.stopPropagation === "function") {
-                event.stopPropagation();
-            }
-            if (event && typeof event.stopImmediatePropagation === "function") {
-                event.stopImmediatePropagation();
-            }
-
-            if (isLoadingPengujiCheck) {
-                return;
-            }
-
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            event?.stopImmediatePropagation?.();
+            if (isLoadingPengujiCheck) return;
             try {
                 isLoadingPengujiCheck = true;
                 const checkResult = await checkExistingPenguji();
-
                 if (checkResult?.exists) {
                     const confirm = await Swal.fire({
                         title: "Validasi Penguji",
@@ -2070,21 +1707,13 @@
                         confirmButtonText: "Lanjut Acak Ulang",
                         cancelButtonText: "Batal"
                     });
-
-                    if (!confirm.isConfirmed) {
-                        return;
-                    }
+                    if (!confirm.isConfirmed) return;
                 }
-
                 const input = document.getElementById("userInput");
                 const regeneratePrompt = latestPengujiMeta?.prompt || latestUserPrompt ||
                     "generate penguji kelompok";
-                if (input) {
-                    input.value = regeneratePrompt;
-                }
-                if (typeof window.sendMessage === 'function') {
-                    window.sendMessage();
-                }
+                if (input) input.value = regeneratePrompt;
+                if (typeof window.sendMessage === 'function') window.sendMessage();
             } catch (error) {
                 Swal.fire("Error", error.message || "Gagal validasi penguji.", "error");
             } finally {
@@ -2092,7 +1721,6 @@
             }
         };
 
-        // Show loading animation with dots
         function appendLoading() {
             const chatBox = document.getElementById("chatBox");
             const id = "loading-" + Date.now();
@@ -2107,7 +1735,6 @@
             const skeleton = document.createElement("div");
             skeleton.className = "skeleton-wrap";
             skeleton.id = id;
-
             skeleton.innerHTML = `
     <div class="ai-thinking">
         <span class="ai-thinking-icon">${AI_ICON}</span>
@@ -2115,15 +1742,12 @@
     </div>
     <div class="skeleton-line" style="width:120px;"></div>
     <div class="skeleton-line" style="width:180px;"></div>
-    <div class="skeleton-line" style="width:90px;"></div>
-`;
+    <div class="skeleton-line" style="width:90px;"></div>`;
 
             row.appendChild(avatar);
             row.appendChild(skeleton);
-
             chatBox.appendChild(row);
             scrollToBottom();
-
             return id;
         }
 
@@ -2142,14 +1766,13 @@
                 const instruction = this.getAttribute('data-instruction');
                 if (instruction) {
                     input.value = instruction;
-                    const event = new KeyboardEvent('keydown', {
+                    input.dispatchEvent(new KeyboardEvent('keydown', {
                         key: 'Enter',
                         code: 'Enter',
                         keyCode: 13,
                         which: 13,
                         bubbles: true
-                    });
-                    input.dispatchEvent(event);
+                    }));
                 }
             }
 
@@ -2158,14 +1781,13 @@
                 const instruction = this.getAttribute('data-instruction');
                 if (instruction && confirm(`Terapkan: ${instruction}?`)) {
                     input.value = instruction;
-                    const event = new KeyboardEvent('keydown', {
+                    input.dispatchEvent(new KeyboardEvent('keydown', {
                         key: 'Enter',
                         code: 'Enter',
                         keyCode: 13,
                         which: 13,
                         bubbles: true
-                    });
-                    input.dispatchEvent(event);
+                    }));
                 }
             }
 
@@ -2173,7 +1795,6 @@
                 btn.removeEventListener('click', handleActionClick);
                 btn.addEventListener('click', handleActionClick);
             });
-
             document.querySelectorAll('.recommendation-constraint').forEach(btn => {
                 btn.removeEventListener('click', handleConstraintClick);
                 btn.addEventListener('click', handleConstraintClick);
@@ -2181,15 +1802,12 @@
         }
 
         function bindChatActionDelegation() {
+            // ── deklarasi chatBox DI SINI, paling atas fungsi ──
             const chatBox = document.getElementById("chatBox");
-            if (!chatBox || chatBox.dataset.actionsBound === "1") {
-                return;
-            }
+            if (!chatBox || chatBox.dataset.actionsBound === "1") return;
 
             async function executeDeleteForContext(recreatePrompt) {
-                if (isDeletingForContext) {
-                    return;
-                }
+                if (isDeletingForContext) return;
 
                 const section = document.querySelector('[data-ai-route]');
                 const deleteRoute = section?.dataset.deleteRoute || '/ai-kelompok/delete-for-context';
@@ -2212,28 +1830,15 @@
                         body: JSON.stringify({})
                     });
 
-                    console.log("[chatbot] delete response status", deleteResponse.status);
-
                     if (!deleteResponse.ok) {
                         const txt = await deleteResponse.text();
-                        console.error("[chatbot] delete response body", txt);
                         throw new Error(`Gagal hapus kelompok: ${txt.substring(0, 200)}`);
                     }
 
                     const deleteData = await deleteResponse.json();
-                    console.log("[chatbot] delete response json", deleteData);
+                    if (!deleteData.success) throw new Error(deleteData.message || "Gagal menghapus kelompok.");
 
-                    if (!deleteData.success) {
-                        throw new Error(deleteData.message || "Gagal menghapus kelompok.");
-                    }
-
-                    console.log("[chatbot] Groups deleted successfully. Recreate prompt:", recreatePrompt);
-
-                    // If recreate prompt is provided, auto-trigger group creation
                     if (recreatePrompt && recreatePrompt.trim().length > 0) {
-                        console.log("[chatbot] Auto-triggering group creation with prompt:", recreatePrompt);
-
-                        // Show loading with a message
                         Swal.fire({
                             title: "Kelompok Dihapus",
                             html: `<strong>${deleteData.deleted_kelompok || 0}</strong> kelompok dan <strong>${deleteData.deleted_members || 0}</strong> anggota telah dihapus.<br><b>Membuat kelompok baru...</b>`,
@@ -2241,27 +1846,20 @@
                             allowOutsideClick: false,
                             didOpen: () => Swal.showLoading()
                         });
-
-                        // Wait a moment then trigger the message send
                         setTimeout(() => {
                             const input = document.getElementById("userInput");
                             if (input) {
                                 input.value = recreatePrompt;
-                                // Trigger send message
-                                if (typeof window.sendMessage === 'function') {
-                                    window.sendMessage();
-                                }
+                                if (typeof window.sendMessage === 'function') window.sendMessage();
                             }
                             Swal.close();
                         }, 500);
                     } else {
-                        // No recreate prompt, show normal completion message
                         Swal.fire({
                             title: "Berhasil Dihapus",
                             html: `<strong>${deleteData.deleted_kelompok || 0}</strong> kelompok dan <strong>${deleteData.deleted_members || 0}</strong> anggota telah dihapus.<br><b>Silakan kirim instruksi generate kelompok baru.</b>`,
                             icon: "success"
                         });
-
                         const input = document.getElementById("userInput");
                         if (input) {
                             input.value = "";
@@ -2276,35 +1874,23 @@
                 }
             }
 
-            // Fallback inline handler for dynamic HTML rendered from AI response
             window.__confirmRecreateGroupsFromInline = function(event) {
-                if (event && typeof event.preventDefault === "function") {
-                    event.preventDefault();
-                }
-                if (event && typeof event.stopPropagation === "function") {
-                    event.stopPropagation();
-                }
-                if (event && typeof event.stopImmediatePropagation === "function") {
-                    event.stopImmediatePropagation();
-                }
-                // Extract recreate prompt from button's data attribute
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                event?.stopImmediatePropagation?.();
                 const button = event?.target?.closest?.('.confirm-recreate-groups');
                 const recreatePrompt = button?.dataset?.recreatePrompt || '';
-                console.log("[chatbot] Inline fallback: recreate prompt=", recreatePrompt);
                 executeDeleteForContext(recreatePrompt);
             };
 
             chatBox.dataset.actionsBound = "1";
+
             chatBox.addEventListener("click", async function(event) {
                 const recreateButton = event.target.closest(".confirm-recreate-groups");
                 if (recreateButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    console.log("[chatbot] delegated click matched .confirm-recreate-groups");
-                    // Extract recreate prompt from button's data attribute
-                    const recreatePrompt = recreateButton.dataset?.recreatePrompt || '';
-                    console.log("[chatbot] Event delegation: recreate prompt=", recreatePrompt);
-                    executeDeleteForContext(recreatePrompt);
+                    executeDeleteForContext(recreateButton.dataset?.recreatePrompt || '');
                     return;
                 }
 
@@ -2330,9 +1916,8 @@
                 if (regenerateGroupsButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__regenerateGroupsInline === 'function') {
-                        window.__regenerateGroupsInline(event);
-                    }
+                    if (typeof window.__regenerateGroupsInline === 'function') window.__regenerateGroupsInline(
+                        event);
                     return;
                 }
 
@@ -2340,11 +1925,9 @@
                 if (savePembimbingButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__savePembimbingInline === 'function') {
-                        window.__savePembimbingInline(event);
-                    } else {
-                        saveGeneratedPembimbing();
-                    }
+                    if (typeof window.__savePembimbingInline === 'function') window.__savePembimbingInline(
+                        event);
+                    else saveGeneratedPembimbing();
                     return;
                 }
 
@@ -2352,9 +1935,8 @@
                 if (regeneratePembimbingButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__regeneratePembimbingInline === 'function') {
-                        window.__regeneratePembimbingInline(event);
-                    }
+                    if (typeof window.__regeneratePembimbingInline === 'function') window
+                        .__regeneratePembimbingInline(event);
                     return;
                 }
 
@@ -2362,11 +1944,8 @@
                 if (savePengujiButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__savePengujiInline === 'function') {
-                        window.__savePengujiInline(event);
-                    } else {
-                        saveGeneratedPenguji();
-                    }
+                    if (typeof window.__savePengujiInline === 'function') window.__savePengujiInline(event);
+                    else saveGeneratedPenguji();
                     return;
                 }
 
@@ -2374,18 +1953,15 @@
                 if (regeneratePengujiButton) {
                     event.preventDefault();
                     event.stopPropagation();
-                    if (typeof window.__regeneratePengujiInline === 'function') {
-                        window.__regeneratePengujiInline(event);
-                    }
+                    if (typeof window.__regeneratePengujiInline === 'function') window
+                        .__regeneratePengujiInline(event);
                     return;
                 }
             });
         }
 
-        // Initialize chat
         function autoResizeTextarea(textarea, minHeight = 0) {
             if (!textarea) return;
-
             textarea.style.height = 'auto';
             const nextHeight = Math.max(textarea.scrollHeight, minHeight);
             textarea.style.height = `${nextHeight}px`;
@@ -2397,39 +1973,31 @@
             const sendBtn = document.getElementById("sendBtn")
 
             if (!input || !sendBtn) {
-                console.error("[chatbot] Required elements not found!")
-                return
+                console.error("[chatbot] Required elements not found!");
+                return;
             }
 
-            // Enter key to send
             input.addEventListener("keydown", function(e) {
                 if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    if (typeof window.sendMessage === 'function') {
-                        window.sendMessage()
-                    }
+                    e.preventDefault();
+                    if (typeof window.sendMessage === 'function') window.sendMessage();
                 }
-            })
+            });
 
             input.addEventListener("input", function() {
-                autoResizeTextarea(input, 20)
-            })
+                autoResizeTextarea(input, 20);
+            });
+            autoResizeTextarea(input, 20);
 
-            autoResizeTextarea(input, 20)
-
-            // Button click to send
             sendBtn.addEventListener("click", function(e) {
-                e.preventDefault()
-                if (typeof window.sendMessage === 'function') {
-                    window.sendMessage()
-                }
-            })
+                e.preventDefault();
+                if (typeof window.sendMessage === 'function') window.sendMessage();
+            });
 
-            input.focus()
+            input.focus();
             console.log("[chatbot] Initialized successfully")
         };
 
-        // Send message to AI
         window.sendMessage = function() {
             const input = document.getElementById("userInput")
             const section = document.querySelector('[data-ai-route]')
@@ -2441,11 +2009,10 @@
             latestUserPrompt = message
             const displayMessage = formatJadwalPromptDisplay(message)
 
-            switchToChat(); // 🔥 penting
+            switchToChat();
 
-            // Saat simpan jadwal: skip bubble pesan user, AI langsung tampil sebagai konfirmasi
             if (!window.__jadwalSaveInProgress) {
-                appendMessage("user", displayMessage)
+                appendMessage("user", displayMessage);
             }
             input.value = ""
             autoResizeTextarea(input, 20)
@@ -2455,15 +2022,9 @@
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-            // Attach jadwal_meta + jadwal_entries so backend can restore
-            // preview state even if Python state was reset between requests.
             const jadwalPayload = {};
-            if (latestJadwalMeta) {
-                jadwalPayload.jadwal_meta = latestJadwalMeta;
-            }
-            if (latestJadwalEntries && latestJadwalEntries.length) {
-                jadwalPayload.jadwal_entries = latestJadwalEntries;
-            }
+            if (latestJadwalMeta) jadwalPayload.jadwal_meta = latestJadwalMeta;
+            if (latestJadwalEntries && latestJadwalEntries.length) jadwalPayload.jadwal_entries = latestJadwalEntries;
 
             fetch(route, {
                     method: "POST",
@@ -2479,14 +2040,13 @@
                 .then(res => {
                     if (!res.ok) {
                         return res.text().then(text => {
-                            throw new Error(`HTTP ${res.status}: ${text.substring(0, 200)}`)
-                        })
+                            throw new Error(`HTTP ${res.status}: ${text.substring(0, 200)}`);
+                        });
                     }
-                    return res.json()
+                    return res.json();
                 })
                 .then(data => {
                     removeLoading(loadingId)
-
                     console.log("[API Response]", data)
 
                     latestGroupingPayload = data.grouping_payload || null
@@ -2499,41 +2059,21 @@
                     latestJadwalMeta = data.jadwal_meta || null
                     latestJadwalEntries = data.jadwal_entries || null
 
-                    // Display AI response text saja
                     let displayText = data.result || "Tidak ada respons"
                     appendMessage("ai", displayText)
 
                     if (latestGroupingPayload && Array.isArray(latestGroupingPayload.groups) &&
-                        latestGroupingPayload.groups.length > 0) {
-                        appendGroupingActions()
-                    }
-
+                        latestGroupingPayload.groups.length > 0) appendGroupingActions();
                     if (latestPembimbingPayload && Array.isArray(latestPembimbingPayload.groups) &&
-                        latestPembimbingPayload.groups.length > 0) {
-                        appendPembimbingActions()
-                    }
-
+                        latestPembimbingPayload.groups.length > 0) appendPembimbingActions();
                     if (latestPengujiPayload && Array.isArray(latestPengujiPayload.groups) && latestPengujiPayload
-                        .groups.length > 0) {
-                        appendPengujiActions()
-                    }
-
-                    if (latestExcelFilename) {
-                        appendExcelDownloadButton()
-                    }
+                        .groups.length > 0) appendPengujiActions();
+                    if (latestExcelFilename) appendExcelDownloadButton();
 
                     scrollToBottom()
 
-                    // Handle jadwal seminar response
                     if (data.jadwal_stage === 'completed' && data.jadwal_entries) {
-                        console.log('[JADWAL] Jadwal seminar berhasil dibuat:', data.jadwal_entries.length);
-
-                        // Update sidebar status
-                        if (typeof updateSidebarStatus === 'function') {
-                            updateSidebarStatus('jadwal', 'success');
-                        }
-
-                        // Show success alert
+                        if (typeof updateSidebarStatus === 'function') updateSidebarStatus('jadwal', 'success');
                         setTimeout(() => {
                             Swal.fire({
                                 title: '✅ Jadwal Seminar Berhasil Dibuat!',
@@ -2544,18 +2084,10 @@
                             });
                         }, 500);
                     } else if (data.jadwal_stage === 'input_form') {
-                        // Form displayed - no alert needed
                         console.log('[JADWAL] Form input displayed');
                     } else if (data.jadwal_stage === 'preview' && data.jadwal_entries) {
-                        console.log('[JADWAL] Jadwal seminar preview:', data.jadwal_entries.length);
-
-                        if (typeof updateSidebarStatus === 'function') {
-                            updateSidebarStatus('jadwal', 'preview');
-                        }
-
+                        if (typeof updateSidebarStatus === 'function') updateSidebarStatus('jadwal', 'preview');
                         appendJadwalPreviewActions();
-
-                        // Show preview dialog with options: Simpan atau Acak Ulang
                         setTimeout(() => {
                             Swal.fire({
                                 title: '🔎 Preview Jadwal Seminar (Belum Disimpan)',
@@ -2570,16 +2102,8 @@
                             });
                         }, 300);
                     } else if (message.includes('[jadwal]') && message.includes('durasi')) {
-                        // Jadwal parsing atau error
                         if (displayText.includes('❌') || displayText.includes('Error')) {
-                            console.log('[JADWAL] Jadwal creation failed');
-
-                            // Update sidebar status to warning
-                            if (typeof updateSidebarStatus === 'function') {
-                                updateSidebarStatus('jadwal', 'warning');
-                            }
-
-                            // Show error alert
+                            if (typeof updateSidebarStatus === 'function') updateSidebarStatus('jadwal', 'warning');
                             setTimeout(() => {
                                 Swal.fire({
                                     title: '⚠️  Gagal Membuat Jadwal',
@@ -2595,21 +2119,15 @@
                 })
                 .catch(err => {
                     removeLoading(loadingId)
-                    const errorMsg = err.message.includes('JSON') ?
-                        "Server error. Silakan cek console." :
-                        err.message
+                    const errorMsg = err.message.includes('JSON') ? "Server error. Silakan cek console." : err
+                        .message;
                     appendMessage("ai", "❌ Terjadi Error: " + errorMsg)
                     console.error("[Error]", err)
                 })
                 .finally(() => {
-                    if (message.toLowerCase().startsWith('[jadwal]')) {
-                        restoreJadwalSubmitButton();
-                    }
-                })
+                    if (message.toLowerCase().startsWith('[jadwal]')) restoreJadwalSubmitButton();
+                });
         };
-
-        // Note: Event listeners for landingInput and landingSend are now in DOMContentLoaded
-        // to avoid duplicate event binding
 
         // ============== END CHATBOT UI ==============
 
@@ -2617,58 +2135,39 @@
             console.log("[chatbot] DOMContentLoaded")
             bindChatActionDelegation()
 
-            if (typeof window.initializeAgent === 'function') {
-                window.initializeAgent()
-            }
+            if (typeof window.initializeAgent === 'function') window.initializeAgent();
+            if (typeof loadVerificationStatusFromDatabase === 'function') loadVerificationStatusFromDatabase();
 
-            // Load verification status dari database
-            if (typeof loadVerificationStatusFromDatabase === 'function') {
-                loadVerificationStatusFromDatabase()
-            }
-
-            // Help button
             const btnHelper = document.getElementById("btnHelper")
             if (btnHelper) {
                 btnHelper.addEventListener("click", function() {
                     const panduanOverlay = document.getElementById("panduanOverlay")
-                    if (panduanOverlay) {
-                        panduanOverlay.classList.add("active")
-                    }
+                    if (panduanOverlay) panduanOverlay.classList.add("active")
                 })
             }
 
-            // Close panduan modal - header close button
             const closePandauHeader = document.getElementById("closePandauHeader")
             if (closePandauHeader) {
                 closePandauHeader.addEventListener("click", function() {
                     const panduanOverlay = document.getElementById("panduanOverlay")
-                    if (panduanOverlay) {
-                        panduanOverlay.classList.remove("active")
-                    }
+                    if (panduanOverlay) panduanOverlay.classList.remove("active")
                 })
             }
 
-            // Close panduan modal - footer close button
             const closePanduan = document.getElementById("closePanduan")
             if (closePanduan) {
                 closePanduan.addEventListener("click", function() {
                     const panduanOverlay = document.getElementById("panduanOverlay")
-                    if (panduanOverlay) {
-                        panduanOverlay.classList.remove("active")
-                    }
+                    if (panduanOverlay) panduanOverlay.classList.remove("active")
                 })
             }
 
-            // Close panduan modal when clicking overlay
             const panduanOverlay = document.getElementById("panduanOverlay")
             if (panduanOverlay) {
                 panduanOverlay.addEventListener("click", function(e) {
-                    if (e.target === panduanOverlay) {
-                        panduanOverlay.classList.remove("active")
-                    }
+                    if (e.target === panduanOverlay) panduanOverlay.classList.remove("active")
                 })
             }
-
         })
 
         // ================== LANDING & CHIP INTERACTION ==================
@@ -2679,74 +2178,96 @@
         const landingView = document.getElementById("landingView");
         const chatView = document.getElementById("chatView");
 
-        // Fungsi pindah dari landing ke chat
         function openChatWithMessage(message) {
             if (!message) return;
-
-            // hide landing
             if (landingView) landingView.style.display = "none";
             if (chatView) chatView.style.display = "flex";
-
             const input = document.getElementById("userInput");
-            if (input) {
-                input.value = message;
-            }
-
-            if (typeof window.sendMessage === "function") {
-                window.sendMessage();
-            }
+            if (input) input.value = message;
+            if (typeof window.sendMessage === "function") window.sendMessage();
         }
 
-        // ================== CHIP CLICK ==================
         chips.forEach(chip => {
             chip.addEventListener("click", function() {
-                const instruction = this.getAttribute("data-instruction");
-                openChatWithMessage(instruction);
+                openChatWithMessage(this.getAttribute("data-instruction"));
             });
         });
 
-        // ================== LANDING SEND BUTTON ==================
         if (landingSend) {
             landingSend.addEventListener("click", function() {
-                const message = landingInput.value.trim();
-                openChatWithMessage(message);
+                openChatWithMessage(landingInput.value.trim());
             });
         }
 
-        // ENTER di landing input
         if (landingInput) {
             landingInput.addEventListener("input", function() {
-                autoResizeTextarea(landingInput, 22)
-            })
-
-            autoResizeTextarea(landingInput, 22)
-
+                autoResizeTextarea(landingInput, 22);
+            });
+            autoResizeTextarea(landingInput, 22);
             landingInput.addEventListener("keydown", function(e) {
                 if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    const message = landingInput.value.trim();
-                    openChatWithMessage(message);
+                    openChatWithMessage(landingInput.value.trim());
                 }
             });
         }
 
-        // ================== JADWAL SEMINAR HANDLERS ==================
+        // ================== GROUPING FORM SUBMIT LISTENER ==================
+        window.addEventListener('grouping-form-submit', function(e) {
+            var detail = e.detail || {};
 
-        // Store the last valid jadwal message for save/reshuffle operations
+            // Gunakan prompt yang sudah dibangun oleh form Python
+            var prompt = detail.prompt || '';
+
+            // Fallback manual jika prompt kosong
+            if (!prompt) {
+                var methodLabel = {
+                    'auto': 'Acak Otomatis',
+                    'by_grades': 'Berdasarkan Nilai',
+                    'by_nim': 'Berdasarkan NIM'
+                } [detail.method] || 'Acak Otomatis';
+
+                prompt = 'Buatkan kelompok dengan spesifikasi berikut:\n';
+                prompt += '- Metode: ' + methodLabel + '\n';
+
+                if (detail.method === 'by_nim' && detail.nim_start && detail.nim_end) {
+                    prompt += '- Dari NIM ' + detail.nim_start + ' sampai NIM ' + detail.nim_end + '\n';
+                }
+                if (detail.size_mode === 'exact') {
+                    prompt += '- Ukuran: ' + (detail.exact_size || 5) + ' orang per kelompok\n';
+                } else if (detail.size_mode === 'range') {
+                    prompt += '- Ukuran: minimal ' + (detail.min_size || 4) + ' orang, maksimal ' + (detail
+                        .max_size || 6) + ' orang per kelompok\n';
+                }
+                if (detail.constraints) {
+                    prompt += '- Constraint: ' + detail.constraints.replace(/\n/g, ' | ') + '\n';
+                }
+            }
+
+            if (!prompt.trim()) {
+                console.warn('[grouping-form] Prompt kosong, diabaikan.');
+                return;
+            }
+
+            console.log('[grouping-form] Received submit event, prompt:', prompt);
+
+            switchToChat();
+
+            var input = document.getElementById('userInput');
+            if (input) input.value = prompt.trim();
+            if (typeof window.sendMessage === 'function') window.sendMessage();
+            else console.error('[grouping-form] window.sendMessage tidak ditemukan!');
+        });
+
+        // ================== JADWAL SEMINAR HANDLERS ==================
         window.__lastJadwalMessage = null;
 
-        /**
-         * Save jadwal preview to database
-         */
         window.__saveJadwalDb = function(event) {
             event?.preventDefault?.();
             const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] [JADWAL-SAVE] Save to database clicked`);
 
             try {
-                // Try to find the form container
                 let formContainer = event?.target?.closest('.chat-message-wrapper, .msg-container, .chat-message, div');
-
                 if (!formContainer) {
                     const formActions = document.getElementById('jadwal-form-actions');
                     if (formActions) {
@@ -2756,10 +2277,7 @@
                             formActions.parentElement?.parentElement;
                     }
                 }
-
-                if (!formContainer) {
-                    formContainer = document;
-                }
+                if (!formContainer) formContainer = document;
 
                 const userInput = document.getElementById("userInput");
                 if (!userInput) {
@@ -2767,62 +2285,29 @@
                     return;
                 }
 
-                // Try to use stored message first
                 let message = window.__lastJadwalMessage;
 
-                // If stored message is not available, try to rebuild from form
                 if (!message) {
-                    console.log(
-                        `[${timestamp}] [JADWAL-SAVE] Stored message empty, attempting to rebuild from form...`);
-
-                    // Query form elements - use safe fallback chain
                     let tanggalInput = document.getElementById("jadwal-tanggal");
-                    if (!tanggalInput && formContainer && formContainer !== document) {
-                        tanggalInput = formContainer.querySelector("#jadwal-tanggal");
-                    }
-
                     let durasiJamInput = document.getElementById("jadwal-durasi-jam");
-                    if (!durasiJamInput && formContainer && formContainer !== document) {
-                        durasiJamInput = formContainer.querySelector("#jadwal-durasi-jam");
-                    }
-
                     let durasiMenitInput = document.getElementById("jadwal-durasi-menit");
-                    if (!durasiMenitInput && formContainer && formContainer !== document) {
-                        durasiMenitInput = formContainer.querySelector("#jadwal-durasi-menit");
-                    }
 
                     const tanggalRaw = tanggalInput?.value?.trim() || "";
                     let tanggal = convertDatePickerToIndonesian(tanggalRaw);
-
-                    // If conversion failed but raw value exists, use raw value
-                    if (!tanggal && tanggalRaw) {
-                        console.log(`[${timestamp}] [JADWAL-SAVE] Conversion failed, using raw value: ${tanggalRaw}`);
-                        tanggal = tanggalRaw;
-                    }
+                    if (!tanggal && tanggalRaw) tanggal = tanggalRaw;
 
                     const jam = parseInt(durasiJamInput?.value || "1");
                     const menit = parseInt(durasiMenitInput?.value || "50");
 
-                    // ALWAYS use document to find all select elements in the current form
                     const ruanganSelects = document.querySelectorAll(".jadwal-ruangan-select");
-                    console.log(`[${timestamp}] [JADWAL-SAVE] Found ${ruanganSelects.length} ruangan select elements`);
-
                     const ruanganList = [];
-                    ruanganSelects.forEach((select, idx) => {
-                        const ruangan_id = select.value;
-                        console.log(`[${timestamp}] [JADWAL-SAVE] Ruangan[${idx}]: value='${ruangan_id}'`);
-                        if (ruangan_id) {
-                            ruanganList.push(ruangan_id);
-                        }
+                    ruanganSelects.forEach((select) => {
+                        if (select.value) ruanganList.push(select.value);
                     });
-                    console.log(`[${timestamp}] [JADWAL-SAVE] Total ruangan selected: ${ruanganList.length}`);
 
                     const totalMenit = (jam * 60) + menit;
 
                     if (!tanggalRaw || ruanganList.length === 0) {
-                        console.error(
-                            `[${timestamp}] [JADWAL-SAVE] Form validation failed: tanggalRaw='${tanggalRaw}', ruangan_count=${ruanganList.length}`
-                        );
                         Swal.fire({
                             title: 'Validasi Form',
                             text: 'Tanggal dan minimal 1 ruangan harus dipilih. Mohon coba lagi.',
@@ -2833,30 +2318,23 @@
                     }
 
                     message =
-                        `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
-                    console.log(`[${timestamp}] [JADWAL-SAVE] Rebuilt message: ${message}`);
+                    `[jadwal] tanggal: ${tanggal} | ruangan: ${ruanganList.join(",")} | durasi: ${totalMenit}`;
                 }
 
-                // Add save action — encode kelompok_order dari preview
-                // langsung ke prompt agar Python bisa parse tanpa butuh state.
                 let orderStr = "";
                 if (latestJadwalEntries && latestJadwalEntries.length > 0) {
                     orderStr = " | order: " + latestJadwalEntries.map(e => e.kelompok_id).join(",");
                 }
 
-                // Jika message tidak punya tanggal/ruangan (rebuild gagal), inject dari meta
                 let baseMsg = message;
                 if (latestJadwalMeta && (!baseMsg.includes("tanggal") || !baseMsg.includes("ruangan"))) {
                     const m = latestJadwalMeta;
-                    const ruanganStr = (m.ruangan_list || []).join(",");
                     baseMsg =
-                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${ruanganStr} | durasi: ${m.durasi_menit || 110}`;
+                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${(m.ruangan_list || []).join(",")} | durasi: ${m.durasi_menit || 110}`;
                 }
 
                 const finalMessage = baseMsg.replace(/action[:\s]*\w+/gi, "").trim() + " | action: save" + orderStr;
-
                 userInput.value = finalMessage;
-                console.log(`[${timestamp}] [JADWAL-SAVE] Final message: ${finalMessage}`);
 
                 const btn = event?.target?.closest('.save-jadwal-btn');
                 if (btn) {
@@ -2864,24 +2342,18 @@
                     btn.innerHTML = 'Menyimpan...';
                 }
 
-                // Show loading alert
                 Swal.fire({
                     title: 'Menyimpan Jadwal...',
                     text: 'Harap tunggu, jadwal sedang disimpan ke database.',
                     icon: 'info',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
-                    didOpen: (modal) => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
 
-                // Store save indicator for response handler
                 window.__jadwalSaveInProgress = true;
-
                 window.sendMessage();
             } catch (error) {
-                console.error(`[${timestamp}] [JADWAL-SAVE] Error:`, error);
                 Swal.fire({
                     title: 'Error',
                     text: `Terjadi error saat menyimpan: ${error.message}`,
@@ -2891,13 +2363,9 @@
             }
         };
 
-        /**
-         * Reshuffle jadwal preview — kirim ulang request ke backend dengan action: shuffle
-         */
         window.__reshuffleJadwal = function(event) {
             event?.preventDefault?.();
             const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Reshuffle clicked`);
 
             try {
                 const userInput = document.getElementById("userInput");
@@ -2906,14 +2374,11 @@
                     return;
                 }
 
-                // Utamakan latestJadwalMeta karena selalu tersimpan setelah preview berhasil
                 let baseMessage = window.__lastJadwalMessage;
                 if (latestJadwalMeta) {
                     const m = latestJadwalMeta;
-                    const ruanganStr = (m.ruangan_list || []).join(",");
                     baseMessage =
-                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${ruanganStr} | durasi: ${m.durasi_menit || 110}`;
-                    console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Pakai latestJadwalMeta: ${baseMessage}`);
+                        `[jadwal] tanggal: ${m.tanggal || ""} | ruangan: ${(m.ruangan_list || []).join(",")} | durasi: ${m.durasi_menit || 110}`;
                 }
 
                 if (!baseMessage) {
@@ -2926,10 +2391,8 @@
                     return;
                 }
 
-                // Kirim ke backend dengan action: shuffle supaya Python random.shuffle dijalankan
                 const finalMessage = baseMessage.replace(/\|\s*action[:\s]*\w+/gi, "").trim() + " | action: shuffle";
                 userInput.value = finalMessage;
-                console.log(`[${timestamp}] [JADWAL-RESHUFFLE] Final message: ${finalMessage}`);
 
                 const btn = event?.target?.closest('.reshuffle-jadwal-btn');
                 if (btn) {
@@ -2939,7 +2402,6 @@
 
                 window.sendMessage();
             } catch (error) {
-                console.error(`[${timestamp}] [JADWAL-RESHUFFLE] Error:`, error);
                 Swal.fire({
                     title: 'Error',
                     text: `Terjadi error saat mengacak: ${error.message}`,
@@ -2951,8 +2413,7 @@
 
         // ================== BUTTON SESI BARU ==================
         if (btnNewChat) {
-            btnNewChat.style.display = "inline-flex"; // tampilkan tombol
-
+            btnNewChat.style.display = "inline-flex";
             btnNewChat.addEventListener("click", function() {
                 Swal.fire({
                     title: "Mulai Sesi Baru?",
@@ -2966,19 +2427,17 @@
                         const chatBox = document.getElementById("chatBox");
                         if (chatBox) chatBox.innerHTML = "";
 
-                        // reset state
                         latestGroupingPayload = null;
                         latestPembimbingPayload = null;
                         latestPengujiPayload = null;
                         latestExcelFilename = null;
 
-                        // kembali ke landing
                         if (landingView) landingView.style.display = "flex";
                         if (chatView) chatView.style.display = "none";
 
                         if (landingInput) {
                             landingInput.value = "";
-                            autoResizeTextarea(landingInput, 22)
+                            autoResizeTextarea(landingInput, 22);
                             landingInput.focus();
                         }
                     }
@@ -2987,48 +2446,34 @@
         }
 
         // ================== OBSERVER UNTUK JADWAL SAVE RESPONSE ==================
-        // Monitor chat messages untuk detect jadwal save success/error
-        const chatBox = document.getElementById('chatBox');
-        if (chatBox) {
+        const chatBoxForObserver = document.getElementById('chatBox');
+        if (chatBoxForObserver) {
             const observer = new MutationObserver(function(mutations) {
-                // Cek jika ada message baru ditambahkan
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                         mutation.addedNodes.forEach(function(node) {
-                            if (node.nodeType === 1) { // Element node
+                            if (node.nodeType === 1) {
                                 const messageText = node.textContent || '';
-
-                                // Check jika ini adalah message dari save jadwal
                                 if (window.__jadwalSaveInProgress) {
-                                    // Check untuk success message
                                     if (messageText.includes('Berhasil Disimpan') || messageText
                                         .includes('jadwal berhasil')) {
                                         window.__jadwalSaveInProgress = false;
-                                        Swal.close(); // Close loading alert
-
-                                        // Extract jumlah ruangan jika ada
+                                        Swal.close();
                                         const match = messageText.match(/(\d+)\s+Ruangan/);
-                                        const ruanganCount = match ? match[1] : 'jadwal';
-
                                         Swal.fire({
                                             title: 'Jadwal Berhasil Disimpan!',
-                                            text: `Jadwal seminar untuk ${ruanganCount} ruangan telah berhasil disimpan ke database.`,
+                                            text: `Jadwal seminar untuk ${match ? match[1] : 'jadwal'} ruangan telah berhasil disimpan ke database.`,
                                             icon: 'success',
                                             confirmButtonText: 'OK',
                                             confirmButtonColor: '#10b981'
                                         });
-                                    }
-                                    // Check untuk error message
-                                    else if (messageText.includes('Gagal') || messageText.includes(
-                                            'Error') || messageText.includes('error')) {
+                                    } else if (messageText.includes('Gagal') || messageText
+                                        .includes('Error') || messageText.includes('error')) {
                                         window.__jadwalSaveInProgress = false;
-                                        Swal.close(); // Close loading alert
-
+                                        Swal.close();
                                         Swal.fire({
                                             title: 'Gagal Menyimpan Jadwal',
-                                            text: messageText.substring(0,
-                                                200
-                                            ), // Ambil 200 char pertama sebagai detail error
+                                            text: messageText.substring(0, 200),
                                             icon: 'error',
                                             confirmButtonText: 'OK'
                                         });
@@ -3039,8 +2484,7 @@
                     }
                 });
             });
-
-            observer.observe(chatBox, {
+            observer.observe(chatBoxForObserver, {
                 childList: true,
                 subtree: true
             });
