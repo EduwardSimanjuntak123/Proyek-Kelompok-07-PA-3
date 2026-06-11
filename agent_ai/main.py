@@ -260,3 +260,39 @@ if __name__ == "__main__":
         logger.info("=" * 80)
         logger.info("CLI MODE FAILED")
         logger.info("=" * 80)
+
+        # Tambahkan wrapper untuk run_agent_chat
+def run_agent_chat_safe(prompt, user_id, dosen_context, conversation_history, request_data):
+    """
+    Wrapper untuk run_agent_chat dengan error handling
+    """
+    try:
+        from main import run_agent_chat as original_run_agent_chat
+        
+        result = original_run_agent_chat(
+            prompt=prompt,
+            user_id=user_id,
+            dosen_context=dosen_context,
+            conversation_history=conversation_history,
+            request_data=request_data
+        )
+        
+        # Ensure result has required fields
+        if not isinstance(result, dict):
+            return {
+                "success": False,
+                "result": str(result),
+                "action": None
+            }
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in run_agent_chat: {str(e)}")
+        logger.error(traceback.format_exc())
+        return {
+            "success": False,
+            "result": f"Maaf, terjadi kesalahan saat memproses permintaan: {str(e)}",
+            "action": None,
+            "error": str(e)
+        }

@@ -1,9 +1,9 @@
 """
-Handler untuk Form Grouping - FIXED v6 (State Persistence)
+Handler untuk Form Grouping - FIXED v8 (Sederhana, tanpa Clear button)
 Perbaikan:
-- State form tersimpan di localStorage
-- Radio button dan card selection sinkron
-- Form restore saat dimuat ulang
+- Hanya 2 tombol: Reset All dan Generate
+- Textarea tidak tersimpan di localStorage
+- Textarea selalu kosong saat form dimuat
 """
 
 import json
@@ -43,11 +43,16 @@ _FORM_SCRIPT = """
     /* ── Storage keys ─────────────────────────────────────────────── */
     var STORAGE_KEY = 'gf_form_state';
     
-    /* ── State management ─────────────────────────────────────────── */
+    /* ── State management (tanpa constraints) ─────────────────────── */
     
     function saveFormState(state) {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            // Hanya simpan method dan group_range, TIDAK constraints
+            var stateToSave = {
+                method: state.method,
+                group_range: state.group_range
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
         } catch(e) {
             console.warn('Failed to save form state:', e);
         }
@@ -68,12 +73,10 @@ _FORM_SCRIPT = """
     function getCurrentFormState(form) {
         var method = getChecked("gf_method") || "auto";
         var rangeVal = getChecked("gf_group_range") || "3-5";
-        var constraints = form.querySelector(".gf-constraints") ? form.querySelector(".gf-constraints").value : "";
         
         return {
             method: method,
             group_range: rangeVal,
-            constraints: constraints,
             timestamp: Date.now()
         };
     }
@@ -91,14 +94,6 @@ _FORM_SCRIPT = """
         var rangeInput = form.querySelector('input[name="gf_group_range"][value="' + state.group_range + '"]');
         if (rangeInput) {
             rangeInput.checked = true;
-        }
-        
-        // Restore constraints text
-        if (state.constraints !== undefined) {
-            var textarea = form.querySelector(".gf-constraints");
-            if (textarea) {
-                textarea.value = state.constraints;
-            }
         }
         
         // Refresh visual cards
@@ -145,10 +140,6 @@ _FORM_SCRIPT = """
     }
 
     /* ── Helpers ─────────────────────────────────────────────────── */
-
-    function getEl(id) {
-        return document.getElementById(id);
-    }
 
     function getChecked(name) {
         var node = document.querySelector(
@@ -200,7 +191,6 @@ _FORM_SCRIPT = """
     
     function onMethodChange() {
         refreshMethodCards();
-        // Save state after change
         var form = document.querySelector('.grouping-config-form');
         if (form) {
             var state = getCurrentFormState(form);
@@ -210,16 +200,6 @@ _FORM_SCRIPT = """
     
     function onRangeChange() {
         refreshRangeCards();
-        // Save state after change
-        var form = document.querySelector('.grouping-config-form');
-        if (form) {
-            var state = getCurrentFormState(form);
-            saveFormState(state);
-        }
-    }
-    
-    // Function to save constraints on input
-    function onConstraintsChange() {
         var form = document.querySelector('.grouping-config-form');
         if (form) {
             var state = getCurrentFormState(form);
@@ -343,7 +323,7 @@ _FORM_SCRIPT = """
         }
     }
 
-    /* ── Reset form ───────────────────────────────────────────────────── */
+    /* ── Reset form (semua ke default) ──────────────────────────────────── */
 
     function resetForm(form) {
         // Reset method ke default
@@ -358,15 +338,18 @@ _FORM_SCRIPT = """
             defaultRange.checked = true;
         }
         
-        // Reset textarea
+        // Reset textarea (permintaan khusus) ke kosong
         var textarea = form.querySelector(".gf-constraints");
-        if (textarea) textarea.value = "";
+        if (textarea) {
+            textarea.value = "";
+        }
         
         // Refresh visual
         refreshAllCards();
         
-        // Clear saved state
-        localStorage.removeItem(STORAGE_KEY);
+        // Save current state (tanpa constraints)
+        var state = getCurrentFormState(form);
+        saveFormState(state);
         
         showNotification('Form telah direset ke default', 'info');
     }
@@ -449,20 +432,19 @@ _FORM_SCRIPT = """
         // Attach events
         attachCardEvents();
         
-        // Attach save event for textarea
-        var textarea = form.querySelector(".gf-constraints");
-        if (textarea) {
-            textarea.removeEventListener('input', onConstraintsChange);
-            textarea.addEventListener('input', onConstraintsChange);
-        }
-        
-        // Try to restore saved state
+        // Try to restore saved state (hanya method dan group_range)
         var savedState = loadFormState();
         if (savedState) {
             restoreFormState(form, savedState);
         } else {
             // Ensure default selections are visually correct
             refreshAllCards();
+        }
+        
+        // PASTIKAN textarea KOSONG saat form dimuat
+        var textarea = form.querySelector(".gf-constraints");
+        if (textarea) {
+            textarea.value = "";
         }
     }
     
@@ -581,7 +563,7 @@ class GroupingFormHandler:
         </div>
         <div>
             <p class="gf-head-title">Konfigurasi Kelompok</p>
-            <p class="gf-head-sub">PA - {kategori_pa}</p>
+            <p class="gf-head-sub">{total_label} • {kategori_pa}</p>
         </div>
     </div>
 

@@ -1,10 +1,13 @@
 """
 FastAPI endpoint untuk integrasi dengan UI Laravel
 Menghubungkan agent grouping dengan Laravel Kelompok Management System
+FIXED VERSION - Dengan error handling yang robust
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import json
@@ -113,8 +116,45 @@ class MongoJSONEncoder(JSONEncoder):
         return super().default(o)
 
 
-app = FastAPI(title="Agent Grouping API", version="1.0.0")
+app = FastAPI(title="Agent Grouping API", version="2.0.0")
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MIDDLEWARE
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Ganti dengan domain Laravel Anda di production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Custom middleware untuk error handling
+class ErrorHandlingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        try:
+            response = await call_next(request)
+            return response
+        except Exception as e:
+            logger.error(f"Unhandled exception: {str(e)}")
+            logger.error(traceback.format_exc())
+            return safe_json_response({
+                "success": False,
+                "result": f"Server error: {str(e)}",
+                "error_type": "internal_server_error"
+            }, status_code=500)
+
+
+app.add_middleware(ErrorHandlingMiddleware)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# UTILITY FUNCTIONS
+# ─────────────────────────────────────────────────────────────────────────────
 
 def convert_mongo_objects(obj):
     """Recursively convert MongoDB objects to JSON-serializable types"""
@@ -128,6 +168,10 @@ def convert_mongo_objects(obj):
         return obj.isoformat()
     return obj
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PYDANTIC MODELS
+# ─────────────────────────────────────────────────────────────────────────────
 
 class DosenContext(BaseModel):
     user_id: int
@@ -156,6 +200,10 @@ class GroupData(BaseModel):
     members: List[GroupMember]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# HEALTH & STATUS ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
+
 @app.get("/health")
 async def health_check():
     try:
@@ -175,6 +223,171 @@ async def health_check():
         })
 
 
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """
+    Detailed health check for debugging
+    """
+    status = {
+        "status": "ok",
+        "service": "agent-grouping",
+        "version": "2.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "checks": {}
+    }
+    
+    # Check Redis
+    try:
+        redis_mem = get_redis_manager()
+        redis_stats = redis_mem.get_stats()
+        status["checks"]["redis"] = {"connected": True, "stats": redis_stats}
+    except Exception as e:
+        status["checks"]["redis"] = {"connected": False, "error": str(e)}
+        status["status"] = "degraded"
+    
+    # Check MongoDB
+    try:
+        mongo_mem = get_mongo_memory()
+        is_connected = mongo_mem.is_connected()
+        status["checks"]["mongodb"] = {"connected": is_connected}
+        if not is_connected:
+            status["status"] = "degraded"
+    except Exception as e:
+        status["checks"]["mongodb"] = {"connected": False, "error": str(e)}
+        status["status"] = "degraded"
+    
+    # Check database connection
+    try:
+        from core.database import SessionLocal
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        db.close()
+        status["checks"]["database"] = {"connected": True}
+    except Exception as e:
+        status["checks"]["database"] = {"connected": False, "error": str(e)}
+        status["status"] = "degraded"
+    
+    return safe_json_response(status)
+
+
+@app.get("/mongodb-status")
+async def mongodb_status():
+    try:
+        mongo_mem = get_mongo_memory()
+        return safe_json_response({
+            "status": "ok",
+            "mongodb_connected": mongo_mem.is_connected(),
+            "service": "mongodb-memory",
+            "database": "VokasiTeraDB",
+            "collections": [
+                "sessions", "planner_logs", "executor_logs",
+                "metrics", "memory_store", "messages"
+            ]
+        })
+    except Exception as e:
+        logger.error(f"MongoDB status check error: {str(e)}")
+        return safe_json_response({"status": "error", "error": str(e)}, status_code=500)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SESSION MANAGEMENT ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/clear-session/{user_id}")
+async def clear_user_session(user_id: int):
+    """
+    Clear all session data for a user when switching features
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        logger.info(f"[{trace_id}] Clearing user session data")
+        
+        # Clear Redis
+        redis_mem = get_redis_manager()
+        redis_mem.delete_context(user_id)
+        
+        # Clear session state
+        if hasattr(redis_mem, 'set_session_state'):
+            redis_mem.set_session_state(user_id, {})
+        
+        # Optional: Clear MongoDB messages for this session only
+        mongo_mem = get_mongo_memory()
+        # Don't delete all history, just mark session as ended
+        try:
+            mongo_mem.update_session(user_id, {
+                "session_ended": True,
+                "ended_at": datetime.now().isoformat()
+            })
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not update MongoDB session: {e}")
+        
+        logger.info(f"[{trace_id}] Session cleared successfully")
+        
+        return safe_json_response({
+            "success": True,
+            "message": f"Session for user {user_id} cleared",
+            "trace_id": trace_id
+        })
+        
+    except Exception as e:
+        logger.error(f"[{trace_id}] Error clearing session: {str(e)}")
+        logger.error(traceback.format_exc())
+        return safe_json_response({
+            "success": False, 
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+@app.get("/debug/session/{user_id}")
+async def debug_user_session(user_id: int):
+    """
+    Debug endpoint to check session state
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        redis_mem = get_redis_manager()
+        mongo_mem = get_mongo_memory()
+        
+        # Get Redis context
+        redis_context = redis_mem.load_context(user_id)
+        
+        # Get session state
+        session_state = redis_context.get("session_state", {})
+        
+        # Get recent messages from MongoDB
+        try:
+            recent_messages = mongo_mem.get_conversation_history(user_id, days=1, limit=10)
+            messages_count = len(recent_messages)
+        except Exception as e:
+            messages_count = 0
+            logger.warning(f"[{trace_id}] Could not fetch MongoDB messages: {e}")
+        
+        return safe_json_response({
+            "success": True,
+            "user_id": user_id,
+            "redis_context": {
+                "messages_count": len(redis_context.get("messages", [])),
+                "session_state": session_state,
+                "preferences": redis_context.get("preferences", {})
+            },
+            "mongodb_recent_messages": messages_count,
+            "trace_id": trace_id
+        })
+        
+    except Exception as e:
+        logger.error(f"[{trace_id}] Debug error: {str(e)}")
+        return safe_json_response({
+            "success": False,
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN AGENT ENDPOINT
+# ─────────────────────────────────────────────────────────────────────────────
+
 @app.post("/agent")
 async def agent_endpoint(request: GenerateGroupingRequest):
     """
@@ -188,31 +401,52 @@ async def agent_endpoint(request: GenerateGroupingRequest):
     try:
         logger.info(f"[{trace_id}] API Request: '{request.prompt[:50]}...'")
 
+        # Validate input
+        if not request.prompt or not request.prompt.strip():
+            return safe_json_response({
+                "success": False,
+                "result": "Prompt tidak boleh kosong",
+                "error_type": "invalid_input",
+                "trace_id": trace_id
+            }, status_code=400)
+
         redis_mem = get_redis_manager()
         mongo_mem = get_mongo_memory()
 
-        chat_context = redis_mem.load_context(request.user_id)
-        conversation_history = chat_context.get("messages", [])[-20:]
-        user_prefs = chat_context.get("preferences", {})
-        session_state = chat_context.get("session_state", {})
+        # Load chat context with error handling
+        try:
+            chat_context = redis_mem.load_context(request.user_id)
+            conversation_history = chat_context.get("messages", [])[-20:]
+            user_prefs = chat_context.get("preferences", {})
+            session_state = chat_context.get("session_state", {})
+            logger.debug(f"[{trace_id}] Chat context loaded: {len(conversation_history)} messages from Redis")
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not load Redis context: {e}")
+            conversation_history = []
+            user_prefs = {}
+            session_state = {}
 
-        logger.debug(f"[{trace_id}] Chat context loaded: {len(conversation_history)} messages from Redis")
+        # Initialize MongoDB session if needed
+        try:
+            if not session_state.get("mongo_session_id"):
+                session_data = {
+                    "user_id": request.user_id,
+                    "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else [],
+                    "start_time": datetime.now()
+                }
+                session_id = mongo_mem.create_session(request.user_id, session_data)
+                session_state["mongo_session_id"] = session_id
+                redis_mem.set_session_state(request.user_id, session_state)
+            else:
+                mongo_mem.update_session(request.user_id, {
+                    "user_id": request.user_id,
+                    "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else []
+                })
+        except Exception as e:
+            logger.warning(f"[{trace_id}] MongoDB session error: {e}")
+            # Continue without MongoDB - not critical
 
-        if not session_state.get("mongo_session_id"):
-            session_data = {
-                "user_id": request.user_id,
-                "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else [],
-                "start_time": __import__('datetime').datetime.now()
-            }
-            session_id = mongo_mem.create_session(request.user_id, session_data)
-            session_state["mongo_session_id"] = session_id
-            redis_mem.set_session_state(request.user_id, session_state)
-        else:
-            mongo_mem.update_session(request.user_id, {
-                "user_id": request.user_id,
-                "dosen_context": [d.dict() for d in request.dosen_context] if request.dosen_context else []
-            })
-
+        # Prepare dosen context
         dosen_context = []
         for dosen in request.dosen_context:
             dosen_context.append({
@@ -232,21 +466,40 @@ async def agent_endpoint(request: GenerateGroupingRequest):
                 "angkatan": dosen.get("angkatan"),
                 "user_id": dosen.get("user_id")
             })
-            redis_mem.set_session_state(request.user_id, session_state)
+            try:
+                redis_mem.set_session_state(request.user_id, session_state)
+            except Exception as e:
+                logger.warning(f"[{trace_id}] Could not save session state: {e}")
 
-        mongo_mem.store_message(
-            request.user_id, "user", request.prompt,
-            metadata={"source": "api", "timestamp": __import__('datetime').datetime.now().isoformat()}
-        )
+        # Store user message in MongoDB (non-critical)
+        try:
+            mongo_mem.store_message(
+                request.user_id, "user", request.prompt,
+                metadata={"source": "api", "timestamp": datetime.now().isoformat()}
+            )
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not store user message: {e}")
 
-        agent_result = run_agent_chat(
-            prompt=request.prompt,
-            user_id=request.user_id,
-            dosen_context=dosen_context,
-            conversation_history=conversation_history,
-            request_data=request.request_data or {}
-        )
+        # Call agent with error handling
+        try:
+            agent_result = run_agent_chat(
+                prompt=request.prompt,
+                user_id=request.user_id,
+                dosen_context=dosen_context,
+                conversation_history=conversation_history,
+                request_data=request.request_data or {}
+            )
+        except Exception as e:
+            logger.error(f"[{trace_id}] Agent execution error: {str(e)}")
+            logger.error(traceback.format_exc())
+            return safe_json_response({
+                "success": False,
+                "result": f"Gagal memproses permintaan: {str(e)}",
+                "error_type": "agent_execution_error",
+                "trace_id": trace_id
+            }, status_code=500)
 
+        # Check for database connection error
         if is_database_connection_error(agent_result.get("result", "")) or \
            is_database_connection_error(agent_result.get("error", "")):
             logger.error(f"[{trace_id}] Database connection issue detected in agent response")
@@ -257,52 +510,65 @@ async def agent_endpoint(request: GenerateGroupingRequest):
                 "trace_id": trace_id,
             }, status_code=503)
 
-        redis_mem.add_message(request.user_id, "user", request.prompt)
+        # Store assistant response
+        try:
+            redis_mem.add_message(request.user_id, "user", request.prompt)
+            assistant_response = agent_result.get("result", "")
+            redis_mem.add_message(request.user_id, "assistant", assistant_response)
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not store messages in Redis: {e}")
 
-        assistant_response = agent_result.get("result", "")
-        redis_mem.add_message(request.user_id, "assistant", assistant_response)
+        try:
+            mongo_mem.store_message(
+                request.user_id, "assistant", assistant_response,
+                metadata={
+                    "action": agent_result.get("action"),
+                    "model": "gpt-4",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not store assistant message: {e}")
 
-        mongo_mem.store_message(
-            request.user_id, "assistant", assistant_response,
-            metadata={
-                "action": agent_result.get("action"),
-                "model": "gpt-4",
-                "timestamp": __import__('datetime').datetime.now().isoformat()
-            }
-        )
-
+        # Log actions
         action = agent_result.get("action")
         if action:
-            redis_mem.set_last_action(request.user_id, action)
-            mongo_mem.log_executor_action(
-                request.user_id, action,
-                {
-                    "prompt": request.prompt,
-                    "action_result": agent_result.get("grouping_payload") or
-                                     agent_result.get("pembimbing_payload") or
-                                     agent_result.get("jadwal_meta")
-                },
-                status="success"
-            )
+            try:
+                redis_mem.set_last_action(request.user_id, action)
+                mongo_mem.log_executor_action(
+                    request.user_id, action,
+                    {
+                        "prompt": request.prompt,
+                        "action_result": agent_result.get("grouping_payload") or
+                                         agent_result.get("pembimbing_payload") or
+                                         agent_result.get("jadwal_meta")
+                    },
+                    status="success"
+                )
+            except Exception as e:
+                logger.warning(f"[{trace_id}] Could not log action: {e}")
 
-        mongo_mem.record_metric(
-            request.user_id, "response_quality",
-            1 if agent_result.get("success") else 0,
-            tags={"action": action, "timestamp": datetime.now().isoformat()}
-        )
-
-        response_time_ms = (time.time() - start_time) * 1000
-        mongo_mem.record_metric(
-            request.user_id, "response_time_ms", response_time_ms,
-            tags={"action": action, "timestamp": datetime.now().isoformat()}
-        )
-
-        if action:
+        # Record metrics
+        try:
+            response_time_ms = (time.time() - start_time) * 1000
             mongo_mem.record_metric(
-                request.user_id, "action_count", 1,
-                tags={"action_type": action, "timestamp": datetime.now().isoformat()}
+                request.user_id, "response_time_ms", response_time_ms,
+                tags={"action": action, "timestamp": datetime.now().isoformat()}
             )
+            mongo_mem.record_metric(
+                request.user_id, "response_quality",
+                1 if agent_result.get("success") else 0,
+                tags={"action": action, "timestamp": datetime.now().isoformat()}
+            )
+            if action:
+                mongo_mem.record_metric(
+                    request.user_id, "action_count", 1,
+                    tags={"action_type": action, "timestamp": datetime.now().isoformat()}
+                )
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Could not record metrics: {e}")
 
+        # JSON backup (non-critical)
         try:
             memory = ConversationMemory(str(request.user_id))
             full_context = redis_mem.load_context(request.user_id)
@@ -336,11 +602,15 @@ async def agent_endpoint(request: GenerateGroupingRequest):
         logger.error(f"[{trace_id}] Traceback:\n{traceback.format_exc()}")
         return safe_json_response({
             "success": False,
-            "result": f"Error: {str(e)}",
+            "result": f"Terjadi kesalahan: {str(e)}",
             "trace_id": trace_id,
             "error": str(e)
         }, status_code=500)
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HISTORY & ANALYTICS ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/conversation-history/{user_id}")
 async def get_conversation_history(user_id: int):
@@ -355,6 +625,28 @@ async def get_conversation_history(user_id: int):
             "history": history
         })
     except Exception as e:
+        logger.error(f"[{trace_id}] Error: {str(e)}")
+        return safe_json_response({"success": False, "error": str(e)}, status_code=500)
+
+
+@app.get("/long-term-history/{user_id}")
+async def get_long_term_history(user_id: int, days: int = 30, limit: int = 100):
+    trace_id = f"user_{user_id}"
+    try:
+        logger.info(f"[{trace_id}] Fetching long-term history ({days} days, {limit} messages)")
+        mongo_mem = get_mongo_memory()
+        history = mongo_mem.get_conversation_history(user_id, days=days)
+        history = history[:limit]
+        return safe_json_response({
+            "success": True,
+            "user_id": user_id,
+            "message_count": len(history),
+            "period_days": days,
+            "history": history,
+            "trace_id": trace_id
+        })
+    except Exception as e:
+        logger.error(f"[{trace_id}] Long-term history error: {str(e)}")
         return safe_json_response({"success": False, "error": str(e)}, status_code=500)
 
 
@@ -406,27 +698,6 @@ async def get_user_analytics(user_id: int):
         return safe_json_response({"success": False, "error": str(e)}, status_code=500)
 
 
-@app.get("/long-term-history/{user_id}")
-async def get_long_term_history(user_id: int, days: int = 30, limit: int = 100):
-    trace_id = f"user_{user_id}"
-    try:
-        logger.info(f"[{trace_id}] Fetching long-term history ({days} days, {limit} messages)")
-        mongo_mem = get_mongo_memory()
-        history = mongo_mem.get_conversation_history(user_id, days=days)
-        history = history[:limit]
-        return safe_json_response({
-            "success": True,
-            "user_id": user_id,
-            "message_count": len(history),
-            "period_days": days,
-            "history": history,
-            "trace_id": trace_id
-        })
-    except Exception as e:
-        logger.error(f"[{trace_id}] Long-term history error: {str(e)}")
-        return safe_json_response({"success": False, "error": str(e)}, status_code=500)
-
-
 @app.get("/metrics/{user_id}/{metric_type}")
 async def get_user_metrics(user_id: int, metric_type: str, days: int = 7):
     trace_id = f"user_{user_id}"
@@ -470,24 +741,9 @@ async def get_execution_logs(user_id: int, limit: int = 50):
         return safe_json_response({"success": False, "error": str(e)}, status_code=500)
 
 
-@app.get("/mongodb-status")
-async def mongodb_status():
-    try:
-        mongo_mem = get_mongo_memory()
-        return safe_json_response({
-            "status": "ok",
-            "mongodb_connected": mongo_mem.is_connected(),
-            "service": "mongodb-memory",
-            "database": "VokasiTeraDB",
-            "collections": [
-                "sessions", "planner_logs", "executor_logs",
-                "metrics", "memory_store", "messages"
-            ]
-        })
-    except Exception as e:
-        logger.error(f"MongoDB status check error: {str(e)}")
-        return safe_json_response({"status": "error", "error": str(e)}, status_code=500)
-
+# ─────────────────────────────────────────────────────────────────────────────
+# DELETE ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
 
 @app.delete("/conversation-history/{user_id}")
 async def clear_conversation_history(user_id: int):
@@ -504,10 +760,39 @@ async def clear_conversation_history(user_id: int):
             "message": f"Conversation history for user {user_id} cleared (Redis + JSON)"
         })
     except Exception as e:
+        logger.error(f"[{trace_id}] Error: {str(e)}")
         return safe_json_response({"success": False, "error": str(e)}, status_code=500)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN ENTRY POINT
+# ─────────────────────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     import uvicorn
+    print("=" * 60)
     print("Starting FastAPI server for Agent Grouping with MongoDB...")
-    uvicorn.run("api:app", host="127.0.0.1", port=8002, reload=True, log_level="info")
+    print("Version: 2.0.0 (Fixed with robust error handling)")
+    print("=" * 60)
+    print("Endpoints available:")
+    print("  - GET  /health")
+    print("  - GET  /health/detailed")
+    print("  - POST /agent")
+    print("  - POST /clear-session/{user_id}")
+    print("  - GET  /debug/session/{user_id}")
+    print("  - GET  /conversation-history/{user_id}")
+    print("  - GET  /long-term-history/{user_id}")
+    print("  - GET  /analytics/{user_id}")
+    print("  - GET  /metrics/{user_id}/{metric_type}")
+    print("  - GET  /execution-logs/{user_id}")
+    print("  - GET  /mongodb-status")
+    print("  - DELETE /conversation-history/{user_id}")
+    print("=" * 60)
+    uvicorn.run(
+        "api:app", 
+        host="127.0.0.1", 
+        port=8002, 
+        reload=True, 
+        log_level="info",
+        reload_dirs=["."]
+    )
