@@ -253,13 +253,12 @@ def format_grouping_result(grouping_result: dict) -> str:
     for group in groups:
         result_html += f"<h3>Kelompok {group.get('group_number')}</h3>"
         result_html += "<table border='1' cellpadding='8' cellspacing='0' style='width:100%; border-collapse:collapse;'>"
-        result_html += "<thead style='background-color:#f2f2f2;'><tr><th>NIM</th><th>Nama</th><th>Angkatan</th><th>User ID</th></tr></thead><tbody>"
+        result_html += "<thead style='background-color:#f2f2f2;'><tr><th>NIM</th><th>Nama</th><th>Angkatan</th></tr></thead><tbody>"
         for member in group.get("members", []):
             result_html += "<tr>"
             result_html += f"<td>{_format_cell_value(member.get('nim'))}</td>"
             result_html += f"<td>{_format_cell_value(member.get('nama'))}</td>"
             result_html += f"<td>{_format_cell_value(member.get('angkatan'))}</td>"
-            result_html += f"<td>{_format_cell_value(member.get('user_id'))}</td>"
             result_html += "</tr>"
         result_html += "</tbody></table>"
 

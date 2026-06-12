@@ -93,141 +93,147 @@ class AgentKelompokController extends Controller
     }
 
     public function callAgent(Request $request)
-    {
-       
-        $traceId = Str::uuid();
-           
-        try {
-            Log::info("[$traceId] === START GENERATE AI ===");
+{
+    $traceId = Str::uuid();
 
-            $userId = session('user_id');
-            $prompt = $request->input('prompt');
+    try {
+        Log::info("[$traceId] === START GENERATE AI ===");
 
-            Log::info("[$traceId] User ID:", ['user_id' => $userId]);
-            Log::info("[$traceId] Prompt:", ['prompt' => $prompt]);
+        $userId = session('user_id');
+        $prompt = $request->input('prompt');
 
-            $roles = DosenRole::with('role', 'kategoriPA', 'tahunMasuk', 'prodi')
-                ->where('user_id', $userId)
-                ->get();
+        Log::info("[$traceId] User ID:", ['user_id' => $userId]);
+        Log::info("[$traceId] Prompt:", ['prompt' => $prompt]);
 
-            Log::info("[$traceId] Roles Count:", ['count' => $roles->count()]);
+        $roles = DosenRole::with('role', 'kategoriPA', 'tahunMasuk', 'prodi')
+            ->where('user_id', $userId)
+            ->get();
 
-            $payload = [];
+        Log::info("[$traceId] Roles Count:", ['count' => $roles->count()]);
 
-            foreach ($roles as $r) {
-                $item = [
-                    "user_id" => $r->user_id,
-                    "angkatan" => $r->TahunMasuk->id ?? null,
-                    "prodi" => $r->prodi->nama_prodi ?? null,
-                    "prodi_id" => $r->prodi->id ?? null,
-                    "role" => $r->role->role_name ?? null,
-                    "kategori_pa" => $r->kategoriPA->id ?? null
-                ];
+        $payload = [];
 
-                $payload[] = $item;
-                Log::info("[$traceId] Role Item:", $item);
-            }
-
-            // Ambil jadwal_meta dan jadwal_entries dari request frontend
-            // agar Python agent bisa restore preview state antar request.
-            $jadwalMeta    = $request->input('jadwal_meta');
-            $jadwalEntries = $request->input('jadwal_entries');
-
-            $finalPayload = [
-                "prompt"         => $prompt,
-                "dosen_context"  => $payload,
-                "user_id"        => $userId,
-                "request_data"   => [
-                    "jadwal_meta"    => $jadwalMeta,
-                    "jadwal_entries" => $jadwalEntries,
-                ],
+        foreach ($roles as $r) {
+            $item = [
+                "user_id" => $r->user_id,
+                "angkatan" => $r->TahunMasuk->id ?? null,
+                "prodi" => $r->prodi->nama_prodi ?? null,
+                "prodi_id" => $r->prodi->id ?? null,
+                "role" => $r->role->role_name ?? null,
+                "kategori_pa" => $r->kategoriPA->id ?? null
             ];
 
-            Log::info("[$traceId] Final Payload:", $finalPayload);
-            Log::info("[$traceId] Sending request to AI Agent API...");
+            $payload[] = $item;
+        }
 
-            $response = Http::connectTimeout(5)
-                ->timeout(600)
-                ->retry(2, 500)
-                ->post('http://127.0.0.1:8002/agent', $finalPayload);
+        $jadwalMeta    = $request->input('jadwal_meta');
+        $jadwalEntries = $request->input('jadwal_entries');
 
-            Log::info(" respons :", ['response' => $response]);
+        $finalPayload = [
+            "prompt" => $prompt,
+            "dosen_context" => $payload,
+            "user_id" => $userId,
+            "request_data" => [
+                "jadwal_meta" => $jadwalMeta,
+                "jadwal_entries" => $jadwalEntries,
+            ],
+        ];
 
-            Log::info("[$traceId] Agent API Status:", ['status' => $response->status()]);
-            // dd($response->body());
-            if (!$response->successful()) {
-                $friendlyMessage = 'Layanan agent sedang bermasalah. Silakan coba lagi beberapa saat.';
+        Log::info("[$traceId] Final Payload:", $finalPayload);
 
-                if ($response->status() >= 500) {
-                    $friendlyMessage = 'Layanan agent sedang tidak tersedia. Silakan coba lagi beberapa saat.';
-                } elseif ($response->status() === 404) {
-                    $friendlyMessage = 'Layanan agent tidak ditemukan. Periksa konfigurasi integrasinya.';
-                }
+        // ===============================
+        // ✅ FIX BAGIAN INI (NO HARDCODE)
+        // ===============================
 
-                Log::error("[$traceId] FastAPI ERROR RESPONSE", [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
+        $baseUrl = config('agent.base_url');
+        $endpoint = config('agent.endpoint', '/agent');
 
-                return response()->json([
-                    'success' => false,
-                    'error_type' => 'agent_http_error',
-                    'http_status' => $response->status(),
-                    'trace_id' => $traceId,
-                    'result' => $friendlyMessage
-                ]);
+        $url = rtrim($baseUrl, '/') . $endpoint;
+
+        $response = Http::connectTimeout(config('agent.connect_timeout', 5))
+            ->timeout(config('agent.timeout', 600))
+            ->retry(
+                config('agent.retry_times', 2),
+                config('agent.retry_delay', 500)
+            )
+            ->post($url, $finalPayload);
+
+        Log::info("[$traceId] Agent Response Status:", [
+            'status' => $response->status()
+        ]);
+
+        if (!$response->successful()) {
+
+            $friendlyMessage = 'Layanan agent sedang bermasalah. Silakan coba lagi beberapa saat.';
+
+            if ($response->status() >= 500) {
+                $friendlyMessage = 'Layanan agent sedang tidak tersedia. Silakan coba lagi beberapa saat.';
+            } elseif ($response->status() === 404) {
+                $friendlyMessage = 'Layanan agent tidak ditemukan. Periksa konfigurasi integrasinya.';
             }
 
-            $data = $response->json();
-            Log::info("[$traceId] FastAPI Response:", $data);
-
-            Log::info("[$traceId] === END GENERATE AI ===");
-
-            return response()->json([
-                'success'          => true,
-                'result'           => $data['result']           ?? '',
-                'action'           => $data['action']           ?? null,
-                'grouping_payload' => $data['grouping_payload'] ?? null,
-                'grouping_meta'    => $data['grouping_meta']    ?? null,
-                'pembimbing_payload' => $data['pembimbing_payload'] ?? null,
-                'pembimbing_meta'  => $data['pembimbing_meta']  ?? null,
-                'penguji_payload'  => $data['penguji_payload']  ?? null,
-                'penguji_meta'     => $data['penguji_meta']     ?? null,
-                'jadwal_stage'     => $data['jadwal_stage']     ?? null,
-                'jadwal_entries'   => $data['jadwal_entries']   ?? null,
-                // Kembalikan jadwal_meta agar frontend menyimpannya
-                // dan mengirimkannya kembali di request berikutnya.
-                'jadwal_meta'      => $data['jadwal_meta']      ?? $jadwalMeta ?? null,
-            ]);
-
-        } catch (ConnectionException $e) {
-            Log::error("[$traceId] AGENT CONNECTION ERROR", [
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
+            Log::error("[$traceId] FASTAPI ERROR", [
+                'status' => $response->status(),
+                'body' => $response->body()
             ]);
 
             return response()->json([
                 'success' => false,
-                'error_type' => 'agent_connection_error',
+                'error_type' => 'agent_http_error',
+                'http_status' => $response->status(),
                 'trace_id' => $traceId,
-                'result' => 'Layanan agent tidak dapat dihubungi. Silakan coba lagi beberapa saat.'
-            ]);
-        } catch (\Throwable $e) {
-            Log::error("[$traceId] EXCEPTION ERROR", [
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'error_type' => 'agent_unexpected_error',
-                'trace_id' => $traceId,
-                'result' => 'Terjadi kesalahan saat memproses permintaan agent. Silakan coba lagi beberapa saat.'
+                'result' => $friendlyMessage
             ]);
         }
+
+        $data = $response->json();
+
+        Log::info("[$traceId] FastAPI Response:", $data);
+
+        return response()->json([
+            'success' => true,
+            'result' => $data['result'] ?? '',
+            'action' => $data['action'] ?? null,
+            'grouping_payload' => $data['grouping_payload'] ?? null,
+            'grouping_meta' => $data['grouping_meta'] ?? null,
+            'pembimbing_payload' => $data['pembimbing_payload'] ?? null,
+            'pembimbing_meta' => $data['pembimbing_meta'] ?? null,
+            'penguji_payload' => $data['penguji_payload'] ?? null,
+            'penguji_meta' => $data['penguji_meta'] ?? null,
+            'jadwal_stage' => $data['jadwal_stage'] ?? null,
+            'jadwal_entries' => $data['jadwal_entries'] ?? null,
+            'jadwal_meta' => $data['jadwal_meta'] ?? $jadwalMeta ?? null,
+        ]);
+
+    } catch (ConnectionException $e) {
+
+        Log::error("[$traceId] CONNECTION ERROR", [
+            'message' => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error_type' => 'agent_connection_error',
+            'trace_id' => $traceId,
+            'result' => 'Layanan agent tidak dapat dihubungi. Silakan coba lagi beberapa saat.'
+        ]);
+
+    } catch (\Throwable $e) {
+
+        Log::error("[$traceId] EXCEPTION ERROR", [
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error_type' => 'agent_unexpected_error',
+            'trace_id' => $traceId,
+            'result' => 'Terjadi kesalahan saat memproses permintaan agent.'
+        ]);
     }
+}
 
     public function cekKelompok(Request $request)
     {

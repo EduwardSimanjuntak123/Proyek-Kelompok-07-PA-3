@@ -554,6 +554,8 @@ Route::prefix('ai-agent')->group(function () {
     Route::get('/error-statistics', [ErrorLogController::class, 'getStatistics'])
     ->middleware(['auth', 'role:admin']);
 
+    Route::get('/debug', [AgentKelompokController::class, 'debugAgent']);
+
     // Analytics Dashboard
     // Route::get('/analytics', [AgentAnalyticsController::class, 'dashboard'])
     //     ->name('agent.analytics.dashboard');

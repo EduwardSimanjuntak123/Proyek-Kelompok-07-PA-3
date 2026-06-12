@@ -1,13 +1,28 @@
 """
-Handler untuk Form Grouping - FIXED v8 (Sederhana, tanpa Clear button)
-Perbaikan:
-- Hanya 2 tombol: Reset All dan Generate
-- Textarea tidak tersimpan di localStorage
-- Textarea selalu kosong saat form dimuat
+Handler untuk Form Grouping - FIXED v11 (Per-instance scoped, no cross-form leakage)
+
+Perbaikan utama dari v10:
+- Setiap render form mendapat UID unik (id, for, dan data-uid).
+  Sebelumnya id seperti "m_auto", "r_3_5" diduplikasi di setiap render,
+  sehingga <label for="m_auto"> pada form BARU bisa men-toggle radio
+  pada form LAMA (karena id duplikat -> browser ambil elemen pertama
+  dengan id tsb di seluruh dokumen).
+- Semua query JS (getChecked, querySelectorAll cards, reset, dsb) di-scope
+  ke form yang bersangkutan (pakai form.querySelector / closest),
+  bukan document.querySelector global. Sebelumnya getChecked() global
+  bisa membaca state dari form SEBELUMNYA yang masih ada di DOM/histori chat.
+- Inisialisasi (reset + attach events) berjalan untuk SETIAP form baru yang
+  belum di-init (ditandai data-gf-init), bukan hanya form pertama yang
+  ditemukan di document.
+- Submit & Reset handler membaca/menulis nilai HANYA dari form terdekat
+  (closest('.grouping-config-form')) sehingga generate selalu memakai
+  data dari form yang baru diklik, walaupun ada form lama di atasnya
+  pada riwayat chat yang sama.
 """
 
 import json
 import re
+import uuid
 from typing import Dict, List
 
 NIM_PATTERN = r'(?:nim\s*)?(\d{5,})'
@@ -40,119 +55,30 @@ _FORM_SCRIPT = """
 (function () {
     "use strict";
 
-    /* ── Storage keys ─────────────────────────────────────────────── */
-    var STORAGE_KEY = 'gf_form_state';
-    
-    /* ── State management (tanpa constraints) ─────────────────────── */
-    
-    function saveFormState(state) {
-        try {
-            // Hanya simpan method dan group_range, TIDAK constraints
-            var stateToSave = {
-                method: state.method,
-                group_range: state.group_range
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-        } catch(e) {
-            console.warn('Failed to save form state:', e);
-        }
-    }
-    
-    function loadFormState() {
-        try {
-            var saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                return JSON.parse(saved);
-            }
-        } catch(e) {
-            console.warn('Failed to load form state:', e);
-        }
-        return null;
-    }
-    
-    function getCurrentFormState(form) {
-        var method = getChecked("gf_method") || "auto";
-        var rangeVal = getChecked("gf_group_range") || "3-5";
-        
-        return {
-            method: method,
-            group_range: rangeVal,
-            timestamp: Date.now()
-        };
-    }
-    
-    function restoreFormState(form, state) {
-        if (!state) return false;
-        
-        // Restore method
-        var methodInput = form.querySelector('input[name="gf_method"][value="' + state.method + '"]');
-        if (methodInput) {
-            methodInput.checked = true;
-        }
-        
-        // Restore group range
-        var rangeInput = form.querySelector('input[name="gf_group_range"][value="' + state.group_range + '"]');
-        if (rangeInput) {
-            rangeInput.checked = true;
-        }
-        
-        // Refresh visual cards
-        refreshMethodCards();
-        refreshRangeCards();
-        
-        return true;
-    }
+    /* ── TIDAK MENGGUNAKAN LOCALSTORAGE ───────────────────────────── */
+    /* Setiap form FRESH / RESET ke default, dan SELALU di-scope ke   */
+    /* form instance-nya sendiri (tidak bocor antar form di chat).    */
 
-    /* ── Helper untuk SweetAlert dengan fallback ─────────────────────────── */
-    
-    function showConfirmDialog(options) {
-        return new Promise(function(resolve, reject) {
-            if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
-                Swal.fire(options).then(function(result) {
-                    resolve(result);
-                }).catch(function(error) {
-                    console.warn('SweetAlert error:', error);
-                    showNativeConfirm(options).then(resolve);
-                });
-            } else {
-                console.warn('SweetAlert tidak tersedia, menggunakan confirm biasa');
-                showNativeConfirm(options).then(resolve);
-            }
-        });
-    }
-    
-    function showNativeConfirm(options) {
-        return new Promise(function(resolve) {
-            var message = '';
-            if (options.html) {
-                var tempDiv = document.createElement('div');
-                tempDiv.innerHTML = options.html;
-                message = tempDiv.textContent || tempDiv.innerText || '';
-            } else if (options.text) {
-                message = options.text;
-            } else if (options.title) {
-                message = options.title;
-            }
-            
-            var confirmed = confirm(message + '\\n\\nKlik OK untuk melanjutkan, Cancel untuk membatalkan.');
-            resolve({ isConfirmed: confirmed });
-        });
-    }
-
-    /* ── Helpers ─────────────────────────────────────────────────── */
-
-    function getChecked(name) {
-        var node = document.querySelector(
+    /* ── Helper: ambil radio yang dicentang DI DALAM form tertentu ── */
+    function getChecked(form, name) {
+        var node = form.querySelector(
             'input[name="' + name + '"]:checked'
         );
         return node ? node.value : null;
     }
 
-    /* ── Card highlight ──────────────────────────────────────────── */
+    function preventEventBubble(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }
 
-    function refreshMethodCards() {
-        var val = getChecked("gf_method");
-        document.querySelectorAll(".gf-method-card").forEach(function (card) {
+    /* ── Card highlight (scoped ke form) ────────────────────────────── */
+
+    function refreshMethodCards(form) {
+        var val = getChecked(form, "gf_method");
+        form.querySelectorAll(".gf-method-card").forEach(function (card) {
             var input = card.querySelector("input");
             if (input) {
                 card.classList.toggle("selected", input.value === val);
@@ -160,51 +86,54 @@ _FORM_SCRIPT = """
         });
     }
 
-    function refreshRangeCards() {
-        var val = getChecked("gf_group_range");
-        document.querySelectorAll(".gf-range-card").forEach(function (card) {
+    function refreshRangeCards(form) {
+        var val = getChecked(form, "gf_group_range");
+        form.querySelectorAll(".gf-range-card").forEach(function (card) {
             var input = card.querySelector("input");
             if (input) {
                 card.classList.toggle("selected", input.value === val);
             }
         });
     }
-    
-    function refreshAllCards() {
-        refreshMethodCards();
-        refreshRangeCards();
+
+    function refreshAllCards(form) {
+        refreshMethodCards(form);
+        refreshRangeCards(form);
     }
 
-    /* ── Event listeners untuk cards ───────────────────────────────── */
-    
-    function attachCardEvents() {
-        document.querySelectorAll('input[name="gf_method"]').forEach(function (r) {
-            r.removeEventListener("change", onMethodChange);
-            r.addEventListener("change", onMethodChange);
+    /* ── Event listeners (scoped ke form) ───────────────────────────── */
+
+    function attachCardEvents(form) {
+        form.querySelectorAll('input[name="gf_method"]').forEach(function (r) {
+            r.addEventListener("change", function (e) {
+                if (e) e.stopPropagation();
+                refreshMethodCards(form);
+            });
+            r.addEventListener("click", preventEventBubble);
         });
 
-        document.querySelectorAll('input[name="gf_group_range"]').forEach(function (r) {
-            r.removeEventListener("change", onRangeChange);
-            r.addEventListener("change", onRangeChange);
+        form.querySelectorAll('input[name="gf_group_range"]').forEach(function (r) {
+            r.addEventListener("change", function (e) {
+                if (e) e.stopPropagation();
+                refreshRangeCards(form);
+            });
+            r.addEventListener("click", preventEventBubble);
         });
-    }
-    
-    function onMethodChange() {
-        refreshMethodCards();
-        var form = document.querySelector('.grouping-config-form');
-        if (form) {
-            var state = getCurrentFormState(form);
-            saveFormState(state);
-        }
-    }
-    
-    function onRangeChange() {
-        refreshRangeCards();
-        var form = document.querySelector('.grouping-config-form');
-        if (form) {
-            var state = getCurrentFormState(form);
-            saveFormState(state);
-        }
+
+        form.querySelectorAll(".gf-method-card, .gf-range-card").forEach(function (card) {
+            card.addEventListener("click", function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                var radio = card.querySelector('input[type="radio"]');
+                if (radio && !radio.checked) {
+                    radio.checked = true;
+                    var changeEvent = new Event('change', { bubbles: false });
+                    radio.dispatchEvent(changeEvent);
+                }
+                return false;
+            });
+        });
     }
 
     /* ── Normalize constraints ───────────────────────────────────── */
@@ -307,7 +236,7 @@ _FORM_SCRIPT = """
             console.warn('Tombol send tidak ditemukan');
         }
     }
-    
+
     function showNotification(message, type) {
         if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
             Swal.fire({
@@ -323,138 +252,178 @@ _FORM_SCRIPT = """
         }
     }
 
-    /* ── Reset form (semua ke default) ──────────────────────────────────── */
+    /* ── Reset form ke default (FRESH, scoped ke form) ──────────────── */
 
-    function resetForm(form) {
-        // Reset method ke default
+    function resetFormToDefault(form) {
         var defaultMethod = form.querySelector('input[name="gf_method"][value="auto"]');
         if (defaultMethod) {
             defaultMethod.checked = true;
         }
-        
-        // Reset range ke default
+
         var defaultRange = form.querySelector('input[name="gf_group_range"][value="3-5"]');
         if (defaultRange) {
             defaultRange.checked = true;
         }
-        
-        // Reset textarea (permintaan khusus) ke kosong
+
         var textarea = form.querySelector(".gf-constraints");
         if (textarea) {
             textarea.value = "";
         }
-        
-        // Refresh visual
-        refreshAllCards();
-        
-        // Save current state (tanpa constraints)
-        var state = getCurrentFormState(form);
-        saveFormState(state);
-        
-        showNotification('Form telah direset ke default', 'info');
+
+        refreshAllCards(form);
     }
 
-    /* ── Reset button handler ───────────────────────────────────── */
+    /* ── Reset button handler (scoped via closest) ─────────────────── */
 
     document.addEventListener("click", function (e) {
         var resetBtn = e.target.closest(".gf-reset-btn");
-        if (!resetBtn) return;
-
-        var form = resetBtn.closest(".grouping-config-form");
-        if (form) {
-            resetForm(form);
+        if (resetBtn) {
+            preventEventBubble(e);
+            var form = resetBtn.closest(".grouping-config-form");
+            if (form) {
+                resetFormToDefault(form);
+                showNotification('Form telah direset ke default', 'info');
+            }
+            return false;
         }
     });
 
-    /* ── Submit handler ──────────────────────────────────────────────────── */
+    /* ── Submit handler (scoped via closest) ────────────────────────── */
 
     document.addEventListener("click", function (e) {
         var submitBtn = e.target.closest(".gf-submit-btn");
-        if (!submitBtn) return;
+        if (submitBtn) {
+            preventEventBubble(e);
 
-        var form = submitBtn.closest(".grouping-config-form");
-        if (!form) return;
+            var form = submitBtn.closest(".grouping-config-form");
+            if (!form) return false;
 
-        var method = getChecked("gf_method") || "auto";
-        var rangeVal = getChecked("gf_group_range") || "3-5";
-        var parts = rangeVal.split("-");
-        var minSize = parseInt(parts[0], 10);
-        var maxSize = parseInt(parts[1], 10);
-        
-        if (isNaN(minSize) || isNaN(maxSize) || minSize > maxSize) {
-            showNotification('Ukuran kelompok tidak valid', 'error');
-            return;
+            // Ambil nilai HANYA dari form yang baru diklik ini
+            var method = getChecked(form, "gf_method") || "auto";
+            var rangeVal = getChecked(form, "gf_group_range") || "3-5";
+            var parts = rangeVal.split("-");
+            var minSize = parseInt(parts[0], 10);
+            var maxSize = parseInt(parts[1], 10);
+
+            if (isNaN(minSize) || isNaN(maxSize) || minSize > maxSize) {
+                showNotification('Ukuran kelompok tidak valid', 'error');
+                return false;
+            }
+
+            var ta = form.querySelector(".gf-constraints");
+            var rawConstraints = ta ? ta.value.trim() : "";
+            var constraints = normalize(rawConstraints);
+            var prompt = buildPrompt(method, minSize, maxSize, constraints);
+
+            var payload = {
+                method: method,
+                min_size: minSize,
+                max_size: maxSize,
+                constraints: constraints,
+                prompt: prompt,
+            };
+
+            var metodeTeks = method === "by_grades" ? "Berdasarkan nilai" : "Acak otomatis";
+            var ukuranTeks = minSize + " - " + maxSize + " orang per kelompok";
+            var constraintHtml = constraints ? "<br><b>Permintaan khusus:</b> " + constraints.split("\\n").join(", ") : "";
+
+            showConfirmDialog({
+                icon: "question",
+                title: "Konfirmasi konfigurasi",
+                html: '<div style="font-size:13px;line-height:1.9;color:#374151">' +
+                      "<b>Metode:</b> " + metodeTeks + "<br>" +
+                      "<b>Ukuran kelompok:</b> " + ukuranTeks +
+                      constraintHtml + "</div>",
+                confirmButtonText: "Generate kelompok",
+                confirmButtonColor: "#4C9BC8",
+                showCancelButton: true,
+                cancelButtonText: "Batal",
+                cancelButtonColor: "#9ca3af",
+                reverseButtons: true
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    sendToChat(prompt, payload);
+                }
+            });
+
+            return false;
         }
+    });
 
-        var ta = form.querySelector(".gf-constraints");
-        var rawConstraints = ta ? ta.value.trim() : "";
-        var constraints = normalize(rawConstraints);
-        var prompt = buildPrompt(method, minSize, maxSize, constraints);
-
-        var payload = {
-            method: method,
-            min_size: minSize,
-            max_size: maxSize,
-            constraints: constraints,
-            prompt: prompt,
-        };
-
-        var metodeTeks = method === "by_grades" ? "Berdasarkan nilai" : "Acak otomatis";
-        var ukuranTeks = minSize + " - " + maxSize + " orang per kelompok";
-        var constraintHtml = constraints ? "<br><b>Permintaan khusus:</b> " + constraints.split("\\n").join(", ") : "";
-
-        showConfirmDialog({
-            icon: "question",
-            title: "Konfirmasi konfigurasi",
-            html: '<div style="font-size:13px;line-height:1.9;color:#374151">' +
-                  "<b>Metode:</b> " + metodeTeks + "<br>" +
-                  "<b>Ukuran kelompok:</b> " + ukuranTeks +
-                  constraintHtml + "</div>",
-            confirmButtonText: "Generate kelompok",
-            confirmButtonColor: "#4C9BC8",
-            showCancelButton: true,
-            cancelButtonText: "Batal",
-            cancelButtonColor: "#9ca3af",
-            reverseButtons: true
-        }).then(function (result) {
-            if (result.isConfirmed) {
-                sendToChat(prompt, payload);
+    function showConfirmDialog(options) {
+        return new Promise(function(resolve, reject) {
+            if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+                Swal.fire(options).then(function(result) {
+                    resolve(result);
+                }).catch(function(error) {
+                    console.warn('SweetAlert error:', error);
+                    showNativeConfirm(options).then(resolve);
+                });
+            } else {
+                console.warn('SweetAlert tidak tersedia, menggunakan confirm biasa');
+                showNativeConfirm(options).then(resolve);
             }
         });
-    });
-    
-    /* ── Initialization ─────────────────────────────────────────────────── */
-    
-    function initForm() {
-        var form = document.querySelector('.grouping-config-form');
-        if (!form) return;
-        
-        // Attach events
-        attachCardEvents();
-        
-        // Try to restore saved state (hanya method dan group_range)
-        var savedState = loadFormState();
-        if (savedState) {
-            restoreFormState(form, savedState);
-        } else {
-            // Ensure default selections are visually correct
-            refreshAllCards();
-        }
-        
-        // PASTIKAN textarea KOSONG saat form dimuat
-        var textarea = form.querySelector(".gf-constraints");
-        if (textarea) {
-            textarea.value = "";
+    }
+
+    function showNativeConfirm(options) {
+        return new Promise(function(resolve) {
+            var message = '';
+            if (options.html) {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = options.html;
+                message = tempDiv.textContent || tempDiv.innerText || '';
+            } else if (options.text) {
+                message = options.text;
+            } else if (options.title) {
+                message = options.title;
+            }
+
+            var confirmed = confirm(message + '\\n\\nKlik OK untuk melanjutkan, Cancel untuk membatalkan.');
+            resolve({ isConfirmed: confirmed });
+        });
+    }
+
+    /* ── Inisialisasi: init SEMUA form baru yang belum di-init ──────── */
+
+    function initAllForms() {
+        var forms = document.querySelectorAll('.grouping-config-form:not([data-gf-init])');
+        forms.forEach(function (form) {
+            form.setAttribute('data-gf-init', '1');
+
+            try {
+                localStorage.removeItem('gf_form_state');
+            } catch (e) {
+                console.warn('Could not clear localStorage:', e);
+            }
+
+            resetFormToDefault(form);
+            attachCardEvents(form);
+        });
+
+        if (forms.length > 0) {
+            var currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            setTimeout(function() {
+                window.scrollTo(0, currentScroll);
+            }, 10);
         }
     }
-    
-    // Run initialization when DOM is ready
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initForm);
+        document.addEventListener('DOMContentLoaded', initAllForms);
     } else {
-        initForm();
+        initAllForms();
     }
-    
+
+    // Jaga-jaga: kalau form baru disuntikkan ke DOM setelah load
+    // (misal lewat re-render chat tanpa full reload), pantau perubahan DOM.
+    if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function () {
+            initAllForms();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
 })();
 </script>
 """
@@ -517,6 +486,13 @@ class GroupingFormHandler:
             else "Data mahasiswa tersedia"
         )
 
+        # UID unik per render -> id/for tidak akan bertabrakan antar
+        # form yang muncul berulang di riwayat chat yang sama.
+        uid = uuid.uuid4().hex[:8]
+
+        def fid(base: str) -> str:
+            return f"{base}_{uid}"
+
         html_part = f"""
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -538,13 +514,13 @@ class GroupingFormHandler:
 .gf-method-card{{align-items:flex-start}}
 .gf-method-card:hover,.gf-range-card:hover{{border-color:#4C9BC8;background:#E6F1FB;transform:translateY(-1px)}}
 .gf-method-card.selected,.gf-range-card.selected{{border-color:#4C9BC8;background:#E6F1FB;box-shadow:0 2px 4px rgba(76,155,200,0.1)}}
-.gf-method-card input,.gf-range-card input{{accent-color:#4C9BC8;flex-shrink:0;margin-top:2px}}
+.gf-method-card input,.gf-range-card input{{accent-color:#4C9BC8;flex-shrink:0;margin-top:2px;cursor:pointer}}
 .gf-range-card input{{margin-top:0}}
-.gf-card-title{{font-size:13px;font-weight:500;color:#111827;margin:0}}
-.gf-card-desc{{font-size:12px;color:#6b7280;margin:2px 0 0}}
+.gf-card-title{{font-size:13px;font-weight:500;color:#111827;margin:0;cursor:pointer}}
+.gf-card-desc{{font-size:12px;color:#6b7280;margin:2px 0 0;cursor:pointer}}
 .gf-method-card.selected .gf-card-title{{color:#185FA5}}
 .gf-range-card.selected span{{color:#185FA5;font-weight:500}}
-.gf-range-card span{{font-size:13px;color:#374151}}
+.gf-range-card span{{font-size:13px;color:#374151;cursor:pointer}}
 .gf-hint{{font-size:12px;color:#6b7280;margin:0 0 8px;line-height:1.6}}
 .gf-hint code{{font-size:11px;background:#f3f4f6;padding:1px 5px;border-radius:4px;font-family:monospace}}
 .gf-textarea{{width:100%;padding:10px;border:0.5px solid #d1d5db;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;color:#374151;background:#fff;outline:none;line-height:1.5;min-height:76px}}
@@ -556,7 +532,7 @@ class GroupingFormHandler:
 .gf-submit-btn:hover{{background:#185FA5;transform:translateY(-1px);box-shadow:0 2px 8px rgba(76,155,200,0.3)}}
 </style>
 
-<div class="gf-wrap" data-component="grouping-form">
+<div class="gf-wrap" data-component="grouping-form" data-uid="{uid}">
     <div class="gf-head">
         <div class="gf-head-icon">
             <i class="ti ti-users-group" aria-hidden="true"></i>
@@ -568,15 +544,15 @@ class GroupingFormHandler:
     </div>
 
     <div class="gf-body">
-        <form class="grouping-config-form" onsubmit="return false">
+        <form class="grouping-config-form" data-uid="{uid}" onsubmit="return false">
             <div class="gf-section">
                 <p class="gf-section-label">
                     <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
                     Metode pembagian
                 </p>
 
-                <label class="gf-method-card selected" for="m_auto">
-                    <input type="radio" id="m_auto" name="gf_method" value="auto" checked>
+                <label class="gf-method-card selected" for="{fid('m_auto')}">
+                    <input type="radio" id="{fid('m_auto')}" name="gf_method" value="auto" checked>
                     <div>
                         <p class="gf-card-title">
                             <i class="ti ti-shuffle" style="font-size:14px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>
@@ -586,8 +562,8 @@ class GroupingFormHandler:
                     </div>
                 </label>
 
-                <label class="gf-method-card" for="m_grades">
-                    <input type="radio" id="m_grades" name="gf_method" value="by_grades">
+                <label class="gf-method-card" for="{fid('m_grades')}">
+                    <input type="radio" id="{fid('m_grades')}" name="gf_method" value="by_grades">
                     <div>
                         <p class="gf-card-title">
                             <i class="ti ti-chart-bar" style="font-size:14px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>
@@ -606,23 +582,23 @@ class GroupingFormHandler:
                     Jumlah anggota per kelompok
                 </p>
 
-                <label class="gf-range-card selected" for="r_3_5">
-                    <input type="radio" id="r_3_5" name="gf_group_range" value="3-5" checked>
+                <label class="gf-range-card selected" for="{fid('r_3_5')}">
+                    <input type="radio" id="{fid('r_3_5')}" name="gf_group_range" value="3-5" checked>
                     <span>3 - 5 orang per kelompok</span>
                 </label>
 
-                <label class="gf-range-card" for="r_4_5">
-                    <input type="radio" id="r_4_5" name="gf_group_range" value="4-5">
+                <label class="gf-range-card" for="{fid('r_4_5')}">
+                    <input type="radio" id="{fid('r_4_5')}" name="gf_group_range" value="4-5">
                     <span>4 - 5 orang per kelompok</span>
                 </label>
 
-                <label class="gf-range-card" for="r_4_6">
-                    <input type="radio" id="r_4_6" name="gf_group_range" value="4-6">
+                <label class="gf-range-card" for="{fid('r_4_6')}">
+                    <input type="radio" id="{fid('r_4_6')}" name="gf_group_range" value="4-6">
                     <span>4 - 6 orang per kelompok</span>
                 </label>
 
-                <label class="gf-range-card" for="r_5_6">
-                    <input type="radio" id="r_5_6" name="gf_group_range" value="5-6">
+                <label class="gf-range-card" for="{fid('r_5_6')}">
+                    <input type="radio" id="{fid('r_5_6')}" name="gf_group_range" value="5-6">
                     <span>5 - 6 orang per kelompok</span>
                 </label>
             </div>
