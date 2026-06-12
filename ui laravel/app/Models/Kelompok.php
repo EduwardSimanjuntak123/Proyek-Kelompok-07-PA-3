@@ -14,6 +14,10 @@ class Kelompok extends Model
     {
         return $this->hasMany(Nilai_Mahasiswa::class, 'kelompok_id');
     }
+    public function judulPA()
+{
+    return $this->hasOne(JudulProyekAkhir::class, 'kelompok_id');
+}
 
     public function anggota()
 {
