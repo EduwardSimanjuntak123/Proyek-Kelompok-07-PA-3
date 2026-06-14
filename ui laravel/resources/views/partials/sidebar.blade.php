@@ -834,6 +834,15 @@
                                 Artefak</a>
                         </div>
                     </li>
+                    <li class="nav-item {{ request()->routeIs('judul.*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('judul.index') }}">
+                            <i class="fas fa-file"></i><span>Judul Proyek Akhir</span>
+                        </a>
+                        <div class="mini-flyout">
+                            <a class="flyout-link" href="{{ route('judul.index') }}"><i class="fas fa-file"></i>
+                                Judul Proyek Akhir</a>
+                        </div>
+                    </li>
                     <li class="nav-item {{ request()->routeIs('bimbingan.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('bimbingan.index') }}">
                             <i class="fas fa-list"></i><span>Bimbingan</span>

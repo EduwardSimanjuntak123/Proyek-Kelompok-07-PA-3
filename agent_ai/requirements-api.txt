@@ -24,3 +24,4 @@ ragas
 datasets
 langchain-community
 rapidfuzz
+datasets

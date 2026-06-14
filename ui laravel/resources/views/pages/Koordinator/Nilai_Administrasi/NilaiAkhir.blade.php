@@ -24,7 +24,11 @@
                                                 <th>Kelompok</th>
                                                 <th>Nama</th>
                                                 <th>NIM</th>
-                                                <th>Nilai AKhir</th>
+                                                <th>Nilai Administrasi 10%</th>
+                                                <th>Nilai Pameran 5%</th>
+                                                <th>Nilai Seminar 45%</th>
+                                                <th>Nilai Bimbingan 40%</th>
+                                                <th>Nilai Akhir</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -36,6 +40,10 @@
                                                     <td>{{ $nilai->nomor_kelompok ?? '-' }}</td>
                                                     <td>{{ $mhs['nama'] ?? '-' }}</td>
                                                     <td>{{ $mhs['nim'] ?? '-' }}</td>
+                                                    <td>{{ $nilai->Administrasi ?? 0 }}</td>
+                                                    <td>{{ $nilai->Pameran ?? 0 }}</td>
+                                                    <td>{{ $nilai->nilai_seminar ?? 0 }}</td>
+                                                    <td>{{ number_format($nilai->rata_bimbingan ?? 0, 2) }}</td>
                                                     <td>{{ number_format($nilai->nilai_akhir, 2) }}</td>
                                                 </tr>
                                             @endforeach

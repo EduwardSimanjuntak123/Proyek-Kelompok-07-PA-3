@@ -1,7 +1,7 @@
 {
   "metrics": {
-    "faithfulness": 0.8048752834467121,
-    "answer_relevancy": 0.7050043886198873,
+    "faithfulness": 0.816780045351474,
+    "answer_relevancy": 0.711741403216174,
     "context_relevance": 0.9642857142857143
   },
   "raw": {
@@ -9,13 +9,13 @@
       {
         "question": "Apa tujuan proyek akhir?",
         "faithfulness": 0.7142857142857143,
-        "answer_relevance": 0.5927414732952436,
+        "answer_relevance": 0.5927613489022423,
         "context_relevance": 1.0
       },
       {
         "question": "Apa saja pihak-pihak yang terlibat dalam pelaksanaan Proyek Akhir?",
         "faithfulness": 0.8,
-        "answer_relevance": 0.9536671069518031,
+        "answer_relevance": 0.9536581724715404,
         "context_relevance": 1.0
       },
       {
@@ -27,13 +27,13 @@
       {
         "question": "Siapa yang menjadi peserta PA-2 menurut pedoman?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.8378125402738469,
+        "answer_relevance": 0.7921553377756196,
         "context_relevance": 1.0
       },
       {
         "question": "Siapa yang menjadi peserta PA-3 menurut pedoman?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.8428642043941638,
+        "answer_relevance": 0.8428031919997944,
         "context_relevance": 1.0
       },
       {
@@ -45,19 +45,19 @@
       {
         "question": "Apa saja kewajiban pembimbing PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.6660399879476986,
+        "answer_relevance": 0.666048879704445,
         "context_relevance": 1.0
       },
       {
         "question": "Apa saja hak pembimbing PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.5568552123093112,
+        "answer_relevance": 0.5567632029387451,
         "context_relevance": 1.0
       },
       {
         "question": "Apa isi tahap inisiasi proyek pada timeline PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.47321373657718363,
+        "answer_relevance": 0.5467501235619593,
         "context_relevance": 1.0
       },
       {
@@ -74,20 +74,20 @@
       },
       {
         "question": "Berapa jumlah mahasiswa maksimal dalam satu kelompok PA-2 dan PA-3?",
-        "faithfulness": 0.0,
-        "answer_relevance": 0.9032769511834321,
+        "faithfulness": 1.0,
+        "answer_relevance": 0.9032579850965364,
         "context_relevance": 1.0
       },
       {
         "question": "Apa hasil keputusan seminar PA menurut pedoman?",
         "faithfulness": 0.6666666666666666,
-        "answer_relevance": 0.6609913578785597,
+        "answer_relevance": 0.6609736583976293,
         "context_relevance": 1.0
       },
       {
         "question": "Siapa yang menilai seminar PA?",
         "faithfulness": 0.5,
-        "answer_relevance": 0.9175012128435155,
+        "answer_relevance": 0.775152417231553,
         "context_relevance": 1.0
       },
       {
@@ -99,55 +99,55 @@
       {
         "question": "Apa itu Proyek Akhir menurut pedoman?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.8113044243127322,
+        "answer_relevance": 0.811373779581785,
         "context_relevance": 1.0
       },
       {
         "question": "Apa saja fase pengembangan produk PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.8051298712133926,
+        "answer_relevance": 0.8051457792425271,
         "context_relevance": 1.0
       },
       {
         "question": "Apa yang dilakukan pada fase requirement gathering?",
         "faithfulness": 0.8,
-        "answer_relevance": 0.8607897282478203,
+        "answer_relevance": 0.8607758541328634,
         "context_relevance": 1.0
       },
       {
         "question": "Apa yang dilakukan pada fase desain PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.7365268815373024,
+        "answer_relevance": 0.7365065736539359,
         "context_relevance": 1.0
       },
       {
         "question": "Apa yang dilakukan pada fase implementasi PA?",
-        "faithfulness": 1.0,
+        "faithfulness": 0.3333333333333333,
         "answer_relevance": 0.7359929936658028,
         "context_relevance": 1.0
       },
       {
         "question": "Apa yang dilakukan pada fase pengujian PA?",
         "faithfulness": 0.6666666666666666,
-        "answer_relevance": 0.48099929805160274,
+        "answer_relevance": 0.481041688436812,
         "context_relevance": 1.0
       },
       {
         "question": "Apa hasil fase rilis dan pemeliharaan PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.5363669165528382,
+        "answer_relevance": 0.7908205880122793,
         "context_relevance": 1.0
       },
       {
         "question": "Apa saja dokumen yang dikumpulkan saat seminar PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.7441625077730557,
+        "answer_relevance": 0.7491389772547595,
         "context_relevance": 1.0
       },
       {
         "question": "Berapa batas waktu pengiriman kelengkapan artefak PA sebelum seminar?",
         "faithfulness": 0.6666666666666666,
-        "answer_relevance": 0.6721352810995137,
+        "answer_relevance": 0.6721051685148186,
         "context_relevance": 1.0
       },
       {
@@ -159,7 +159,7 @@
       {
         "question": "Berapa lama maksimal pelaksanaan seminar PA?",
         "faithfulness": 1.0,
-        "answer_relevance": 0.8251384906284623,
+        "answer_relevance": 0.8689208648576573,
         "context_relevance": 1.0
       },
       {

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BimbinganController;
 use App\Http\Controllers\dashboard_Controller;
+use App\Http\Controllers\Judul_Controller;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\Histori_Controller;
@@ -406,6 +407,10 @@ Route::prefix('NilaiIndividu')->group(function () {
 
 });
 //artefak untuk mahasiswa
+Route::prefix('judul')->group(function () {
+    Route::get('/judul', [Judul_Controller::class, 'index'])->name('judul.index');
+    Route::get('/create', [Judul_Controller::class, 'create'])->name('judul.create');
+});
 Route::prefix('artefak')->group(function () {
     //untuk artefak->navbar
     Route::get('/Artefak', [Artefak_Controller::class, 'Artefak'])->name('artefak.index');
