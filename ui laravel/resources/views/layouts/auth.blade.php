@@ -87,7 +87,7 @@
                 @yield('content')
 
                 <div class="simple-footer mt-4">
-                    Copyright &copy; Kelompok 05 {{ date('Y') }}
+                    Copyright &copy; Kelompok 07 {{ date('Y') }}
                 </div>
             </div>
         </div>

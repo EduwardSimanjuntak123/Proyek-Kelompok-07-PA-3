@@ -8,8 +8,8 @@
         position: fixed;
         top: 0;
         left: 0;
-        z-index: 100;
-        transition: width 0.3s ease;
+        z-index: 1040;
+        transition: width 0.3s ease, transform 0.3s ease;
         overflow: visible !important;
     }
 
@@ -31,6 +31,49 @@
     }
 
     /* ══════════════════════════════════════
+       TOMBOL CLOSE (mobile)
+    ══════════════════════════════════════ */
+    .sidebar-close-btn {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 10;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .sidebar-close-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ══════════════════════════════════════
+       OVERLAY BACKDROP (mobile)
+    ══════════════════════════════════════ */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1039;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* ══════════════════════════════════════
        SIDEBAR MENU DASAR
     ══════════════════════════════════════ */
     .sidebar-menu {
@@ -44,7 +87,6 @@
         width: 100%;
     }
 
-    /* ── DROPDOWN LEVEL 1 ── */
     .sidebar-menu .dropdown-menu {
         display: none;
         position: static !important;
@@ -59,7 +101,6 @@
         overflow: hidden;
     }
 
-    /* ── MULTI-LEVEL: level-1-menu ── */
     .sidebar-menu .level-1-menu {
         list-style: none;
         padding: 0;
@@ -70,7 +111,6 @@
         width: 100%;
     }
 
-    /* ── DROPDOWN SUBMENU ── */
     .sidebar-menu .dropdown-submenu {
         position: relative;
         width: 100%;
@@ -103,7 +143,6 @@
         transform: rotate(90deg);
     }
 
-    /* ── SUBMENU LEVEL 3 ── */
     .sidebar-menu .submenu-level {
         display: none;
         list-style: none;
@@ -132,7 +171,6 @@
         padding-left: 50px;
     }
 
-    /* ── PANAH DROPDOWN LEVEL 1 ── */
     .sidebar-menu .nav-link.has-dropdown {
         position: relative;
         display: flex !important;
@@ -156,7 +194,7 @@
     }
 
     /* ══════════════════════════════════════
-       MODE MINI / COLLAPSED
+       MODE MINI / COLLAPSED (desktop)
     ══════════════════════════════════════ */
     body.sidebar-mini .main-sidebar,
     body.sidebar-gone .main-sidebar {
@@ -228,6 +266,195 @@
         display: none !important;
         max-height: 0 !important;
         overflow: hidden !important;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════════ */
+
+    /* ── TABLET (768px – 1023px): auto mini ── */
+    @media (max-width: 1023px) and (min-width: 768px) {
+        .main-sidebar {
+            width: 60px !important;
+            overflow: visible !important;
+        }
+
+        #sidebar-wrapper {
+            width: 60px !important;
+            overflow: hidden !important;
+        }
+
+        .menu-header {
+            opacity: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .sidebar-brand p,
+        .sidebar-brand .brand-label {
+            display: none !important;
+        }
+
+        .sidebar-brand {
+            justify-content: center !important;
+            padding: 8px 0 !important;
+        }
+
+        .sidebar-brand img {
+            width: 36px !important;
+        }
+
+        .sidebar-menu .nav-link {
+            justify-content: center !important;
+            padding: 14px 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .sidebar-menu .nav-link>span {
+            display: none !important;
+        }
+
+        .sidebar-menu .nav-link i,
+        .sidebar-menu .nav-link img {
+            margin-right: 0 !important;
+            margin: 0 !important;
+        }
+
+        .sidebar-menu .nav-link.has-dropdown::after {
+            display: none !important;
+        }
+
+        .sidebar-menu .dropdown-menu {
+            display: none !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .sidebar-close-btn {
+            display: none !important;
+        }
+
+        /* Konten utama mengikuti */
+        #main-wrapper,
+        .main-content,
+        .page-wrapper {
+            margin-left: 60px !important;
+        }
+    }
+
+    /* ── MOBILE (< 768px): sidebar sebagai drawer ── */
+    @media (max-width: 767px) {
+        .main-sidebar {
+            width: 260px !important;
+            transform: translateX(-100%);
+            z-index: 1040;
+            overflow: visible !important;
+        }
+
+        #sidebar-wrapper {
+            width: 260px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Sidebar terbuka di mobile */
+        .main-sidebar.mobile-open {
+            transform: translateX(0);
+        }
+
+        /* Reset mini mode di mobile */
+        body.sidebar-mini .main-sidebar,
+        body.sidebar-gone .main-sidebar {
+            width: 260px !important;
+            transform: translateX(-100%);
+        }
+
+        body.sidebar-mini .main-sidebar.mobile-open,
+        body.sidebar-gone .main-sidebar.mobile-open {
+            transform: translateX(0);
+        }
+
+        body.sidebar-mini #sidebar-wrapper,
+        body.sidebar-gone #sidebar-wrapper {
+            width: 260px !important;
+        }
+
+        /* Tampilkan teks menu di mobile walaupun sidebar-mini */
+        body.sidebar-mini .sidebar-menu .nav-link,
+        body.sidebar-gone .sidebar-menu .nav-link {
+            justify-content: flex-start !important;
+            padding: 12px 15px !important;
+        }
+
+        body.sidebar-mini .sidebar-menu .nav-link>span,
+        body.sidebar-gone .sidebar-menu .nav-link>span {
+            display: inline !important;
+        }
+
+        body.sidebar-mini .sidebar-menu .nav-link i,
+        body.sidebar-mini .sidebar-menu .nav-link img,
+        body.sidebar-gone .sidebar-menu .nav-link i,
+        body.sidebar-gone .sidebar-menu .nav-link img {
+            margin-right: 8px !important;
+        }
+
+        body.sidebar-mini .sidebar-menu .nav-link.has-dropdown::after,
+        body.sidebar-gone .sidebar-menu .nav-link.has-dropdown::after {
+            display: block !important;
+        }
+
+        body.sidebar-mini .sidebar-menu .dropdown-menu,
+        body.sidebar-gone .sidebar-menu .dropdown-menu {
+            display: none !important;
+            max-height: unset !important;
+            overflow: hidden !important;
+        }
+
+        body.sidebar-mini .menu-header,
+        body.sidebar-gone .menu-header {
+            opacity: 1 !important;
+            height: auto !important;
+            padding: initial !important;
+            pointer-events: auto !important;
+        }
+
+        body.sidebar-mini .sidebar-brand p,
+        body.sidebar-mini .sidebar-brand .brand-label,
+        body.sidebar-gone .sidebar-brand p,
+        body.sidebar-gone .sidebar-brand .brand-label {
+            display: block !important;
+        }
+
+        body.sidebar-mini .sidebar-brand,
+        body.sidebar-gone .sidebar-brand {
+            justify-content: flex-start !important;
+            padding: 8px 15px !important;
+        }
+
+        body.sidebar-mini .sidebar-brand img,
+        body.sidebar-gone .sidebar-brand img {
+            width: 100px !important;
+        }
+
+        /* Konten utama full width di mobile */
+        #main-wrapper,
+        .main-content,
+        .page-wrapper {
+            margin-left: 0 !important;
+        }
+
+        /* Tampilkan tombol close */
+        .sidebar-close-btn {
+            display: flex !important;
+        }
+
+        /* Sembunyikan flyout di mobile */
+        .mini-flyout {
+            display: none !important;
+        }
     }
 
     /* ══════════════════════════════════════
@@ -330,7 +557,13 @@
     }
 </style>
 
+{{-- Overlay backdrop untuk mobile --}}
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="main-sidebar">
+    {{-- Tombol close untuk mobile --}}
+    <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Sidebar">&#x2715;</button>
+
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand mt-3">
             @php
@@ -392,7 +625,6 @@
 
                         <li class="menu-header">Koordinator</li>
 
-                        {{-- Dashboard Koordinator --}}
                         <li class="nav-item {{ request()->routeIs('dashboard.koordinator') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.koordinator') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
@@ -404,7 +636,6 @@
                             </div>
                         </li>
 
-                        {{-- Tugas Koordinator --}}
                         <li class="nav-item {{ request()->routeIs('koordinator.tugas.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('koordinator.tugas.index') }}">
                                 <i class="fas fa-file"></i><span>Tugas</span>
@@ -416,7 +647,6 @@
                             </div>
                         </li>
 
-                        {{-- Kelompok --}}
                         <li class="nav-item {{ request()->routeIs('kelompok.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('kelompok.index') }}">
                                 <i class="fas fa-users"></i><span>Kelompok</span>
@@ -428,7 +658,6 @@
                             </div>
                         </li>
 
-                        {{-- Jadwal Koordinator: hanya aktif di route jadwal.* yang bukan milik penguji/pembimbing/mahasiswa/baak --}}
                         <li
                             class="nav-item {{ request()->routeIs('jadwal.index') || request()->routeIs('jadwal.create') || request()->routeIs('jadwal.edit') || request()->routeIs('jadwal.show') || request()->routeIs('jadwal.store') || request()->routeIs('jadwal.update') || request()->routeIs('jadwal.destroy') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('jadwal.index') }}">
@@ -441,32 +670,8 @@
                             </div>
                         </li>
 
-                        {{-- Pembimbing (menu koordinator): hanya aktif di route pembimbing.index / pembimbing.* kecuali tugas, bimbingan, jadwal, nilai --}}
                         <li
-                            class="nav-item {{ (request()->routeIs('pembimbing.index') ||
-                                request()->routeIs('pembimbing.create') ||
-                                request()->routeIs('pembimbing.store') ||
-                                request()->routeIs('pembimbing.edit') ||
-                                request()->routeIs('pembimbing.update') ||
-                                request()->routeIs('pembimbing.destroy') ||
-                                request()->routeIs('pembimbing.show') ||
-                                request()->routeIs('pembimbing2.index') ||
-                                request()->routeIs('pembimbing2.create') ||
-                                request()->routeIs('pembimbing2.store') ||
-                                request()->routeIs('pembimbing2.edit') ||
-                                request()->routeIs('pembimbing2.update') ||
-                                request()->routeIs('pembimbing2.destroy') ||
-                                request()->routeIs('pembimbing2.show')) &&
-                            !request()->routeIs('pembimbing.tugas.*') &&
-                            !request()->routeIs('pembimbing.bimbingan.*') &&
-                            !request()->routeIs('pembimbing.jadwal.*') &&
-                            !request()->routeIs('pembimbing1.Nilai*') &&
-                            !request()->routeIs('pembimbing2.Nilai*') &&
-                            !request()->routeIs('pembimbing1.NilaiBimbingan*') &&
-                            !request()->routeIs('pembimbing2.NilaiBimbingan*') &&
-                            !request()->routeIs('PembimbingPengajuanSeminar.*')
-                                ? 'active'
-                                : '' }}">
+                            class="nav-item {{ (request()->routeIs('pembimbing.index') || request()->routeIs('pembimbing.create') || request()->routeIs('pembimbing.store') || request()->routeIs('pembimbing.edit') || request()->routeIs('pembimbing.update') || request()->routeIs('pembimbing.destroy') || request()->routeIs('pembimbing.show') || request()->routeIs('pembimbing2.index') || request()->routeIs('pembimbing2.create') || request()->routeIs('pembimbing2.store') || request()->routeIs('pembimbing2.edit') || request()->routeIs('pembimbing2.update') || request()->routeIs('pembimbing2.destroy') || request()->routeIs('pembimbing2.show')) &&!request()->routeIs('pembimbing.tugas.*') &&!request()->routeIs('pembimbing.bimbingan.*') &&!request()->routeIs('pembimbing.jadwal.*') &&!request()->routeIs('pembimbing1.Nilai*') &&!request()->routeIs('pembimbing2.Nilai*') &&!request()->routeIs('pembimbing1.NilaiBimbingan*') &&!request()->routeIs('pembimbing2.NilaiBimbingan*') &&!request()->routeIs('PembimbingPengajuanSeminar.*')? 'active': '' }}">
                             <a href="{{ route('pembimbing.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Pembimbing</span>
                             </a>
@@ -477,30 +682,8 @@
                             </div>
                         </li>
 
-                        {{-- Penguji (menu koordinator): hanya aktif di route penguji.index / penguji.* kecuali tugas, jadwal, nilai --}}
                         <li
-                            class="nav-item {{ (request()->routeIs('penguji.index') ||
-                                request()->routeIs('penguji.create') ||
-                                request()->routeIs('penguji.store') ||
-                                request()->routeIs('penguji.edit') ||
-                                request()->routeIs('penguji.update') ||
-                                request()->routeIs('penguji.destroy') ||
-                                request()->routeIs('penguji.show') ||
-                                request()->routeIs('penguji2.index') ||
-                                request()->routeIs('penguji2.create') ||
-                                request()->routeIs('penguji2.store') ||
-                                request()->routeIs('penguji2.edit') ||
-                                request()->routeIs('penguji2.update') ||
-                                request()->routeIs('penguji2.destroy') ||
-                                request()->routeIs('penguji2.show')) &&
-                            !request()->routeIs('penguji.tugas.*') &&
-                            !request()->routeIs('penguji.jadwal.*') &&
-                            !request()->routeIs('penguji.show.submitan') &&
-                            !request()->routeIs('penguji.feedback.*') &&
-                            !request()->routeIs('penguji1.Nilai*') &&
-                            !request()->routeIs('penguji2.Nilai*')
-                                ? 'active'
-                                : '' }}">
+                            class="nav-item {{ (request()->routeIs('penguji.index') || request()->routeIs('penguji.create') || request()->routeIs('penguji.store') || request()->routeIs('penguji.edit') || request()->routeIs('penguji.update') || request()->routeIs('penguji.destroy') || request()->routeIs('penguji.show') || request()->routeIs('penguji2.index') || request()->routeIs('penguji2.create') || request()->routeIs('penguji2.store') || request()->routeIs('penguji2.edit') || request()->routeIs('penguji2.update') || request()->routeIs('penguji2.destroy') || request()->routeIs('penguji2.show')) && !request()->routeIs('penguji.tugas.*') && !request()->routeIs('penguji.jadwal.*') && !request()->routeIs('penguji.show.submitan') && !request()->routeIs('penguji.feedback.*') && !request()->routeIs('penguji1.Nilai*') && !request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}">
                             <a href="{{ route('penguji.index') }}" class="nav-link">
                                 <i class="fas fa-user"></i><span>Penguji</span>
                             </a>
@@ -511,7 +694,6 @@
                             </div>
                         </li>
 
-                        {{-- Nilai Koordinator --}}
                         <li
                             class="nav-item dropdown {{ request()->routeIs('koordinator.NilaiAdministrasi.*') || request()->routeIs('NilaiAkhir.*') || request()->routeIs('koordinator.NilaiMatkul.*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown">
@@ -525,7 +707,7 @@
                                 </li>
                                 <li>
                                     <a class="nav-link {{ request()->routeIs('NilaiAkhir.*') ? 'active' : '' }}"
-                                        href="{{ route('NilaiAkhir.index') }}">Nilai PA Mahasiswa</a>
+                                        href="{{ route('NilaiAkhir.index') }}">Nilai Akhir PA Mahasiswa</a>
                                 </li>
                             </ul>
                             <div class="mini-flyout">
@@ -539,7 +721,6 @@
                             </div>
                         </li>
 
-                        {{-- Pengumuman Koordinator --}}
                         <li
                             class="nav-item {{ request()->routeIs('pengumuman.index') || request()->routeIs('pengumuman.create') || request()->routeIs('pengumuman.store') || request()->routeIs('pengumuman.edit') || request()->routeIs('pengumuman.update') || request()->routeIs('pengumuman.destroy') || request()->routeIs('pengumuman.show') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pengumuman.index') }}">
@@ -557,7 +738,6 @@
                     @if (in_array(2, $dosenRoles) || in_array(4, $dosenRoles))
                         <li class="menu-header">Penguji</li>
 
-                        {{-- Dashboard Penguji --}}
                         <li class="nav-item {{ request()->routeIs('dashboard.penguji') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.penguji') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
@@ -569,7 +749,6 @@
                             </div>
                         </li>
 
-                        {{-- Tugas Penguji --}}
                         <li
                             class="nav-item {{ request()->routeIs('penguji.tugas.*') || request()->routeIs('penguji.show.submitan') || request()->routeIs('penguji.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('penguji.tugas.index') }}">
@@ -582,7 +761,6 @@
                             </div>
                         </li>
 
-                        {{-- Jadwal Penguji --}}
                         <li class="nav-item {{ request()->routeIs('penguji.jadwal.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('penguji.jadwal.index') }}">
                                 <i class="fas fa-calendar"></i><span>Jadwal</span>
@@ -594,7 +772,6 @@
                             </div>
                         </li>
 
-                        {{-- Nilai Penguji --}}
                         <li
                             class="nav-item dropdown {{ request()->routeIs('penguji1.Nilai*') || request()->routeIs('penguji2.Nilai*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown">
@@ -634,24 +811,20 @@
                                 <span class="flyout-header">Nilai</span>
                                 @if (in_array(2, $dosenRoles))
                                     <span class="flyout-group-title">Dosen Penguji 1</span>
-                                    <a class="flyout-sub-link" href="{{ route('penguji1.NilaiIndividu.index') }}">
-                                        <i class="fas fa-user"></i> Nilai Individu
-                                    </a>
-                                    <a class="flyout-sub-link" href="{{ route('penguji1.NilaiKelompok.index') }}">
-                                        <i class="fas fa-users"></i> Nilai Kelompok
-                                    </a>
+                                    <a class="flyout-sub-link" href="{{ route('penguji1.NilaiIndividu.index') }}"><i
+                                            class="fas fa-user"></i> Nilai Individu</a>
+                                    <a class="flyout-sub-link" href="{{ route('penguji1.NilaiKelompok.index') }}"><i
+                                            class="fas fa-users"></i> Nilai Kelompok</a>
                                 @endif
                                 @if (in_array(2, $dosenRoles) && in_array(4, $dosenRoles))
                                     <div class="flyout-divider"></div>
                                 @endif
                                 @if (in_array(4, $dosenRoles))
                                     <span class="flyout-group-title">Dosen Penguji 2</span>
-                                    <a class="flyout-sub-link" href="{{ route('penguji2.NilaiIndividu.index') }}">
-                                        <i class="fas fa-user"></i> Nilai Individu
-                                    </a>
-                                    <a class="flyout-sub-link" href="{{ route('penguji2.NilaiKelompok.index') }}">
-                                        <i class="fas fa-users"></i> Nilai Kelompok
-                                    </a>
+                                    <a class="flyout-sub-link" href="{{ route('penguji2.NilaiIndividu.index') }}"><i
+                                            class="fas fa-user"></i> Nilai Individu</a>
+                                    <a class="flyout-sub-link" href="{{ route('penguji2.NilaiKelompok.index') }}"><i
+                                            class="fas fa-users"></i> Nilai Kelompok</a>
                                 @endif
                             </div>
                         </li>
@@ -661,7 +834,6 @@
                     @if (in_array(3, $dosenRoles) || in_array(5, $dosenRoles))
                         <li class="menu-header">Pembimbing</li>
 
-                        {{-- Dashboard Pembimbing --}}
                         <li class="nav-item {{ request()->routeIs('dashboard.pembimbing') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('dashboard.pembimbing') }}">
                                 <i class="fas fa-columns"></i><span>Dashboard</span>
@@ -673,7 +845,6 @@
                             </div>
                         </li>
 
-                        {{-- Tugas Pembimbing --}}
                         <li
                             class="nav-item {{ request()->routeIs('pembimbing.tugas.*') || request()->routeIs('pembimbing.show.submitan') || request()->routeIs('pembimbing.feedback.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.tugas.index') }}">
@@ -686,7 +857,6 @@
                             </div>
                         </li>
 
-                        {{-- Bimbingan --}}
                         <li class="nav-item {{ request()->routeIs('pembimbing.bimbingan.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.bimbingan.index') }}">
                                 <i class="fas fa-bullhorn"></i><span>Bimbingan</span>
@@ -698,7 +868,6 @@
                             </div>
                         </li>
 
-                        {{-- Jadwal Pembimbing --}}
                         <li class="nav-item {{ request()->routeIs('pembimbing.jadwal.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('pembimbing.jadwal.index') }}">
                                 <i class="fas fa-calendar"></i><span>Jadwal</span>
@@ -710,14 +879,8 @@
                             </div>
                         </li>
 
-                        {{-- Nilai Seminar Pembimbing --}}
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.NilaiIndividu*') ||
-                            request()->routeIs('pembimbing2.NilaiIndividu*') ||
-                            request()->routeIs('pembimbing1.NilaiKelompok*') ||
-                            request()->routeIs('pembimbing2.NilaiKelompok*')
-                                ? 'active'
-                                : '' }}">
+                            class="nav-item dropdown {{ request()->routeIs('pembimbing1.NilaiIndividu*') || request()->routeIs('pembimbing2.NilaiIndividu*') || request()->routeIs('pembimbing1.NilaiKelompok*') || request()->routeIs('pembimbing2.NilaiKelompok*') ? 'active' : '' }}">
                             <a href="#" class="nav-link has-dropdown">
                                 <i class="fas fa-clipboard-check"></i><span>Nilai Seminar</span>
                             </a>
@@ -755,29 +918,28 @@
                                 <span class="flyout-header">Nilai Seminar</span>
                                 @if (in_array(3, $dosenRoles))
                                     <span class="flyout-group-title">Dosen Pembimbing 1</span>
-                                    <a class="flyout-sub-link" href="{{ route('pembimbing1.NilaiIndividu.index') }}">
-                                        <i class="fas fa-user"></i> Nilai Individu
-                                    </a>
-                                    <a class="flyout-sub-link" href="{{ route('pembimbing1.NilaiKelompok.index') }}">
-                                        <i class="fas fa-users"></i> Nilai Kelompok
-                                    </a>
+                                    <a class="flyout-sub-link"
+                                        href="{{ route('pembimbing1.NilaiIndividu.index') }}"><i
+                                            class="fas fa-user"></i> Nilai Individu</a>
+                                    <a class="flyout-sub-link"
+                                        href="{{ route('pembimbing1.NilaiKelompok.index') }}"><i
+                                            class="fas fa-users"></i> Nilai Kelompok</a>
                                 @endif
                                 @if (in_array(3, $dosenRoles) && in_array(5, $dosenRoles))
                                     <div class="flyout-divider"></div>
                                 @endif
                                 @if (in_array(5, $dosenRoles))
                                     <span class="flyout-group-title">Dosen Pembimbing 2</span>
-                                    <a class="flyout-sub-link" href="{{ route('pembimbing2.NilaiIndividu.index') }}">
-                                        <i class="fas fa-user"></i> Nilai Individu
-                                    </a>
-                                    <a class="flyout-sub-link" href="{{ route('pembimbing2.NilaiKelompok.index') }}">
-                                        <i class="fas fa-users"></i> Nilai Kelompok
-                                    </a>
+                                    <a class="flyout-sub-link"
+                                        href="{{ route('pembimbing2.NilaiIndividu.index') }}"><i
+                                            class="fas fa-user"></i> Nilai Individu</a>
+                                    <a class="flyout-sub-link"
+                                        href="{{ route('pembimbing2.NilaiKelompok.index') }}"><i
+                                            class="fas fa-users"></i> Nilai Kelompok</a>
                                 @endif
                             </div>
                         </li>
 
-                        {{-- Nilai Bimbingan --}}
                         <li
                             class="nav-item {{ request()->routeIs('pembimbing1.NilaiBimbingan*') || request()->routeIs('pembimbing2.NilaiBimbingan*') ? 'active' : '' }}">
                             <a class="nav-link"
@@ -792,7 +954,6 @@
                             </div>
                         </li>
 
-                        {{-- Pengajuan Seminar --}}
                         <li class="nav-item {{ request()->routeIs('PembimbingPengajuanSeminar.*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('PembimbingPengajuanSeminar.index') }}">
                                 <i class="fas fa-calendar-check"></i><span>Pengajuan Seminar</span>
@@ -834,7 +995,7 @@
                                 Artefak</a>
                         </div>
                     </li>
-                    <li class="nav-item {{ request()->routeIs('judul.*') ? 'active' : '' }}">
+                    {{-- <li class="nav-item {{ request()->routeIs('judul.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('judul.index') }}">
                             <i class="fas fa-file"></i><span>Judul Proyek Akhir</span>
                         </a>
@@ -842,7 +1003,7 @@
                             <a class="flyout-link" href="{{ route('judul.index') }}"><i class="fas fa-file"></i>
                                 Judul Proyek Akhir</a>
                         </div>
-                    </li>
+                    </li> --}}
                     <li class="nav-item {{ request()->routeIs('bimbingan.*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('bimbingan.index') }}">
                             <i class="fas fa-list"></i><span>Bimbingan</span>
@@ -962,17 +1123,86 @@
         }
 
         /* ── Cek mode sidebar ── */
+        function isMobile() {
+            return window.innerWidth < 768;
+        }
+
+        function isTablet() {
+            return window.innerWidth >= 768 && window.innerWidth < 1024;
+        }
+
         function isSidebarMini() {
             return document.body.classList.contains('sidebar-mini') ||
-                document.body.classList.contains('sidebar-gone');
+                document.body.classList.contains('sidebar-gone') ||
+                isTablet();
         }
+
+        /* ══════════════════════════════════════
+           MOBILE DRAWER LOGIC
+        ══════════════════════════════════════ */
+        const sidebar = document.querySelector('.main-sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const closeBtn = document.getElementById('sidebarCloseBtn');
+
+        function openMobileSidebar() {
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (overlay) overlay.addEventListener('click', closeMobileSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', closeMobileSidebar);
+
+        /* Tombol hamburger eksternal membuka drawer di mobile */
+        document.querySelectorAll('[data-toggle="sidebar"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (isMobile()) {
+                    if (sidebar.classList.contains('mobile-open')) {
+                        closeMobileSidebar();
+                    } else {
+                        openMobileSidebar();
+                    }
+                    return;
+                }
+
+                /* Perilaku asli (desktop / tablet) */
+                setTimeout(() => {
+                    if (activeFlyout) hideFlyout(activeFlyout);
+                    if (isSidebarMini()) {
+                        document.querySelectorAll(".nav-item.dropdown.open").forEach(
+                            item => {
+                                item.classList.remove("open");
+                                const menu = item.querySelector(
+                                    ":scope > .dropdown-menu");
+                                if (menu) {
+                                    menu.style.display = "none";
+                                    menu.style.maxHeight = "0px";
+                                }
+                            });
+                    }
+                }, 50);
+            });
+        });
+
+        /* Tutup drawer saat resize ke desktop */
+        window.addEventListener('resize', function() {
+            if (!isMobile()) {
+                closeMobileSidebar();
+            }
+        });
 
         /* ── Toggle LEVEL 1 ── */
         document.querySelectorAll(".nav-link.has-dropdown").forEach(link => {
             link.addEventListener("click", function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isSidebarMini()) return;
+                if (isSidebarMini() && !isMobile()) return;
 
                 const parentLi = this.closest(".nav-item.dropdown");
                 if (!parentLi) return;
@@ -1047,6 +1277,7 @@
                 menu.style.maxHeight = "none";
             }
         });
+
         document.querySelectorAll(".dropdown-submenu.open").forEach(sub => {
             const menu = sub.querySelector(":scope > .submenu-level");
             if (menu) {
@@ -1083,7 +1314,7 @@
         }
 
         function showFlyout(item) {
-            if (!isSidebarMini()) return;
+            if (!isSidebarMini() || isMobile()) return;
             const flyout = getFlyout(item);
             if (!flyout) return;
 
@@ -1137,28 +1368,6 @@
                 !e.target.closest(".mini-flyout")) {
                 hideFlyout(activeFlyout);
             }
-        });
-
-        /* ── Saat sidebar toggle ── */
-        document.querySelectorAll('[data-toggle="sidebar"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                setTimeout(() => {
-                    if (activeFlyout) hideFlyout(activeFlyout);
-
-                    if (isSidebarMini()) {
-                        document.querySelectorAll(".nav-item.dropdown.open").forEach(
-                            item => {
-                                item.classList.remove("open");
-                                const menu = item.querySelector(
-                                    ":scope > .dropdown-menu");
-                                if (menu) {
-                                    menu.style.display = "none";
-                                    menu.style.maxHeight = "0px";
-                                }
-                            });
-                    }
-                }, 50);
-            });
         });
 
     });

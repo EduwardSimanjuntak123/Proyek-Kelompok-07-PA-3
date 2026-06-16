@@ -8,13 +8,13 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
-                            <h4>List Nilai Kelompok</h4>
+                            <h4>Daftar Nilai Akhir Mahasiswa</h4>
                         </div>
                         <div class="card-body">
                             @include('partials.alert')
                             <div class="table-responsive">
                                 <div class="container">
-                                    <h3>Daftar Nilai Mahasiswa</h3>
+                                    <h3>Daftar Nilai Akhir Mahasiswa</h3>
                                     <a href="{{ route('nilai.akhir.export', ['prodi_id' => $prodi_id, 'KPA_id' => $KPA_id, 'TM_id' => $TM_id]) }}"
                                         class="btn btn-success mb-3">Export ke Excel</a>
 

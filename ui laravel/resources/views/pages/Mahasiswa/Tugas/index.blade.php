@@ -11,72 +11,44 @@
                                 <h4>List Progres</h4>
                             </div>
                             {{-- Konten Utama --}}
-                            <div class="card">
-                                <div class="card-body">
-                                    @foreach ($requestJudul as $item)
-                                        <div class="card mb-4 shadow-sm border">
-                                            <div class="card-body">
-
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h5 class="font-weight-bold text-primary">
-                                                            {{ $item->judul }}
-                                                        </h5>
-
-                                                        <p class="text-muted mb-2">
-                                                            {{ Str::limit($item->deskripsi, 150) }}
-                                                        </p>
-                                                    </div>
-
-                                                    <span
-                                                        class="badge
-                @if ($item->status == 'Disetujui') badge-success
-                @elseif($item->status == 'Ditolak') badge-danger
-                @elseif($item->status == 'Revisi') badge-warning
-                @else badge-secondary @endif">
-                                                        {{ $item->status }}
-                                                    </span>
-                                                </div>
-
-                                                <hr>
-
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted">Tanggal Pengajuan</small>
-                                                        <div>
-                                                            {{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted">Dosen Pembimbing</small>
-                                                        <div>
-                                                            {{ $item->dosen->nama ?? '-' }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="mt-3">
-                                                    <a href="{{ route('judul.show', Crypt::encrypt($item->id)) }}"
-                                                        class="btn btn-primary btn-sm">
-                                                        Detail Pengajuan
-                                                    </a>
-                                                </div>
+                            <div class="card-body">
+                                @foreach ($tugas as $item)
+                                    @php
+                                        $status = $statusByTugas->get($item->id);
+                                    @endphp
+                                    <div class="card mb-4 shadow-sm border">
+                                        <div class="card-body">
+                                            <h5 class="card-title font-weight-bold">{{ $item->Judul_Tugas }}</h5>
+                                            <p class="mb-2">{{ $item->Deskripsi_Tugas }}</p>
+                                            <ul class="list-unstyled">
+                                                <li>
+                                                    <strong>Deadline:</strong>
+                                                    <span class="text-danger">{{ $item->formatted_deadline }}</span>
+                                                </li>
+                                            </ul>
+                                            <div class="mb-2">
+                                                <span class="badge badge-{{ $status ? 'success' : 'secondary' }}">
+                                                    {{ $status ? $status->status : 'Belum dikumpulkan' }}
+                                                </span>
+                                                <a href="{{ route('Mahasiswa.tugas.create', Crypt::encrypt($item->id)) }}"
+                                                    class="btn btn-sm btn-primary ml-2">Lihat Detail</a>
+                                            </div>
+                                            <div class="mb-2 {{ $item->status_class }}">
+                                                ⏳ <span class="countdown"
+                                                    data-deadline="{{ $item->tanggal_pengumpulan }}"></span>
 
                                             </div>
                                         </div>
-                                    @endforeach
-
-                                    @if ($tugas->isEmpty())
-                                        <div class="alert alert-info">Tidak ada tugas yang tersedia.</div>
-                                    @endif
-
-                                </div>
+                                    </div>
+                                @endforeach
+                                @if ($tugas->isEmpty())
+                                    <div class="alert alert-info">Tidak ada tugas yang tersedia.</div>
+                                @endif
                             </div>
-
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
             </div>
             </div>
