@@ -2,6 +2,9 @@
 @section('title', 'AI Agent Chatbot')
 
 @push('css')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVJkEZSMUkrQ6usKu8zIstOWilmQyTjew45OMcvL7tdNT91uUOD4XiWkN9reidYl+aRslnMl+Kw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -24,9 +27,15 @@
             {{-- TOP BAR --}}
             <header class="topbar">
                 <div class="topbar-brand">
+                    <button class="sidebar-toggle-btn" id="btnToggleSidebar" aria-label="Tampilkan/sembunyikan riwayat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="3" x2="9" y2="21" />
+                        </svg>
+                    </button>
                     <div class="topbar-icon">
                         <img src="{{ asset('assets/img/logoagent.png') }}" alt="VokasiTera Agent Logo"
-                            style="width: 40px; height: 40px; object-fit: contain;">
+                            style="width: 32px; height: 32px; object-fit: contain;">
                     </div>
                     <div>
                         <div class="topbar-name">VokasiTera Agent</div>
@@ -56,6 +65,36 @@
                     </div>
                 </div>
             </header>
+
+            {{-- CHAT HISTORY SIDEBAR --}}
+            <aside class="history-sidebar" id="historySidebar">
+                <div class="sidebar-header">
+                    <button class="new-session-btn" id="newSessionBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Sesi Baru
+                    </button>
+
+                    <div class="sidebar-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="text" id="historySearchInput" placeholder="Cari percakapan...">
+                    </div>
+                </div>
+
+                <div class="history-list" id="historyList">
+                    {{-- Diisi otomatis oleh JS --}}
+                </div>
+
+                <div class="sidebar-footer">
+                    <p class="sidebar-footer-note">Riwayat percakapan &middot; data contoh</p>
+                </div>
+            </aside>
 
             {{-- VERIFICATION SIDEBAR --}}
             <aside class="verification-sidebar">
@@ -2489,6 +2528,127 @@
                 subtree: true
             });
         }
+    </script>
+
+    <script>
+        // ============== CHAT HISTORY SIDEBAR ==============
+        const dummyHistorySessions = [
+            { id: 's1', title: 'Pembagian kelompok TA - PA Genap 2026', group: 'Hari Ini',   time: '14:02', active: true },
+            { id: 's2', title: 'Dosen pembimbing kelompok angkatan 2023', group: 'Hari Ini',  time: '09:41' },
+            { id: 's3', title: 'Cek jadwal seminar ruang lab 2',           group: 'Kemarin',   time: '16:20' },
+            { id: 's4', title: 'Dosen penguji untuk 6 kelompok PA',        group: 'Kemarin',   time: '11:05' },
+            { id: 's5', title: 'Buat kelompok 5 orang per kelompok',       group: 'Minggu Ini', time: 'Sen, 10:12' },
+            { id: 's6', title: 'Revisi pembimbing kelompok 3 dan 4',       group: 'Minggu Ini', time: 'Sel, 08:55' },
+            { id: 's7', title: 'Generate jadwal seminar gelombang 1',      group: 'Lebih Lama', time: '3 Jun' },
+            { id: 's8', title: 'Pembagian kelompok PA Ganjil 2025',        group: 'Lebih Lama', time: '28 Mei' },
+        ];
+
+        function renderHistoryList(filterText) {
+            const listEl = document.getElementById('historyList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            const filtered = dummyHistorySessions.filter(s =>
+                !filterText || s.title.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="history-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="11" cy="11" r="7"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <p>Tidak ada percakapan ditemukan</p>
+                    </div>`;
+                return;
+            }
+
+            const groupOrder = ['Hari Ini', 'Kemarin', 'Minggu Ini', 'Lebih Lama'];
+            const groups = {};
+            filtered.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
+
+            groupOrder.forEach(groupName => {
+                if (!groups[groupName] || groups[groupName].length === 0) return;
+
+                const label = document.createElement('div');
+                label.className = 'history-group-label';
+                label.textContent = groupName;
+                listEl.appendChild(label);
+
+                groups[groupName].forEach(session => {
+                    const item = document.createElement('div');
+                    item.className = `history-item${session.active ? ' active' : ''}`;
+                    item.dataset.sessionId = session.id;
+                    item.innerHTML = `
+                        <svg class="history-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+                        </svg>
+                        <div class="history-item-text">
+                            <p class="history-item-title">${session.title}</p>
+                            <p class="history-item-time">${session.time}</p>
+                        </div>
+                        <button type="button" class="history-item-delete" aria-label="Hapus sesi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                                <path d="M10 11v6M14 11v6"/>
+                            </svg>
+                        </button>`;
+
+                    item.addEventListener('click', function(e) {
+                        if (e.target.closest('.history-item-delete')) return;
+                        dummyHistorySessions.forEach(s => s.active = false);
+                        session.active = true;
+                        renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+                    });
+
+                    const deleteBtn = item.querySelector('.history-item-delete');
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.preventDefault(); e.stopPropagation();
+                        const idx = dummyHistorySessions.findIndex(s => s.id === session.id);
+                        if (idx > -1) dummyHistorySessions.splice(idx, 1);
+                        renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+                    });
+
+                    listEl.appendChild(item);
+                });
+            });
+        }
+
+        function initHistorySidebar() {
+            renderHistoryList('');
+
+            const searchInput = document.getElementById('historySearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() { renderHistoryList(this.value); });
+            }
+
+            const newSessionBtn = document.getElementById('newSessionBtn');
+            if (newSessionBtn) {
+                newSessionBtn.addEventListener('click', function() {
+                    dummyHistorySessions.forEach(s => s.active = false);
+                    dummyHistorySessions.unshift({
+                        id: 'new-' + Date.now(),
+                        title: 'Percakapan baru',
+                        group: 'Hari Ini',
+                        time: 'Baru saja',
+                        active: true
+                    });
+                    renderHistoryList('');
+                });
+            }
+
+            const toggleBtn = document.getElementById('btnToggleSidebar');
+            const wrap = document.getElementById('vtWrap');
+            if (toggleBtn && wrap) {
+                toggleBtn.addEventListener('click', function() {
+                    wrap.classList.toggle('sidebar-collapsed');
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initHistorySidebar);
     </script>
 
 @endsection
