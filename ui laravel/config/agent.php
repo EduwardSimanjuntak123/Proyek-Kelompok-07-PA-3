@@ -2,7 +2,7 @@
 // config/agent.php
 
 return [
-    'base_url' => env('AGENT_API_URL', 'http://127.0.0.1:8002'),
+    'base_url' => env('AGENT_API_URL', 'http://187.77.121.239:8002'),
 
     'timeout' => env('AGENT_API_TIMEOUT', 600),
 

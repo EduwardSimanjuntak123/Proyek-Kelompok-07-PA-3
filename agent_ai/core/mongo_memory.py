@@ -500,6 +500,220 @@ class MongoDBMemory:
         except Exception as e:
             logger.error(f"[MONGO] Error getting user analytics: {e}")
             return {}
+
+    # ==================== ENHANCED CONVERSATION RETRIEVAL ====================
+    
+    def get_conversation_with_metadata(self, user_id: int, limit: int = 100, 
+                                       days: int = 30) -> Dict[str, Any]:
+        """
+        Get conversation history dengan full metadata lengkap
+        Format: instruksi untuk retrieval di API/frontend
+        
+        Args:
+            user_id: User ID
+            limit: Jumlah messages (max 1000)
+            days: Retrieve messages dari last n days
+        
+        Returns:
+            Dict dengan:
+            - messages: List of messages dengan metadata
+            - summary: Conversation summary (total messages, date range, dll)
+            - actions: List of actions taken dalam percakapan
+        """
+        try:
+            limit = min(limit, 1000)
+            start_date = datetime.now() - timedelta(days=days)
+            
+            # Get messages
+            query = {"user_id": user_id, "timestamp": {"$gte": start_date}}
+            messages = list(self.messages_col.find(query)
+                          .sort("timestamp", ASCENDING)
+                          .limit(limit))
+            
+            # Convert ObjectId to string
+            for msg in messages:
+                msg["_id"] = str(msg.get("_id", ""))
+            
+            # Get conversation summary
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            assistant_messages = [m for m in messages if m.get("role") == "assistant"]
+            
+            summary = {
+                "total_messages": len(messages),
+                "user_messages": len(user_messages),
+                "assistant_messages": len(assistant_messages),
+                "start_time": messages[0]["timestamp"].isoformat() if messages else None,
+                "end_time": messages[-1]["timestamp"].isoformat() if messages else None,
+                "period_days": days
+            }
+            
+            # Get related actions from executor logs
+            executor_logs = list(self.executor_logs_col.find({
+                "user_id": user_id,
+                "timestamp": {"$gte": start_date}
+            }).sort("timestamp", ASCENDING).limit(50))
+            
+            actions = [
+                {
+                    "type": log.get("action_type"),
+                    "status": log.get("execution_status"),
+                    "timestamp": log.get("timestamp").isoformat() if log.get("timestamp") else None,
+                    "details": log.get("details", {})
+                }
+                for log in executor_logs
+            ]
+            
+            return {
+                "success": True,
+                "user_id": user_id,
+                "messages": messages,
+                "summary": summary,
+                "actions": actions
+            }
+        except Exception as e:
+            logger.error(f"[MONGO] Error getting conversation with metadata: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def get_conversation_summary(self, user_id: int, days: int = 30) -> Dict[str, Any]:
+        """
+        Get quick summary dari percakapan tanpa full message content
+        Untuk loading awal atau overview
+        
+        Args:
+            user_id: User ID
+            days: Last n days
+        
+        Returns:
+            Conversation summary dengan statistics
+        """
+        try:
+            start_date = datetime.now() - timedelta(days=days)
+            
+            pipeline = [
+                {
+                    "$match": {
+                        "user_id": user_id,
+                        "timestamp": {"$gte": start_date}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$role",
+                        "count": {"$sum": 1},
+                        "first_message": {"$min": "$timestamp"},
+                        "last_message": {"$max": "$timestamp"}
+                    }
+                }
+            ]
+            
+            results = list(self.messages_col.aggregate(pipeline))
+            
+            summary = {
+                "user_id": user_id,
+                "period_days": days,
+                "total_messages": sum(r["count"] for r in results),
+                "role_breakdown": {},
+                "last_activity": None
+            }
+            
+            for result in results:
+                role = result["_id"]
+                summary["role_breakdown"][role] = {
+                    "count": result["count"],
+                    "first": result["first_message"].isoformat(),
+                    "last": result["last_message"].isoformat()
+                }
+                if result["last_message"]:
+                    if summary["last_activity"] is None or result["last_message"] > datetime.fromisoformat(summary["last_activity"]):
+                        summary["last_activity"] = result["last_message"].isoformat()
+            
+            return summary
+        except Exception as e:
+            logger.error(f"[MONGO] Error getting conversation summary: {e}")
+            return {}
+    
+    def search_conversations(self, user_id: int, keyword: str, 
+                           days: int = 30, limit: int = 50) -> List[Dict]:
+        """
+        Search dalam conversation history berdasarkan keyword
+        
+        Args:
+            user_id: User ID
+            keyword: Search keyword
+            days: Search in last n days
+            limit: Max results
+        
+        Returns:
+            List of matching messages
+        """
+        try:
+            start_date = datetime.now() - timedelta(days=days)
+            
+            query = {
+                "user_id": user_id,
+                "timestamp": {"$gte": start_date},
+                "content": {"$regex": keyword, "$options": "i"}  # Case-insensitive
+            }
+            
+            results = list(self.messages_col.find(query)
+                          .sort("timestamp", DESCENDING)
+                          .limit(limit))
+            
+            # Convert ObjectId to string
+            for msg in results:
+                msg["_id"] = str(msg.get("_id", ""))
+            
+            return results
+        except Exception as e:
+            logger.error(f"[MONGO] Error searching conversations: {e}")
+            return []
+    
+    def export_conversation(self, user_id: int, days: int = 30, 
+                          format: str = "json") -> Dict[str, Any]:
+        """
+        Export conversation history dalam format yang dapat disimpan
+        
+        Args:
+            user_id: User ID
+            days: Export dari last n days
+            format: "json" atau "text"
+        
+        Returns:
+            Exported conversation
+        """
+        try:
+            history = self.get_conversation_history(user_id, days=days)
+            
+            if format == "text":
+                # Format text yang readable
+                text_output = f"Conversation History for User {user_id}\n"
+                text_output += f"Exported: {datetime.now().isoformat()}\n"
+                text_output += "=" * 80 + "\n\n"
+                
+                for msg in history:
+                    role = msg.get("role", "unknown").upper()
+                    timestamp = msg.get("timestamp", "").isoformat() if hasattr(msg.get("timestamp", ""), "isoformat") else msg.get("timestamp", "")
+                    content = msg.get("content", "")
+                    
+                    text_output += f"[{timestamp}] {role}:\n{content}\n\n"
+                
+                return {
+                    "success": True,
+                    "format": "text",
+                    "content": text_output
+                }
+            else:  # json
+                return {
+                    "success": True,
+                    "format": "json",
+                    "user_id": user_id,
+                    "export_time": datetime.now().isoformat(),
+                    "message_count": len(history),
+                    "messages": history
+                }
+        except Exception as e:
+            logger.error(f"[MONGO] Error exporting conversation: {e}")
+            return {"success": False, "error": str(e)}
     
     # ==================== CLEANUP ====================
     

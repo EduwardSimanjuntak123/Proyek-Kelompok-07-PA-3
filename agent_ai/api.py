@@ -720,6 +720,163 @@ async def get_execution_logs(user_id: int, limit: int = 50):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# ENHANCED CONVERSATION HISTORY ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.get("/conversation/{user_id}/full")
+async def get_full_conversation(user_id: int, limit: int = 100, days: int = 30):
+    """
+    Get full conversation history dengan metadata lengkap dari MongoDB
+    Endpoint ini berguna untuk:
+    - Menampilkan history percakapan di UI
+    - Melakukan analisis percakapan
+    - Export conversation
+    
+    Query params:
+    - limit: Max messages (default 100, max 1000)
+    - days: Retrieve from last n days (default 30)
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        logger.info(f"[{trace_id}] Fetching full conversation")
+        mongo_mem = get_mongo_memory()
+        
+        result = mongo_mem.get_conversation_with_metadata(
+            user_id, limit=limit, days=days
+        )
+        
+        if result.get("success"):
+            result["trace_id"] = trace_id
+            return safe_json_response(result)
+        else:
+            return safe_json_response(result, status_code=500)
+            
+    except Exception as e:
+        logger.error(f"[{trace_id}] Error: {str(e)}")
+        return safe_json_response({
+            "success": False,
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+@app.get("/conversation/{user_id}/summary")
+async def get_conversation_summary(user_id: int, days: int = 30):
+    """
+    Get quick conversation summary tanpa full message content
+    Berguna untuk:
+    - Quick overview percakapan
+    - Checking last activity
+    - Statistics tentang chat patterns
+    
+    Returns:
+    - total_messages: Total pesan dalam period
+    - role_breakdown: Breakdown user vs assistant messages
+    - last_activity: Kapan percakapan terakhir
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        logger.info(f"[{trace_id}] Fetching conversation summary")
+        mongo_mem = get_mongo_memory()
+        
+        summary = mongo_mem.get_conversation_summary(user_id, days=days)
+        summary["trace_id"] = trace_id
+        summary["success"] = True
+        
+        return safe_json_response(summary)
+        
+    except Exception as e:
+        logger.error(f"[{trace_id}] Error: {str(e)}")
+        return safe_json_response({
+            "success": False,
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+@app.get("/conversation/{user_id}/search")
+async def search_conversation(user_id: int, keyword: str, days: int = 30, limit: int = 50):
+    """
+    Search dalam conversation history berdasarkan keyword
+    
+    Query params:
+    - keyword: Search term (case-insensitive)
+    - days: Search in last n days (default 30)
+    - limit: Max results (default 50, max 500)
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        if not keyword or len(keyword.strip()) == 0:
+            return safe_json_response({
+                "success": False,
+                "error": "Keyword tidak boleh kosong",
+                "trace_id": trace_id
+            }, status_code=400)
+        
+        logger.info(f"[{trace_id}] Searching conversation for: {keyword}")
+        mongo_mem = get_mongo_memory()
+        
+        results = mongo_mem.search_conversations(
+            user_id, keyword, days=days, limit=min(limit, 500)
+        )
+        
+        return safe_json_response({
+            "success": True,
+            "user_id": user_id,
+            "keyword": keyword,
+            "result_count": len(results),
+            "results": results,
+            "trace_id": trace_id
+        })
+        
+    except Exception as e:
+        logger.error(f"[{trace_id}] Search error: {str(e)}")
+        return safe_json_response({
+            "success": False,
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+@app.get("/conversation/{user_id}/export")
+async def export_conversation(user_id: int, days: int = 30, format: str = "json"):
+    """
+    Export conversation history
+    
+    Query params:
+    - days: Export from last n days (default 30)
+    - format: "json" atau "text" (default json)
+    """
+    trace_id = f"user_{user_id}"
+    try:
+        if format not in ["json", "text"]:
+            return safe_json_response({
+                "success": False,
+                "error": "Format harus 'json' atau 'text'",
+                "trace_id": trace_id
+            }, status_code=400)
+        
+        logger.info(f"[{trace_id}] Exporting conversation as {format}")
+        mongo_mem = get_mongo_memory()
+        
+        export_data = mongo_mem.export_conversation(user_id, days=days, format=format)
+        export_data["trace_id"] = trace_id
+        
+        if export_data.get("success"):
+            return safe_json_response(export_data)
+        else:
+            return safe_json_response(export_data, status_code=500)
+            
+    except Exception as e:
+        logger.error(f"[{trace_id}] Export error: {str(e)}")
+        return safe_json_response({
+            "success": False,
+            "error": str(e),
+            "trace_id": trace_id
+        }, status_code=500)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # DELETE ENDPOINTS
 # ─────────────────────────────────────────────────────────────────────────────
 

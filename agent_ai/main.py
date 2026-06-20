@@ -3,6 +3,7 @@ import logging
 import traceback
 from core.state import AgentState
 from core.mongo_integration import MongoDBIntegration
+from core.mongo_memory import get_mongo_memory
 
 from nodes.question_node import question_node
 from nodes.planner_node import planner_node
@@ -14,14 +15,59 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+def _load_conversation_history_from_mongodb(user_id: int, limit: int = 20) -> list:
+    """
+    Load conversation history dari MongoDB sebagai fallback jika tidak disediakan
+    
+    Args:
+        user_id: User ID
+        limit: Max messages to load (default 20 untuk context window efficiency)
+    
+    Returns:
+        List of messages from MongoDB
+    """
+    try:
+        mongo = get_mongo_memory()
+        if mongo.is_connected():
+            messages = mongo.get_messages(user_id, limit=limit)
+            # Convert to simple dict format untuk compatibility
+            formatted_messages = []
+            for msg in messages:
+                formatted_messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", ""),
+                    "timestamp": str(msg.get("timestamp", ""))
+                })
+            logger.debug(f"[MONGO] Loaded {len(formatted_messages)} messages from MongoDB for user {user_id}")
+            return formatted_messages
+    except Exception as e:
+        logger.warning(f"Could not load conversation history from MongoDB: {e}")
+    
+    return []
+
+
 def _trim_messages(messages, max_messages: int = 8):
+    """
+    Trim messages untuk efficient context window usage
+    
+    Args:
+        messages: List of messages
+        max_messages: Max messages to keep (default 8)
+    
+    Returns:
+        Trimmed message list
+    """
     if not messages:
         return []
 
     trimmed = []
     for message in messages[-max_messages:]:
         if isinstance(message, dict):
-            trimmed.append(message)
+            # Keep essential fields: role, content
+            trimmed.append({
+                "role": message.get("role", "user"),
+                "content": message.get("content", "")
+            })
     return trimmed
 
 
@@ -93,8 +139,18 @@ def run_agent_chat(prompt: str, user_id: int, dosen_context: list = None, conver
         # Initialize session
         session_id = str(uuid.uuid4())
         
-        # Build initial state
-        initial_messages = _trim_messages(conversation_history or [])
+        # Load conversation history
+        # Prioritas: 1) provided conversation_history, 2) load dari MongoDB, 3) empty
+        if conversation_history and len(conversation_history) > 0:
+            initial_messages = _trim_messages(conversation_history)
+            logger.debug(f"[{user_id_str}] Using provided conversation history: {len(initial_messages)} messages")
+        else:
+            # Try to load dari MongoDB untuk continuity
+            mongodb_history = _load_conversation_history_from_mongodb(user_id)
+            initial_messages = _trim_messages(mongodb_history)
+            logger.debug(f"[{user_id_str}] Loaded {len(initial_messages)} messages from MongoDB history")
+        
+        # Add current user prompt
         initial_messages.append({
             "role": "user",
             "content": prompt,
