@@ -1,0 +1,568 @@
+[
+  {
+    "question": "Apa tujuan proyek akhir?",
+    "answer": "Tujuan proyek akhir adalah meningkatkan kualitas mahasiswa melalui penerapan ilmu dan keahlian yang telah diperoleh, memecahkan masalah nyata, menghasilkan karya berupa produk, serta mengembangkan kemampuan kerja tim, komunikasi, dan profesionalisme.",
+    "contexts": [
+      "Tujuan penyelenggaraan mata kuliah PA disetiap semester genap adalah untuk: 1. Meningkatkan kualitas mahasiswa melalui penerapan ilmu dan keahlian yang diperoleh dari seluruh matakuliah yang telah diselesaikan pada semester sebelumnya atau yang sedang diterima pada semester berjalan. 2.",
+      "Menerapkan ilmu dan keahlian yang sudah diperoleh untuk memecahkan masalah dalam kehidupan nyata masyarakat, institusi, atau industry. 3. Menghasilkan karya dalam bentuk produk (perangkat lunak, perangkat keras, atau integrasi perangkat lunak dan perangkat keras). 4. Mengembangkan kemampuan kerja tim, komunikasi dan profesionalisme.",
+      "Tujuan Proyek Akhir ... meningkatkan kualitas mahasiswa ... memecahkan masalah dalam kehidupan nyata ... menghasilkan karya dalam bentuk produk ... mengembangkan kemampuan kerja tim, komunikasi dan profesionalisme.",
+      "is proyek yang mendalam, kolaboratif, dan berorientasi hasil. Dalam konteks PA, PbL melibatkan:   1. Identifikasi masalah nyata  yang relevan dengan bidang studi. 2. Kolaborasi dalam tim untuk merancang dan mengimplementasikan solusi. 3. Evaluasi proyek yang berfokus pada proses dan hasil kerja nyata.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         9 1.2 Tujuan Proyek Akhir   Tujuan penyelenggaraan mata kuliah PA disetiap semester genap  adalah untuk:   1. Meningkatkan kualitas mahasiswa melalui penerapan ilmu dan keahlian yang diperoleh dari  seluruh matakuliah yang telah diselesaikan pada semester sebelumnya atau yang sedang diterima  pada semester berjalan. 2.",
+      "Menerapkan ilmu dan keahlian yang sudah diperoleh untuk memecahkan masalah dalam  kehidupan nyata masyarakat, institusi, atau industry. 3. Menghasilkan karya dalam bentuk produk (perangkat lunak, perangkat keras, atau integrasi  perangkat lunak dan perangkat keras). 4. Mengembangkan kemampuan kerj a tim, komunikasi dan",
+      "rangkat keras. PA1: implementasi  metodologi SDLC pada web application ; PA2: membangun aplikasi web atau mobile  (sudah  dimungkinkan) dan hardware  yang lebih kompleks; PA3: membangun aplikasi web atau mobile   yang sudah siap pakai. 2.4.",
+      "Timeline Pelaksanaan  Proyek Akhir   Timeline ini merupakan rencana terstruktur yang memetakan setiap tahapan -tahapan yang harus dilalui  oleh mahasiswa untuk menyelesaikan Proyek Akhir dalam kurun waktu tertentu.",
+      "Timeline ini  PEDOMAN PA FAKULTAS VOKASI 2025         17 dirancang untuk membantu mahasiswa mengelola waktu se cara efektif, memastikan bahwa semua  aspek pengerjaan mulai dari inisiasi hingga finalisasi proyek dapat diselesaikan sesuai jadwal. Berikut  dapat dilihat timeline pelaksanaan proyek akhir. Tabel 2.4. 1.",
+      "Timeline Pelaksanaan PA   Tahap  Proses  Durasi  Hasil   I Inisiasi Proyek  Minggu 1 - 4 - Daftar Kelompok dan Dosen Pembimbing  PA  - Topik Final PA   II Analisis Kebutuhan  Minggu 2 - 4 Dokumen BAB PRS ( Product Requireme",
+      "(lampir an). 4. Kelompok PA mahasiswa atau mahasiswa perorangan yang melakukan remedial nilai maksimum  adalah C. Remedial hanya bagi yang nilainya E. 5. Nilai akhir mahasiswa yang melakukan seminar ulang adalah maksimum nilai AB.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         22 BAB III   PELAKSANAAN PROYEK AKHIR   Kegiatan Proyek Akhir yang diwujudkan dalam sebuah PA merupakan kegiatan akhir dari proses  pendidikan Diploma pada setiap akhir semester genap. Untuk memperlancar dan memperjelas alur dari  pelaksanaan PA, maka perlu dibuat prosedur pelaksanaan PA.",
+      "3.1 Pros edur Pelaksanaan PA   Berikut ini adalah diagram alur pelaksanaan Seminar PA:     Gambar 3.1. 1. Diagram Alur Pelaksanaan PA    PEDOMAN PA FAKULTAS VOKASI 2025         23 3.1.1 Inisiasi Proyek    a. Peserta:    ● Ka. Prodi   ● Seluruh dosen prodi   ● Dosen koordinator PA   b. Kondisi Awal:   ● Kuliah proyek akhir dinyatakan harus dijalankan.",
+      "● Dosen koordinator proyek akhir sudah ditugaskan   a. Prosedur:   ● Dosen k"
+    ],
+    "ground_truth": "Proyek akhir bertujuan meningkatkan kualitas mahasiswa, menerapkan ilmu untuk memecahkan masalah nyata, menghasilkan produk, serta mengembangkan kerja tim, komunikasi, dan profesionalisme.",
+    "source_question": "Apa tujuan proyek akhir?"
+  },
+  {
+    "question": "Apa saja pihak-pihak yang terlibat dalam pelaksanaan Proyek Akhir?",
+    "answer": "Pihak yang terlibat dalam pelaksanaan Proyek Akhir mencakup mahasiswa, dosen koordinator PA, dosen pembimbing, dosen penguji, dan unsur program studi yang mengatur proses pelaksanaan.",
+    "contexts": [
+      "BAB III PELAKSANAAN PROYEK AKHIR ... 3.1 Prosedur Pelaksanaan PA ... Peserta: Ka. Prodi, Seluruh dosen prodi, Dosen koordinator PA ...",
+      "Pelaksanaan Proyek Akhir melibatkan mahasiswa, dosen koordinator, dosen pembimbing, dan dosen penguji dalam proses inisiasi, pelaksanaan, hingga seminar akhir.",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de",
+      "(lampir an). 4. Kelompok PA mahasiswa atau mahasiswa perorangan yang melakukan remedial nilai maksimum  adalah C. Remedial hanya bagi yang nilainya E. 5. Nilai akhir mahasiswa yang melakukan seminar ulang adalah maksimum nilai AB.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         22 BAB III   PELAKSANAAN PROYEK AKHIR   Kegiatan Proyek Akhir yang diwujudkan dalam sebuah PA merupakan kegiatan akhir dari proses  pendidikan Diploma pada setiap akhir semester genap. Untuk memperlancar dan memperjelas alur dari  pelaksanaan PA, maka perlu dibuat prosedur pelaksanaan PA.",
+      "3.1 Pros edur Pelaksanaan PA   Berikut ini adalah diagram alur pelaksanaan Seminar PA:     Gambar 3.1. 1. Diagram Alur Pelaksanaan PA    PEDOMAN PA FAKULTAS VOKASI 2025         23 3.1.1 Inisiasi Proyek    a. Peserta:    ● Ka. Prodi   ● Seluruh dosen prodi   ● Dosen koordinator PA   b. Kondisi Awal:   ● Kuliah proyek akhir dinyatakan harus dijalankan.",
+      "● Dosen koordinator proyek akhir sudah ditugaskan   a. Prosedur:   ● Dosen k",
+      "is proyek yang mendalam, kolaboratif, dan berorientasi hasil. Dalam konteks PA, PbL melibatkan:   1. Identifikasi masalah nyata  yang relevan dengan bidang studi. 2. Kolaborasi dalam tim untuk merancang dan mengimplementasikan solusi. 3. Evaluasi proyek yang berfokus pada proses dan hasil kerja nyata.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         9 1.2 Tujuan Proyek Akhir   Tujuan penyelenggaraan mata kuliah PA disetiap semester genap  adalah untuk:   1. Meningkatkan kualitas mahasiswa melalui penerapan ilmu dan keahlian yang diperoleh dari  seluruh matakuliah yang telah diselesaikan pada semester sebelumnya atau yang sedang diterima  pada semester berjalan. 2.",
+      "Menerapkan ilmu dan keahlian yang sudah diperoleh untuk memecahkan masalah dalam  kehidupan nyata masyarakat, institusi, atau industry. 3. Menghasilkan karya dalam bentuk produk (perangkat lunak, perangkat keras, atau integrasi  perangkat lunak dan perangkat keras). 4. Mengembangkan kemampuan kerj a tim, komunikasi dan"
+    ],
+    "ground_truth": "Pihak-pihak yang terlibat meliputi mahasiswa, Ka. Prodi, seluruh dosen prodi, dosen koordinator PA, dosen pembimbing, dan dosen penguji.",
+    "source_question": "Apa saja pihak-pihak yang terlibat dalam pelaksanaan Proyek Akhir?"
+  },
+  {
+    "question": "Siapa yang menjadi peserta PA-1 menurut pedoman?",
+    "answer": "Peserta PA-1 adalah mahasiswa tingkat 1 yang telah menyelesaikan seluruh mata kuliah semester 1 dan sedang menjalani semester 2.",
+    "contexts": [
+      "Mahasiswa peserta PA harus memenuhi syarat-syarat berikut: 1. Peserta PA-1: Mahasiswa yang menjadi peserta PA-I adalah mahasiswa tingkat 1 dan telah menyelesaikan seluruh mata kuliah semester 1 dan sedang menjalani semester 2.",
+      "Peserta PA-1 ... mahasiswa tingkat 1 ... menyelesaikan seluruh mata kuliah semester 1 ... sedang menjalani semester 2.",
+      "uk memenuhi kebutuhan pengguna. 10. PT  Product Testing , Dokumen output yang menjelaskan proses  testing sebuah produk untuk memenuhi kebutuhan pengguna. 11. PR Product Release , Dokumen  output yang menjelaskan proses  peluncuran sebuah produk kepada klien.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         14 BAB II   ATURAN PELAKSANAAN PROYEK AKHIR   2.1 Pihak -Pihak dalam Pelaksanaan   2.1.1 Mahasiswa Peserta PA   Mahasiswa peserta PA harus memenuhi syarat -syarat berikut:   1. Peserta PA -1:  Mahasiswa yang menjadi peserta PA -I adalah mahasiswa tingkat 1 dan telah menyelesaikan  seluruh mata kuliah semester 1 dan sedang menjalani semester 2. 2.",
+      "Peserta PA -2:  Mahasiswa yang menjadi peserta PA -II adalah mahasiswa tingkat 2 dan telah menyelesaikan  seluruh mata kuliah semester 1 -3 dan sedang menjalani semester 4. 3. Peserta PA -3:  Mahasiswa yang menjadi peserta PA -III adalah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjala",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de",
+      "ab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen penguji yang ditetapkan oleh  koordinator PA. 5. Dosen Pembimbing  Dosen yang selama 1 semester akan memantau pengerjaan  proyek akhir oleh mahasiswa yang mengambil mata kuliah PA. 6. Narasumber PA  Dosen atau praktisi yang diberi wewenang dan ditetapkan oleh  Ka.",
+      "Prodi sebagai pembimbing mahasiswa dalam  menyelesaikan PA. 7. PRS Product Requirement Specification , Dokumen output yang   menjelaskan spesifikasi sebuah produk  (Software dan  Hardware)   8.",
+      "PP Project Planning , Dokumen output yang menjelaskan  perencanaan untuk penegembangan produk (Software dan  Hardware)     PEDOMAN PA FAKULTAS VOKASI 2025         13     No  Istilah dan Singkatan  Keterangan   9. PD Product Design , Dokumen output yang menjelaskan proses  merancang, mengembangkan dan menyempurnakan sebuah  produk untuk memenuhi kebutuhan pengguna. 10.",
+      "PT  Product Testing , Dokumen output yang menjelaskan proses"
+    ],
+    "ground_truth": "Peserta PA-1 adalah mahasiswa tingkat 1 yang sudah menyelesaikan semester 1 dan sedang menjalani semester 2.",
+    "source_question": "Siapa yang menjadi peserta PA-1 menurut pedoman?"
+  },
+  {
+    "question": "Siapa yang menjadi peserta PA-2 menurut pedoman?",
+    "answer": "Peserta PA-2 adalah mahasiswa tingkat 2 yang telah menyelesaikan seluruh mata kuliah semester 1 sampai 3 dan sedang menjalani semester 4.",
+    "contexts": [
+      "Mahasiswa peserta PA harus memenuhi syarat-syarat berikut: 2. Peserta PA-2: Mahasiswa yang menjadi peserta PA-II adalah mahasiswa tingkat 2 dan telah menyelesaikan seluruh mata kuliah semester 1-3 dan sedang menjalani semester 4.",
+      "Peserta PA-2 ... mahasiswa tingkat 2 ... menyelesaikan semester 1-3 ... sedang menjalani semester 4.",
+      "uk memenuhi kebutuhan pengguna. 10. PT  Product Testing , Dokumen output yang menjelaskan proses  testing sebuah produk untuk memenuhi kebutuhan pengguna. 11. PR Product Release , Dokumen  output yang menjelaskan proses  peluncuran sebuah produk kepada klien.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         14 BAB II   ATURAN PELAKSANAAN PROYEK AKHIR   2.1 Pihak -Pihak dalam Pelaksanaan   2.1.1 Mahasiswa Peserta PA   Mahasiswa peserta PA harus memenuhi syarat -syarat berikut:   1. Peserta PA -1:  Mahasiswa yang menjadi peserta PA -I adalah mahasiswa tingkat 1 dan telah menyelesaikan  seluruh mata kuliah semester 1 dan sedang menjalani semester 2. 2.",
+      "Peserta PA -2:  Mahasiswa yang menjadi peserta PA -II adalah mahasiswa tingkat 2 dan telah menyelesaikan  seluruh mata kuliah semester 1 -3 dan sedang menjalani semester 4. 3. Peserta PA -3:  Mahasiswa yang menjadi peserta PA -III adalah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjala",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de",
+      "ab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen penguji yang ditetapkan oleh  koordinator PA. 5. Dosen Pembimbing  Dosen yang selama 1 semester akan memantau pengerjaan  proyek akhir oleh mahasiswa yang mengambil mata kuliah PA. 6. Narasumber PA  Dosen atau praktisi yang diberi wewenang dan ditetapkan oleh  Ka.",
+      "Prodi sebagai pembimbing mahasiswa dalam  menyelesaikan PA. 7. PRS Product Requirement Specification , Dokumen output yang   menjelaskan spesifikasi sebuah produk  (Software dan  Hardware)   8.",
+      "PP Project Planning , Dokumen output yang menjelaskan  perencanaan untuk penegembangan produk (Software dan  Hardware)     PEDOMAN PA FAKULTAS VOKASI 2025         13     No  Istilah dan Singkatan  Keterangan   9. PD Product Design , Dokumen output yang menjelaskan proses  merancang, mengembangkan dan menyempurnakan sebuah  produk untuk memenuhi kebutuhan pengguna. 10.",
+      "PT  Product Testing , Dokumen output yang menjelaskan proses"
+    ],
+    "ground_truth": "Peserta PA-2 adalah mahasiswa tingkat 2 yang sudah menyelesaikan semester 1 sampai 3 dan sedang menjalani semester 4.",
+    "source_question": "Siapa yang menjadi peserta PA-2 menurut pedoman?"
+  },
+  {
+    "question": "Siapa yang menjadi peserta PA-3 menurut pedoman?",
+    "answer": "Peserta PA-3 adalah mahasiswa tingkat 3 yang telah menyelesaikan seluruh mata kuliah semester 1 sampai 5 dan sedang menjalani semester 6.",
+    "contexts": [
+      "Mahasiswa peserta PA harus memenuhi syarat-syarat berikut: 3. Peserta PA-3: Mahasiswa yang menjadi peserta PA-III adalah mahasiswa tingkat 3 dan telah menyelesaikan seluruh mata kuliah semester 1-5 dan sedang menjalani semester 6.",
+      "Peserta PA-3 ... mahasiswa tingkat 3 ... menyelesaikan semester 1-5 ... sedang menjalani semester 6.",
+      "uk memenuhi kebutuhan pengguna. 10. PT  Product Testing , Dokumen output yang menjelaskan proses  testing sebuah produk untuk memenuhi kebutuhan pengguna. 11. PR Product Release , Dokumen  output yang menjelaskan proses  peluncuran sebuah produk kepada klien.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         14 BAB II   ATURAN PELAKSANAAN PROYEK AKHIR   2.1 Pihak -Pihak dalam Pelaksanaan   2.1.1 Mahasiswa Peserta PA   Mahasiswa peserta PA harus memenuhi syarat -syarat berikut:   1. Peserta PA -1:  Mahasiswa yang menjadi peserta PA -I adalah mahasiswa tingkat 1 dan telah menyelesaikan  seluruh mata kuliah semester 1 dan sedang menjalani semester 2. 2.",
+      "Peserta PA -2:  Mahasiswa yang menjadi peserta PA -II adalah mahasiswa tingkat 2 dan telah menyelesaikan  seluruh mata kuliah semester 1 -3 dan sedang menjalani semester 4. 3. Peserta PA -3:  Mahasiswa yang menjadi peserta PA -III adalah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjala",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de",
+      "ab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen penguji yang ditetapkan oleh  koordinator PA. 5. Dosen Pembimbing  Dosen yang selama 1 semester akan memantau pengerjaan  proyek akhir oleh mahasiswa yang mengambil mata kuliah PA. 6. Narasumber PA  Dosen atau praktisi yang diberi wewenang dan ditetapkan oleh  Ka.",
+      "Prodi sebagai pembimbing mahasiswa dalam  menyelesaikan PA. 7. PRS Product Requirement Specification , Dokumen output yang   menjelaskan spesifikasi sebuah produk  (Software dan  Hardware)   8.",
+      "PP Project Planning , Dokumen output yang menjelaskan  perencanaan untuk penegembangan produk (Software dan  Hardware)     PEDOMAN PA FAKULTAS VOKASI 2025         13     No  Istilah dan Singkatan  Keterangan   9. PD Product Design , Dokumen output yang menjelaskan proses  merancang, mengembangkan dan menyempurnakan sebuah  produk untuk memenuhi kebutuhan pengguna. 10.",
+      "PT  Product Testing , Dokumen output yang menjelaskan proses"
+    ],
+    "ground_truth": "Peserta PA-3 adalah mahasiswa tingkat 3 yang sudah menyelesaikan semester 1 sampai 5 dan sedang menjalani semester 6.",
+    "source_question": "Siapa yang menjadi peserta PA-3 menurut pedoman?"
+  },
+  {
+    "question": "Siapa yang menetapkan pembimbing PA?",
+    "answer": "Pembimbing PA ditetapkan oleh Dosen Koordinator PA dengan berkoordinasi dengan Ketua Program Studi.",
+    "contexts": [
+      "Pembimbing PA ditetapkan oleh Dosen Koordinator PA dengan berkoordinasi dengan K.prodi.",
+      "Pembimbing PA terdiri dan Pembimbing I atau Pembimbing II (jika diperlukan).",
+      "6 Perubahan Judul, Penggantian Judul dan/ atau Pembimbing PA   Mahasiswa atau peserta PA dapat mengubah atau mengganti judul dan/atau pembimbing PA atas  persetujuan Pembimbing dengan mengikuti pera turan yang berlaku. 1.Perubahan Judul PA   a.",
+      "Penyebab perubahan bahasan PA adalah penyesuaian terhadap perubahan batasan masalah atau  ruang lingkup permasalahan yang mana dianggap perlu, akan tetapi tidak mengubah rumusan  masalah PA. b. Perubahan judul PA harus  disetujui oleh Pembimbing dan/atau Penguji. c. Apabila terjadi pergantian judul maka mahasiswa harus mengajukan topik baru. 2.Perubahan Pembimbing PA   a.",
+      "Perubahan pembimbing dapat dilakukan jika:   Pembimbing  lama berhalangan dalam menjalankan tugasnya. Perubahan Pembimbing bisa dilakukan jika mendapatkan persetujuan dari pembimbing lama dan  pembimbing baru dan dikoordinasikan kepada Koord. PA dan Ka. Prodi. b. Penghentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk",
+      "ompok PA yang akan  dibimbing. ● Setiap kelompok mahasiswa sudah mendapatkan dosen pembimbing PA. 3.1.3 Prosedur Pergantian Pembimbing    Berikut adalah mekanisme pergantian dosen pembimbing     Gambar 3.1. 2. Diagram Alur Pelaksanaan PA   Keterangan:    PEDOMAN PA FAKULTAS VOKASI 2025         25 1.",
+      "Pergantian dosen pembimbing PA diperbolehkan jika memang ada sebab -sebab khusus yang  mengharuskan dilakukannya pergantian dosen pembimbing. 2. Prosedur pergantian dosen pembimbing PA dimulai mengisi form  pergantian pembimbing yang  disetujui dan ditandatangani oleh pembimbing lama, pembimbing baru, dan Koordinator PA. 3.",
+      "Apabila pergantian tidak disetujui maka dosen koordinator PA perlu  melakukan rapat dengan  Kaprodi terkait permasalahan yang terjadi. 3.1.4 Pengerjaan PA    a. Peserta:   ● Dosen Dosen koordinator PA   ● Dosen Pembimbing   ● Narasumber (internal dan eksternal)   ● Mahasiswa   b. Kondisi Awal:   ● Tema besar topik sudah ditentukan. ● Mahasiswa sudah  mengetah",
+      "ah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjalani semester 6. 2.1.2 Pembimbing PA    Pembimbing PA ditetapkan oleh Dosen Koordinator PA dengan berkoordinasi dengan K.prodi. Pembimbing PA terdiri dan Pembimbing I atau Pembimbing II (jika diperlukan). Kombinasi  Pembimbing I dan Pembimbing II diatur dengan ketentuan sebagai berikut:   Tabel 2.1.1.",
+      "Kombinasi Pembimbing PA   No Pembimbing I  Pembimbing II   1. Dosen Prodi Diploma IT Del  Dosen Prodi Diploma IT Del   2. Dosen Prodi Diploma IT Del  Dosen Sarjana IT Del     2.1.2.1 Kewajiban Pembimbing PA   Berikut adalah kewajiban yang harus dilakukan pembimbing:   1. Membimbing dan mengarahkan mahasiswa peserta PA secara teratur dan bertanggung jawab. 2.",
+      "Mengevaluasi penulisan laporan PA mahasiswa sebelum diajukan ke seminar PA. 3. Hadir 5 menit sebelum pelaksanaan seminar   4. Berkoordinasi dengan Pembimbi ng II terkait progress  pencapaian PA. 5. Memberikan penilaian peserta"
+    ],
+    "ground_truth": "Pembimbing PA ditetapkan oleh dosen koordinator PA bersama ketua program studi.",
+    "source_question": "Siapa yang menetapkan pembimbing PA?"
+  },
+  {
+    "question": "Apa saja kewajiban pembimbing PA?",
+    "answer": "Kewajiban pembimbing PA antara lain membimbing dan mengarahkan mahasiswa, memantau progress pencapaian PA, memberi penilaian selama bimbingan dan seminar, serta memeriksa kelengkapan administrasi seminar PA.",
+    "contexts": [
+      "Kewajiban Pembimbing PA: Membimbing dan mengarahkan mahasiswa ... koordinasi dengan Pembimbing II terkait progress pencapaian PA. Memberikan penilaian peserta PA selama proses bimbingan dan seminar. Memeriksa persyaratan administrasi kelengkapan seminar PA.",
+      "Pembimbing PA ... memantau progress ... memberikan penilaian ... memeriksa kelengkapan administrasi.",
+      "ah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjalani semester 6. 2.1.2 Pembimbing PA    Pembimbing PA ditetapkan oleh Dosen Koordinator PA dengan berkoordinasi dengan K.prodi. Pembimbing PA terdiri dan Pembimbing I atau Pembimbing II (jika diperlukan). Kombinasi  Pembimbing I dan Pembimbing II diatur dengan ketentuan sebagai berikut:   Tabel 2.1.1.",
+      "Kombinasi Pembimbing PA   No Pembimbing I  Pembimbing II   1. Dosen Prodi Diploma IT Del  Dosen Prodi Diploma IT Del   2. Dosen Prodi Diploma IT Del  Dosen Sarjana IT Del     2.1.2.1 Kewajiban Pembimbing PA   Berikut adalah kewajiban yang harus dilakukan pembimbing:   1. Membimbing dan mengarahkan mahasiswa peserta PA secara teratur dan bertanggung jawab. 2.",
+      "Mengevaluasi penulisan laporan PA mahasiswa sebelum diajukan ke seminar PA. 3. Hadir 5 menit sebelum pelaksanaan seminar   4. Berkoordinasi dengan Pembimbi ng II terkait progress  pencapaian PA. 5. Memberikan penilaian peserta",
+      "6 Perubahan Judul, Penggantian Judul dan/ atau Pembimbing PA   Mahasiswa atau peserta PA dapat mengubah atau mengganti judul dan/atau pembimbing PA atas  persetujuan Pembimbing dengan mengikuti pera turan yang berlaku. 1.Perubahan Judul PA   a.",
+      "Penyebab perubahan bahasan PA adalah penyesuaian terhadap perubahan batasan masalah atau  ruang lingkup permasalahan yang mana dianggap perlu, akan tetapi tidak mengubah rumusan  masalah PA. b. Perubahan judul PA harus  disetujui oleh Pembimbing dan/atau Penguji. c. Apabila terjadi pergantian judul maka mahasiswa harus mengajukan topik baru. 2.Perubahan Pembimbing PA   a.",
+      "Perubahan pembimbing dapat dilakukan jika:   Pembimbing  lama berhalangan dalam menjalankan tugasnya. Perubahan Pembimbing bisa dilakukan jika mendapatkan persetujuan dari pembimbing lama dan  pembimbing baru dan dikoordinasikan kepada Koord. PA dan Ka. Prodi. b. Penghentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk",
+      "ompok PA yang akan  dibimbing. ● Setiap kelompok mahasiswa sudah mendapatkan dosen pembimbing PA. 3.1.3 Prosedur Pergantian Pembimbing    Berikut adalah mekanisme pergantian dosen pembimbing     Gambar 3.1. 2. Diagram Alur Pelaksanaan PA   Keterangan:    PEDOMAN PA FAKULTAS VOKASI 2025         25 1.",
+      "Pergantian dosen pembimbing PA diperbolehkan jika memang ada sebab -sebab khusus yang  mengharuskan dilakukannya pergantian dosen pembimbing. 2. Prosedur pergantian dosen pembimbing PA dimulai mengisi form  pergantian pembimbing yang  disetujui dan ditandatangani oleh pembimbing lama, pembimbing baru, dan Koordinator PA. 3.",
+      "Apabila pergantian tidak disetujui maka dosen koordinator PA perlu  melakukan rapat dengan  Kaprodi terkait permasalahan yang terjadi. 3.1.4 Pengerjaan PA    a. Peserta:   ● Dosen Dosen koordinator PA   ● Dosen Pembimbing   ● Narasumber (internal dan eksternal)   ● Mahasiswa   b. Kondisi Awal:   ● Tema besar topik sudah ditentukan. ● Mahasiswa sudah  mengetah"
+    ],
+    "ground_truth": "Pembimbing PA wajib membimbing mahasiswa, memantau progres, memberi penilaian, dan memeriksa kelengkapan administrasi seminar.",
+    "source_question": "Apa saja kewajiban pembimbing PA?"
+  },
+  {
+    "question": "Apa saja hak pembimbing PA?",
+    "answer": "Hak pembimbing PA antara lain mengubah batasan masalah atau ruang lingkup PA, mengusulkan tim penguji, dan memutuskan kelayakan PA untuk diajukan seminar.",
+    "contexts": [
+      "Hak Pembimbing PA: Mengubah batasan masalah atau ruang lingkup PA dan jika diperlukan akan mengubah judul sesuai dengan kesepakatan dengan penguji PA dan berkoordinasi dengan Koord. PA. Mengusulkan tim penguji kepada koordinator PA ... Memutuskan kelayakan PA untuk diajukan pada seminar PA.",
+      "Pembimbing PA berhak mengubah ruang lingkup, mengusulkan penguji, dan memutuskan kelayakan seminar.",
+      "ah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjalani semester 6. 2.1.2 Pembimbing PA    Pembimbing PA ditetapkan oleh Dosen Koordinator PA dengan berkoordinasi dengan K.prodi. Pembimbing PA terdiri dan Pembimbing I atau Pembimbing II (jika diperlukan). Kombinasi  Pembimbing I dan Pembimbing II diatur dengan ketentuan sebagai berikut:   Tabel 2.1.1.",
+      "Kombinasi Pembimbing PA   No Pembimbing I  Pembimbing II   1. Dosen Prodi Diploma IT Del  Dosen Prodi Diploma IT Del   2. Dosen Prodi Diploma IT Del  Dosen Sarjana IT Del     2.1.2.1 Kewajiban Pembimbing PA   Berikut adalah kewajiban yang harus dilakukan pembimbing:   1. Membimbing dan mengarahkan mahasiswa peserta PA secara teratur dan bertanggung jawab. 2.",
+      "Mengevaluasi penulisan laporan PA mahasiswa sebelum diajukan ke seminar PA. 3. Hadir 5 menit sebelum pelaksanaan seminar   4. Berkoordinasi dengan Pembimbi ng II terkait progress  pencapaian PA. 5. Memberikan penilaian peserta",
+      "6 Perubahan Judul, Penggantian Judul dan/ atau Pembimbing PA   Mahasiswa atau peserta PA dapat mengubah atau mengganti judul dan/atau pembimbing PA atas  persetujuan Pembimbing dengan mengikuti pera turan yang berlaku. 1.Perubahan Judul PA   a.",
+      "Penyebab perubahan bahasan PA adalah penyesuaian terhadap perubahan batasan masalah atau  ruang lingkup permasalahan yang mana dianggap perlu, akan tetapi tidak mengubah rumusan  masalah PA. b. Perubahan judul PA harus  disetujui oleh Pembimbing dan/atau Penguji. c. Apabila terjadi pergantian judul maka mahasiswa harus mengajukan topik baru. 2.Perubahan Pembimbing PA   a.",
+      "Perubahan pembimbing dapat dilakukan jika:   Pembimbing  lama berhalangan dalam menjalankan tugasnya. Perubahan Pembimbing bisa dilakukan jika mendapatkan persetujuan dari pembimbing lama dan  pembimbing baru dan dikoordinasikan kepada Koord. PA dan Ka. Prodi. b. Penghentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk",
+      "ompok PA yang akan  dibimbing. ● Setiap kelompok mahasiswa sudah mendapatkan dosen pembimbing PA. 3.1.3 Prosedur Pergantian Pembimbing    Berikut adalah mekanisme pergantian dosen pembimbing     Gambar 3.1. 2. Diagram Alur Pelaksanaan PA   Keterangan:    PEDOMAN PA FAKULTAS VOKASI 2025         25 1.",
+      "Pergantian dosen pembimbing PA diperbolehkan jika memang ada sebab -sebab khusus yang  mengharuskan dilakukannya pergantian dosen pembimbing. 2. Prosedur pergantian dosen pembimbing PA dimulai mengisi form  pergantian pembimbing yang  disetujui dan ditandatangani oleh pembimbing lama, pembimbing baru, dan Koordinator PA. 3.",
+      "Apabila pergantian tidak disetujui maka dosen koordinator PA perlu  melakukan rapat dengan  Kaprodi terkait permasalahan yang terjadi. 3.1.4 Pengerjaan PA    a. Peserta:   ● Dosen Dosen koordinator PA   ● Dosen Pembimbing   ● Narasumber (internal dan eksternal)   ● Mahasiswa   b. Kondisi Awal:   ● Tema besar topik sudah ditentukan. ● Mahasiswa sudah  mengetah"
+    ],
+    "ground_truth": "Pembimbing PA berhak mengubah ruang lingkup/judul, mengusulkan penguji, dan menentukan kelayakan seminar.",
+    "source_question": "Apa saja hak pembimbing PA?"
+  },
+  {
+    "question": "Apa isi tahap inisiasi proyek pada timeline PA?",
+    "answer": "Tahap inisiasi proyek berlangsung pada minggu 1 sampai 4 dan menghasilkan daftar kelompok, dosen pembimbing PA, serta topik final PA.",
+    "contexts": [
+      "Tahap I Inisiasi Proyek Minggu 1 - 4 - Daftar Kelompok dan Dosen Pembimbing PA - Topik Final PA",
+      "Inisiasi proyek ... hasil daftar kelompok, dosen pembimbing PA, dan topik final PA.",
+      "rangkat keras. PA1: implementasi  metodologi SDLC pada web application ; PA2: membangun aplikasi web atau mobile  (sudah  dimungkinkan) dan hardware  yang lebih kompleks; PA3: membangun aplikasi web atau mobile   yang sudah siap pakai. 2.4.",
+      "Timeline Pelaksanaan  Proyek Akhir   Timeline ini merupakan rencana terstruktur yang memetakan setiap tahapan -tahapan yang harus dilalui  oleh mahasiswa untuk menyelesaikan Proyek Akhir dalam kurun waktu tertentu.",
+      "Timeline ini  PEDOMAN PA FAKULTAS VOKASI 2025         17 dirancang untuk membantu mahasiswa mengelola waktu se cara efektif, memastikan bahwa semua  aspek pengerjaan mulai dari inisiasi hingga finalisasi proyek dapat diselesaikan sesuai jadwal. Berikut  dapat dilihat timeline pelaksanaan proyek akhir. Tabel 2.4. 1.",
+      "Timeline Pelaksanaan PA   Tahap  Proses  Durasi  Hasil   I Inisiasi Proyek  Minggu 1 - 4 - Daftar Kelompok dan Dosen Pembimbing  PA  - Topik Final PA   II Analisis Kebutuhan  Minggu 2 - 4 Dokumen BAB PRS ( Product Requireme",
+      "cover )   Pada sampul harus dapat memberikan informasi singkat, jelas dan tidak bermakna ganda  (ambigu) kepada pembaca tentang proyek akhir tersebut. Halaman sampul dibuat menggunakan  “background Biru Dongker ”  ● Halaman Judul   Informasi yang dicantumkan pada halaman judul sama dengan yang ada  pada sampul.",
+      "Halaman  sampul dibuat menggunakan “background Biru Dongker” tetapi halaman judul tidak  menggunakan background. ● Daftar Isi   Daftar isi memuat semua bagian tulisan beserta nomor halaman masing -masing. ● Daftar Tabel, Daftar Gambar, Daftar Rumus   Daftar Tabel, Daftar Gambar dan Daftar Lain digunakan untuk membuat nama tabel, gambar dan  sebagainya yang ada dalam proyek akhir.",
+      "Penulisan nama tabel, gambar, dan sebagainya  menggunakan huruf kapital di awal kata ( title case ). 4.1.2 Bagian Isi   Bagian da ri isi dokumen Proyek Akhir disampaikan dalam sejumlah bab. Penamaan dan jumlah bab  dimulai dari pendahuluan hingga penutup yang dapat ditentukan oleh Program Studi ma",
+      "(lampir an). 4. Kelompok PA mahasiswa atau mahasiswa perorangan yang melakukan remedial nilai maksimum  adalah C. Remedial hanya bagi yang nilainya E. 5. Nilai akhir mahasiswa yang melakukan seminar ulang adalah maksimum nilai AB.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         22 BAB III   PELAKSANAAN PROYEK AKHIR   Kegiatan Proyek Akhir yang diwujudkan dalam sebuah PA merupakan kegiatan akhir dari proses  pendidikan Diploma pada setiap akhir semester genap. Untuk memperlancar dan memperjelas alur dari  pelaksanaan PA, maka perlu dibuat prosedur pelaksanaan PA.",
+      "3.1 Pros edur Pelaksanaan PA   Berikut ini adalah diagram alur pelaksanaan Seminar PA:     Gambar 3.1. 1. Diagram Alur Pelaksanaan PA    PEDOMAN PA FAKULTAS VOKASI 2025         23 3.1.1 Inisiasi Proyek    a. Peserta:    ● Ka. Prodi   ● Seluruh dosen prodi   ● Dosen koordinator PA   b. Kondisi Awal:   ● Kuliah proyek akhir dinyatakan harus dijalankan.",
+      "● Dosen koordinator proyek akhir sudah ditugaskan   a. Prosedur:   ● Dosen k"
+    ],
+    "ground_truth": "Tahap inisiasi proyek adalah fase awal minggu 1-4 dengan output daftar kelompok, pembimbing PA, dan topik final.",
+    "source_question": "Apa isi tahap inisiasi proyek pada timeline PA?"
+  },
+  {
+    "question": "Apa hasil tahap analisis kebutuhan pada timeline PA?",
+    "answer": "Hasil tahap analisis kebutuhan adalah Dokumen BAB PRS atau Product Requirement Specification.",
+    "contexts": [
+      "II Analisis Kebutuhan Minggu 2 - 4 Dokumen BAB PRS ( Product Requirement Specification )",
+      "Tahap II Analisis Kebutuhan ... menghasilkan Dokumen BAB PRS (Product Requirement Specification).",
+      "rangkat keras. PA1: implementasi  metodologi SDLC pada web application ; PA2: membangun aplikasi web atau mobile  (sudah  dimungkinkan) dan hardware  yang lebih kompleks; PA3: membangun aplikasi web atau mobile   yang sudah siap pakai. 2.4.",
+      "Timeline Pelaksanaan  Proyek Akhir   Timeline ini merupakan rencana terstruktur yang memetakan setiap tahapan -tahapan yang harus dilalui  oleh mahasiswa untuk menyelesaikan Proyek Akhir dalam kurun waktu tertentu.",
+      "Timeline ini  PEDOMAN PA FAKULTAS VOKASI 2025         17 dirancang untuk membantu mahasiswa mengelola waktu se cara efektif, memastikan bahwa semua  aspek pengerjaan mulai dari inisiasi hingga finalisasi proyek dapat diselesaikan sesuai jadwal. Berikut  dapat dilihat timeline pelaksanaan proyek akhir. Tabel 2.4. 1.",
+      "Timeline Pelaksanaan PA   Tahap  Proses  Durasi  Hasil   I Inisiasi Proyek  Minggu 1 - 4 - Daftar Kelompok dan Dosen Pembimbing  PA  - Topik Final PA   II Analisis Kebutuhan  Minggu 2 - 4 Dokumen BAB PRS ( Product Requireme",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "ent gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara, survei dan observasi. b. Pendekatan kolaboratif diterapkan sesuai metode PbL untuk memastikan partisipasi aktif  semua anggota tim. 2. Fase Desain Fase ( Design )  Pada fase desain, mahasiswa melakukan:   a.",
+      "Merancang kebutuhan -kebutuhan client  dengan menggunakan UML ( Unified  Modeling   Language ), seperti ER -Diagram , Use Case Diagram , Sequence  Diagram  dan Class Diagram ,  topologi jaringan, arsitektur sistem, desain antarmuka, kebutuhan perangkat keras dan  perangkat lunak. b. Analisis risiko proyek dilakukan untuk mengidentifikasi dan mengelola hambatan potensial. c.",
+      "Merancang sistem yang dirumuskan berdasarkan diskusi tim yang difasilitasi pembimbing. 3. Fase Implementasi Implementation ( Implementation )   Pada fase implementas , mahasiswa melakukan :  a. Pengembangan perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembanga"
+    ],
+    "ground_truth": "Tahap analisis kebutuhan menghasilkan Dokumen BAB PRS (Product Requirement Specification).",
+    "source_question": "Apa hasil tahap analisis kebutuhan pada timeline PA?"
+  },
+  {
+    "question": "Berapa jumlah mahasiswa maksimal dalam satu kelompok PA-1?",
+    "answer": "Jumlah mahasiswa dalam satu kelompok untuk PA-1 maksimal adalah tiga sampai lima orang.",
+    "contexts": [
+      "Jumlah mahasiswa dalam satu kelompok untuk PA-1 maksimal adalah tiga - lima orang.",
+      "Pembentukan kelompok ... PA-1 maksimal 3-5 orang.",
+      "kut:   a. Pembentukan kelompok dapat dilakukan secara mandiri oleh mahasiswa atau dipilih oleh do sen  koordinator PA dan disetujui oleh Ka. Prodi   b. Jumlah mahasiswa dalam satu kelompok untuk PA -1 maksimal adalah tiga - lima orang. c. Jumlah mahasiswa dalam satu kelompok untuk PA -2 dan PA -3 dengan metode PBL maka  maksimal adalah empat - enam orang.",
+      "2.3 Penentuan Topik   Pembentukan topik PA dapat diperoleh mahasiswa melalui dua cara yaitu:   a. Pengajuan topik berasal dari mahasiswa, dosen pembimbing atau dosen -dosen Program Studi. b. Finalisasi topik dilakukan oleh mahasiswa bersama dengan dosen pembimbing pal ing lama  minggu ke empat. c.",
+      "Penentuan topik harus melibatkan eksplorasi kebutuhan industri atau masyarakat dengan metode  PbL, termasuk identifikasi masalah yang relevan dan perencanaan solusi berbasis tim. d. Topik mencakup pengembangan perangkat lunak atau perangkat keras. PA1: implementasi  metodologi SDLC pada web application ; PA2: membangun aplikasi web",
+      "hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa dinyatakan tidak lulus.  Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. 4. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA  yang berkaitan dengan  PA dalam waktu yang ditentukan dalam keputusan seminar PA tersebut. 5.",
+      "Batas waktu revisi dan catatan mengenai hal -hal yang wajib diisi dalam formulir lembar revisi  dan menjadi satu kesatuan berita acara hasil seminar PA. 6. Apabila hasil seminar PA menyataka n bahwa mahasiswa PA tidak lulus, maka mahasiswa diberi  kesempatan untuk mengajukan seminar PA dengan judul yang sama sebanyak 1 kali. 7.",
+      "Apabila mahasiswa dinyatakan tidak lulus kembali maka mahasiswa wajib mengganti judul PA  dan mengulang proses dari awal yaitu penentuan topik PA dan masih dalam jadwal pelaksanaan  PA. 2.8 Penggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CI",
+      "kan harus dijalankan. ● Dosen koordinator proyek akhir sudah ditugaskan   a. Prosedur:   ● Dosen koordinator menyusun rencana pelaksanaan pada rapat prodi yang membahas mengenai  tujuan, batasan, kriteria penilaian, jadwal pelaksanaan, dan mekanisme kerja. ● Dosen koordinator menentukan pembagian mahasiswa ke dalam kelompok atau mahasiswa  juga dapat membentuk kelompoknya sendiri.",
+      "● Dosen koordinator mengalokasikan setiap dosen pembimbing ke setiap kelompok  PA. ● Dosen pembimbing melihat judul setiap kelompok dan komposisi kelompoknya, apabila  diperlukan dosen pembimbing dapat mengajukan topik kepada kelompok tertentu. ● Dosen pembimbing melakukan proses bimbingan. ● Dosen koordinator mengalokasikan pembimbing dan penguji untuk jadwal seminar.",
+      "● Mahasiswa melakukan semi nar. ● Dosen pembimbing dan penguji melakukan penilaian. ● Mahasiswa melakukan revisi. ● Mahasiswa melakukan pameran   a. Kondisi Akhir:   ● Rencana pelaksanaan dituliskan dan disetujui oleh Kaprod"
+    ],
+    "ground_truth": "Kelompok PA-1 maksimal beranggotakan tiga sampai lima mahasiswa.",
+    "source_question": "Berapa jumlah mahasiswa maksimal dalam satu kelompok PA-1?"
+  },
+  {
+    "question": "Berapa jumlah mahasiswa maksimal dalam satu kelompok PA-2 dan PA-3?",
+    "answer": "Jumlah mahasiswa dalam satu kelompok untuk PA-2 dan PA-3 dengan metode PBL maksimal adalah empat sampai enam orang.",
+    "contexts": [
+      "Jumlah mahasiswa dalam satu kelompok untuk PA-2 dan PA-3 dengan metode PBL maka maksimal adalah empat - enam orang.",
+      "Pembentukan kelompok ... PA-2 dan PA-3 ... maksimal 4-6 orang.",
+      "kut:   a. Pembentukan kelompok dapat dilakukan secara mandiri oleh mahasiswa atau dipilih oleh do sen  koordinator PA dan disetujui oleh Ka. Prodi   b. Jumlah mahasiswa dalam satu kelompok untuk PA -1 maksimal adalah tiga - lima orang. c. Jumlah mahasiswa dalam satu kelompok untuk PA -2 dan PA -3 dengan metode PBL maka  maksimal adalah empat - enam orang.",
+      "2.3 Penentuan Topik   Pembentukan topik PA dapat diperoleh mahasiswa melalui dua cara yaitu:   a. Pengajuan topik berasal dari mahasiswa, dosen pembimbing atau dosen -dosen Program Studi. b. Finalisasi topik dilakukan oleh mahasiswa bersama dengan dosen pembimbing pal ing lama  minggu ke empat. c.",
+      "Penentuan topik harus melibatkan eksplorasi kebutuhan industri atau masyarakat dengan metode  PbL, termasuk identifikasi masalah yang relevan dan perencanaan solusi berbasis tim. d. Topik mencakup pengembangan perangkat lunak atau perangkat keras. PA1: implementasi  metodologi SDLC pada web application ; PA2: membangun aplikasi web",
+      "hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa dinyatakan tidak lulus.  Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. 4. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA  yang berkaitan dengan  PA dalam waktu yang ditentukan dalam keputusan seminar PA tersebut. 5.",
+      "Batas waktu revisi dan catatan mengenai hal -hal yang wajib diisi dalam formulir lembar revisi  dan menjadi satu kesatuan berita acara hasil seminar PA. 6. Apabila hasil seminar PA menyataka n bahwa mahasiswa PA tidak lulus, maka mahasiswa diberi  kesempatan untuk mengajukan seminar PA dengan judul yang sama sebanyak 1 kali. 7.",
+      "Apabila mahasiswa dinyatakan tidak lulus kembali maka mahasiswa wajib mengganti judul PA  dan mengulang proses dari awal yaitu penentuan topik PA dan masih dalam jadwal pelaksanaan  PA. 2.8 Penggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CI",
+      "uk memenuhi kebutuhan pengguna. 10. PT  Product Testing , Dokumen output yang menjelaskan proses  testing sebuah produk untuk memenuhi kebutuhan pengguna. 11. PR Product Release , Dokumen  output yang menjelaskan proses  peluncuran sebuah produk kepada klien.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         14 BAB II   ATURAN PELAKSANAAN PROYEK AKHIR   2.1 Pihak -Pihak dalam Pelaksanaan   2.1.1 Mahasiswa Peserta PA   Mahasiswa peserta PA harus memenuhi syarat -syarat berikut:   1. Peserta PA -1:  Mahasiswa yang menjadi peserta PA -I adalah mahasiswa tingkat 1 dan telah menyelesaikan  seluruh mata kuliah semester 1 dan sedang menjalani semester 2. 2.",
+      "Peserta PA -2:  Mahasiswa yang menjadi peserta PA -II adalah mahasiswa tingkat 2 dan telah menyelesaikan  seluruh mata kuliah semester 1 -3 dan sedang menjalani semester 4. 3. Peserta PA -3:  Mahasiswa yang menjadi peserta PA -III adalah mahasiswa tingkat 3 dan telah menyelesaikan  seluruh mata kuliah semester 1 -5 dan sedang menjala"
+    ],
+    "ground_truth": "Kelompok PA-2 dan PA-3 dengan metode PBL maksimal beranggotakan empat sampai enam mahasiswa.",
+    "source_question": "Berapa jumlah mahasiswa maksimal dalam satu kelompok PA-2 dan PA-3?"
+  },
+  {
+    "question": "Apa hasil keputusan seminar PA menurut pedoman?",
+    "answer": "Hasil keputusan seminar PA dapat berupa mahasiswa dinyatakan tidak lulus, lulus tanpa revisi, atau lulus dengan syarat wajib revisi dokumen PA dan produk PA dalam waktu yang ditentukan.",
+    "contexts": [
+      "Hasil Keputusan seminar PA memberikan beberapa kemungkinan yaitu: Mahasiswa dinyatakan tidak lulus. Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA yang berkaitan dengan PA dalam waktu yang ditentukan.",
+      "Hasil keputusan seminar PA ... tidak lulus, lulus tanpa revisi, atau lulus dengan syarat revisi.",
+      "hentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk menolak melanjutkan pembimbingan PA d an mencari mahasiswa lain  dengan judul yang sama jika mahasiswa yang bersangkutan tidak mengikuti kesepakatan dengan  dosen pembimbing dan masih memenuhi jadwal pelaksanaan PA.",
+      "2.7 Proses Penilaian Seminar PA   Penilaian seminar PA dilaksanakan oleh seluruh  tim dosen penguji dan pembimbing. 1. Hasil keputusan seminar PA dituliskan dalam formulir berita acara dan penilaian hasil seminar PA. 2. Penilaian hasil seminar PA adalah hak dari setiap dosen pembimbing dan penguji.",
+      "Jika mahasiswa  melakukan seminar ulang, m aka penilaian untuk kelompok tersebut harus sesuai dengan batasan  nilai dari kesepakatan dosen pembimbing dan dosen penguji/nilai maksimum seminar ulang ada  pada ketentuan Penilaian PA. 3. Mahasiswa wajib mematuhi semua keputusan hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa",
+      "hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa dinyatakan tidak lulus.  Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. 4. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA  yang berkaitan dengan  PA dalam waktu yang ditentukan dalam keputusan seminar PA tersebut. 5.",
+      "Batas waktu revisi dan catatan mengenai hal -hal yang wajib diisi dalam formulir lembar revisi  dan menjadi satu kesatuan berita acara hasil seminar PA. 6. Apabila hasil seminar PA menyataka n bahwa mahasiswa PA tidak lulus, maka mahasiswa diberi  kesempatan untuk mengajukan seminar PA dengan judul yang sama sebanyak 1 kali. 7.",
+      "Apabila mahasiswa dinyatakan tidak lulus kembali maka mahasiswa wajib mengganti judul PA  dan mengulang proses dari awal yaitu penentuan topik PA dan masih dalam jadwal pelaksanaan  PA. 2.8 Penggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CI",
+      "dikonsultasikan dengan dosen pembimbing. 3.2 Pelaksanaan Seminar PA     a. Kelompok Seminar PA harus sudah mengirimkan kelengkapan artefak PA maksimal 2 hari kerja  dan pada jam kerja sebelum jadwal seminar PA dilaksanakan. b. Seminar PA bersifat terbuka untuk dosen dan mahasiswa IT Del, dan mengenakan seragam sesuai  dengan ketentuan IT Del. c.",
+      "Pelaksanaan seminar PA tidak diperkenankan untuk didokumentasikan melalui kamera video. d. Seminar PA diatur dengan tata cara sebagai berikut:   ● Peserta  seminar PA wajib membawa kartu mahasiswa. ● Peserta seminar PA berpakaian rapi dengan ketentuan sebagai berikut:   i. Mahasiswa: Kemeja polos lengan panjang, celana panjang warna gelap, dan  mengenakan jas almamater IT Del. ii.",
+      "Mahasiswi: Kemeja polos lengan panjang , dan rok di bawah lutut warna gelap, dan  mengenakan jas almamater IT Del. iii. Dosen: Jas IT Del, atau disesuaikan dengan keputusan prodi. ● Hadir selambat -lambatnya 15 menit sebelum seminar dimulai, dan memeri"
+    ],
+    "ground_truth": "Keputusan seminar PA bisa tidak lulus, lulus tanpa revisi, atau lulus dengan syarat revisi dokumen dan produk.",
+    "source_question": "Apa hasil keputusan seminar PA menurut pedoman?"
+  },
+  {
+    "question": "Siapa yang menilai seminar PA?",
+    "answer": "Seminar PA dinilai oleh seluruh tim dosen penguji dan pembimbing.",
+    "contexts": [
+      "Penilaian seminar PA dilaksanakan oleh seluruh tim dosen penguji dan pembimbing.",
+      "Penilaian hasil seminar PA adalah hak dari setiap dosen pembimbing dan penguji.",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de",
+      "hentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk menolak melanjutkan pembimbingan PA d an mencari mahasiswa lain  dengan judul yang sama jika mahasiswa yang bersangkutan tidak mengikuti kesepakatan dengan  dosen pembimbing dan masih memenuhi jadwal pelaksanaan PA.",
+      "2.7 Proses Penilaian Seminar PA   Penilaian seminar PA dilaksanakan oleh seluruh  tim dosen penguji dan pembimbing. 1. Hasil keputusan seminar PA dituliskan dalam formulir berita acara dan penilaian hasil seminar PA. 2. Penilaian hasil seminar PA adalah hak dari setiap dosen pembimbing dan penguji.",
+      "Jika mahasiswa  melakukan seminar ulang, m aka penilaian untuk kelompok tersebut harus sesuai dengan batasan  nilai dari kesepakatan dosen pembimbing dan dosen penguji/nilai maksimum seminar ulang ada  pada ketentuan Penilaian PA. 3. Mahasiswa wajib mematuhi semua keputusan hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa",
+      "n dengan keputusan prodi. ● Hadir selambat -lambatnya 15 menit sebelum seminar dimulai, dan memeriksa peralatan yang  diperlukan pada saat seminar dil aksanakan. ● Mahasiswa yang terlambat hadir untuk mengikuti seminar PA tanpa alasan yang tidak  mendesak maka dinyatakan tidak lulus seminar PA.",
+      "● Seminar PA dilaksanakan dalam waktu maksimum 90 menit, termasuk untuk presentasi, tanya  jawab, rapat tim penguji  untuk menentukan kelulusan seminar PA serta peragaan (demonstrasi)  jika diperlukan. ● Bahan presentasi ditulis dalam Bahasa Indonesia atau Bahasa Inggris dan dipresentasikan  dalam Bahasa Inggris. ● Seminar PA dinyatakan sah jika dihadiri oleh Pembimbing dan  Dewan Penguji.",
+      "Dalam hal  ketidakhadiran pembimbing atau penguji, maka:   i. Jika Pembimbing terlambat hadir lebih dari 10 menit dan pembimbing memberi kabar  perihal keterlambatannya, maka seminar dapat dilaksanakan jika semua anggota Dewan  Penguji menyetujui. ii. Jika salah satu pembimbing atau penguji terlam"
+    ],
+    "ground_truth": "Seminar PA dinilai oleh seluruh tim dosen penguji dan pembimbing.",
+    "source_question": "Siapa yang menilai seminar PA?"
+  },
+  {
+    "question": "Apa bentuk dokumen akhir kelengkapan seminar PA?",
+    "answer": "Dokumen akhir kelengkapan seminar PA mencakup ToR, PRS, PP, PD, PI, PT, dan PR yang telah direvisi dan diserahkan sesuai ketentuan.",
+    "contexts": [
+      "Melengkapi bukti kelengkapan dokumen pengembangan produk (ToR, PRS, PP, PD, PI, PT dan PR). Dokumen akhir ini yang telah direvisi ...",
+      "Aturan sebelum melaksanakan seminar ... mencetak dokumen pengembangan produk ...",
+      "dikonsultasikan dengan dosen pembimbing. 3.2 Pelaksanaan Seminar PA     a. Kelompok Seminar PA harus sudah mengirimkan kelengkapan artefak PA maksimal 2 hari kerja  dan pada jam kerja sebelum jadwal seminar PA dilaksanakan. b. Seminar PA bersifat terbuka untuk dosen dan mahasiswa IT Del, dan mengenakan seragam sesuai  dengan ketentuan IT Del. c.",
+      "Pelaksanaan seminar PA tidak diperkenankan untuk didokumentasikan melalui kamera video. d. Seminar PA diatur dengan tata cara sebagai berikut:   ● Peserta  seminar PA wajib membawa kartu mahasiswa. ● Peserta seminar PA berpakaian rapi dengan ketentuan sebagai berikut:   i. Mahasiswa: Kemeja polos lengan panjang, celana panjang warna gelap, dan  mengenakan jas almamater IT Del. ii.",
+      "Mahasiswi: Kemeja polos lengan panjang , dan rok di bawah lutut warna gelap, dan  mengenakan jas almamater IT Del. iii. Dosen: Jas IT Del, atau disesuaikan dengan keputusan prodi. ● Hadir selambat -lambatnya 15 menit sebelum seminar dimulai, dan memeri",
+      "am lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadwal seminar di -publish  ke mahasiswa dan  seluruh dosen, minimal seminggu sebelum jadwal seminar PA. e. Mendapatkan hak cipta bersama dengan mahasiswa dan institusi. f. Sebagai ketua dalam pelaksanaan seminar PA.",
+      "2.1.3 Dosen Penguji PA    Koordinator PA menyusun tim dosen penguji yang terdiri dari: Penguji yang bertugas memeriksa  dokumen PA dan produk PA, berkoordinasi dengan Ketua  Program Studi. 2.1.3.1 Kewajiban Tim Penguji PA   Kewajiban umum Dosen Penguji PA adalah:   a. Hadir 5 menit sebelum pelaksanaan seminar. b. Menguji mahasiswa peserta seminar. c. Memverifikasi hasil pelaksanaan PA. d.",
+      "Memberikan nilai pelaksanaan PA berdasarkan hasil se minar PA   2.1.3.2 Hak Penguji PA    Hak penguji adalah sebagai berikut:   a. Memberikan penilaian terhadap hasil seminar mahasiswa tanpa dipengaruhi oleh pihak lain   b. Meminta perbaikan dokumen dan produk akhir jika terdapat",
+      "bing  PA  - Topik Final PA   II Analisis Kebutuhan  Minggu 2 - 4 Dokumen BAB PRS ( Product Requirement  Specification )  III Perancangan Proyek  Minggu 3 - 5 Dokumen BAB PP ( Project Planning )  IV Desain Sistem  Minggu 5 - 9 Dokumen BAB PD ( Product Design )  V Implementasi  Minggu 9 - 14 Dokumen BAB PI ( Product Implementation )  VI Pengujian  Minggu 12 - 14 Dokumen BAB PT ( Product Testing ) ",
+      "VII Rilis dan  Pemeliharaan  Minggu 14 - 16 Dokumen BAB PR ( Product Release )  VIII Pameran  Minggu 16  Produk   IX Seminar PA  Minggu 18  - Dokumen Pengembangan Produk (PRS, PP,  PD, PI, PT, dan PR)   - Slide Presentasi   - Kartu Bimbingan    X Finalisasi Proyek  Minggu 18 - 19 - Produk final   - Dokumen final   - Poster dan Video   - Artikel jurnal  (Jika Ada)     Jadwal di atas merupakan",
+      "rekomendasi pelaksanaan setiap tahap pengerjaan Proyek Akhir. Setiap kelompok dapat memulai tahapan proses lebih awal dari yang ditentukan ataupun  pelaksanaanya dilakukan secara paralel. Bagian f ase peng"
+    ],
+    "ground_truth": "Dokumen akhir kelengkapan seminar mencakup ToR, PRS, PP, PD, PI, PT, dan PR yang direvisi.",
+    "source_question": "Apa bentuk dokumen akhir kelengkapan seminar PA?"
+  },
+  {
+    "question": "Apa itu Proyek Akhir menurut pedoman?",
+    "answer": "Proyek Akhir adalah kegiatan akhir dari proses pendidikan diploma yang dikerjakan pada akhir semester genap untuk menerapkan ilmu, memecahkan masalah nyata, dan menghasilkan produk.",
+    "contexts": [
+      "Kegiatan Proyek Akhir yang diwujudkan dalam sebuah PA merupakan kegiatan akhir dari proses pendidikan Diploma pada setiap akhir semester genap.",
+      "Proyek Akhir dilaksanakan untuk menerapkan ilmu dan keahlian yang telah diperoleh dalam memecahkan masalah nyata dan menghasilkan produk.",
+      "PA merupakan bagian akhir dari proses pendidikan diploma dan menjadi penutup rangkaian pembelajaran.",
+      "(lampir an). 4. Kelompok PA mahasiswa atau mahasiswa perorangan yang melakukan remedial nilai maksimum  adalah C. Remedial hanya bagi yang nilainya E. 5. Nilai akhir mahasiswa yang melakukan seminar ulang adalah maksimum nilai AB.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         22 BAB III   PELAKSANAAN PROYEK AKHIR   Kegiatan Proyek Akhir yang diwujudkan dalam sebuah PA merupakan kegiatan akhir dari proses  pendidikan Diploma pada setiap akhir semester genap. Untuk memperlancar dan memperjelas alur dari  pelaksanaan PA, maka perlu dibuat prosedur pelaksanaan PA.",
+      "3.1 Pros edur Pelaksanaan PA   Berikut ini adalah diagram alur pelaksanaan Seminar PA:     Gambar 3.1. 1. Diagram Alur Pelaksanaan PA    PEDOMAN PA FAKULTAS VOKASI 2025         23 3.1.1 Inisiasi Proyek    a. Peserta:    ● Ka. Prodi   ● Seluruh dosen prodi   ● Dosen koordinator PA   b. Kondisi Awal:   ● Kuliah proyek akhir dinyatakan harus dijalankan.",
+      "● Dosen koordinator proyek akhir sudah ditugaskan   a. Prosedur:   ● Dosen k",
+      "dan jumlah bab  dimulai dari pendahuluan hingga penutup yang dapat ditentukan oleh Program Studi masing -masing  sesuai kebutuhan. 4.1.3 Bagian Akhir   Bagian akhir dari dokumen Proyek Akhir terdiri dari: (a) Daftar Pustaka dan (b) Lampiran. Daftar  pustaka merupakan daftar bacaan yang menjadi sumber atau referensi penulisan proyek akhir.",
+      "Daftar  pustaka ini dapat berupa buku, artikel, jurnal, majalah, surat kabar, wawancara, sumber elektronik d an  sebagainya. Lampiran merupakan data atau pelengkap atau hasil olahan yang menunjang penulisan  proyek akhir, tetapi tidak dicantumkan di dalam Bagian Isi  proyek akhir.",
+      "Lampiran yang perlu  disertakan harus dikelompokkan menurut jenisnya, misalnya jadwal, tabel, daftar pernyataan, gambar,  PEDOMAN PA FAKULTAS VOKASI 2025         33 grafik dan desain. Pengelompokan lampiran disesuaikan dengan kebijakan program studi masing - masing. 4.2 KETENTUAN DAN CARA PENULISAN PROYEK AKHIR   4.2.1 Ketentuan Umum   Berikut ini merupakan ketentuan um",
+      "titut Teknologi Del.",
+      "PEDOMAN PA FAKULTAS VOKASI 2025         39 REFERENSI   Panduan Proyek Akhir Program Sarjana Terapan, Universitas Negeri Yogyakarta, 2023   Pedoman Pelaksanaan Proyek Akhir Mahasiswa Fakultas Vokasi, Institut Teknologi Del, 2023   Pedoman Teknik Penulisan Dokumen Tugas Akhir Mahasiswa Institut Teknologi Del, 2024        PEDOMAN PA FAKULTAS VOKASI 2025         40 LAMPIRAN   Lampiran 1.",
+      "Kartu Bimbingan   Kartu Bimbingan       Proyek Akhir -PAI/PAII/PAIII   Kelompok  : xx  Anggota  :   No NIM  NAMA   1. 2. 3. 4. 5.",
+      "Pembimbing  :  Dosen Pembimbing I  Dosen Pembimbing II   (                                                      )  (                                                     )   Judul  :     No Tanggal  Topik Bimbingan  Hasil Bimbingan  Rencana  Bimbingan  Mahasiswa  yang Hadir  Tanda  Tangan  Pembimbing   1. 2. PEDOMAN PA FAKULTAS VOKASI 2025         41 Lampiran 2.",
+      "Log Book       PROYEK AKHIR 2024/2025   LOG BOOK"
+    ],
+    "ground_truth": "Proyek Akhir adalah kegiatan akhir pendidikan diploma pada akhir semester genap untuk menerapkan ilmu dan menghasilkan produk.",
+    "source_question": "Apa itu Proyek Akhir menurut pedoman?"
+  },
+  {
+    "question": "Apa saja fase pengembangan produk PA?",
+    "answer": "Fase pengembangan produk PA meliputi requirement gathering, design, implementation, testing, dan release and maintenance.",
+    "contexts": [
+      "Fase pengembangan produk PA untuk PA-1, PA-2 dan PA-3 wajib mengikuti fase pengembangan software/hardware.",
+      "Secara umum, dalam proses/tahapan pengembangan produk PA akan dimulai dari fase pengumpulan kebutuhan sistem (requirement gathering), fase desain (design), fase implementasi (implementation), fase pengujian (testing) dan fase rilis dan pemeliharaan (release and maintenance).",
+      "Masing-masing fase dijelaskan sebagai berikut.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr",
+      "ang dicakup  pada PA dapat direalisasikan dalam berbagai bentuk pengembangan produk, seperti yang ditampilkan  pada Tabel 1.3.1. Tabel 1.3. 1. Cakupan/ Kedalaman Topik PA   No PA D3TI  D3TK  D4TRPL   1. PA-1  Pengembangan  situs web  dinamis (dapat  menggunakan   framework ). Dalam  aplikasi harus ada CRUD  dan transaksi data  sederhana.",
+      "Pengembangan situs web  dinamis (dapat   menggunakan  framework ). Dalam  aplikasi harus ada CRUD. Implementasi transaksi  data sederhana opsional)  Pengembangan situs web  dinamis yang tidak   menggunakan framework  (menggunakan script  PHP  Native ). Dalam aplikasi  harus ada CRUD   sederhana)   PEDOMAN PA FAKULTAS VOKASI 2025         10 No PA D3TI  D3TK  D4TRPL   2.",
+      "PA-2  Pengembangan situs  web dinamis atau   aplikasi mobil . Dalam  aplikasi harus ada   CRUD dan transaksi   data yang lebih   kompleks. Untuk aplikasi mobile ,  scopen ya lebih sedikit  dibanding dengan   aplikasi web. 1. Pengembangan  sistem (integrasi  perangkat   keras dan p"
+    ],
+    "ground_truth": "Fase pengembangan produk PA terdiri dari requirement gathering, design, implementation, testing, dan release and maintenance.",
+    "source_question": "Apa saja fase pengembangan produk PA?"
+  },
+  {
+    "question": "Apa yang dilakukan pada fase requirement gathering?",
+    "answer": "Pada fase requirement gathering, mahasiswa melakukan wawancara, survei, observasi, dan pendekatan kolaboratif untuk mengumpulkan kebutuhan sistem.",
+    "contexts": [
+      "Pada fase requirement gathering, mahasiswa melakukan teknik pengumpulan kebutuhan seperti wawancara, survei dan observasi.",
+      "Pendekatan kolaboratif diterapkan sesuai metode PbL untuk memastikan partisipasi aktif semua anggota tim.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr",
+      "da pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan proses hosting   atau deployment  ke server real sehingga dapat diakses  dengan baik. Pada fase pemeliharaan  dilakukan pengawasan untuk mendeteksi atau melihat masalah awal ( early bugs ) atau feedback  dari pengguna yang dapat digunakan untuk berkontribusi pada penyempurnaan produk.",
+      "1.3.3 Istilah dan Singkatan dalam Pelaksanaan  PA   Berikut merupaka n daftar istilah dan singkatan pada Tabel  1.3.2. Tabel 1.3.2 Daftar Istilah dan Singkatan   No  Istilah dan Singkatan  Keterangan   1. Seminar PA  Ujian PA yang dilakukan oleh tim penguji PA dalam bentuk  ujian lisan. 2. Koordinator PA  Dosen yang ditunjuk oleh Ka.",
+      "Prodi untuk   mengkoordinasikan seluruh kegiatan PA mulai dari pengajuan  topik PA hingga seminar PA. 3. Dosen Penguji PA  Tim dosen yang bertugas dan bertanggung jawab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen pengu"
+    ],
+    "ground_truth": "Fase requirement gathering berisi wawancara, survei, observasi, dan pengumpulan kebutuhan secara kolaboratif.",
+    "source_question": "Apa yang dilakukan pada fase requirement gathering?"
+  },
+  {
+    "question": "Apa yang dilakukan pada fase desain PA?",
+    "answer": "Pada fase desain, mahasiswa merancang kebutuhan client menggunakan UML, topologi jaringan, arsitektur sistem, desain antarmuka, dan kebutuhan perangkat keras serta perangkat lunak.",
+    "contexts": [
+      "Pada fase desain, mahasiswa melakukan: merancang kebutuhan-kebutuhan client dengan menggunakan UML seperti ER-Diagram, Use Case Diagram, Sequence Diagram dan Class Diagram.",
+      "Mahasiswa juga merancang topologi jaringan, arsitektur sistem, desain antarmuka, kebutuhan perangkat keras dan perangkat lunak.",
+      "Analisis risiko proyek dilakukan untuk mengidentifikasi dan mengelola hambatan potensial.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "ent gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara, survei dan observasi. b. Pendekatan kolaboratif diterapkan sesuai metode PbL untuk memastikan partisipasi aktif  semua anggota tim. 2. Fase Desain Fase ( Design )  Pada fase desain, mahasiswa melakukan:   a.",
+      "Merancang kebutuhan -kebutuhan client  dengan menggunakan UML ( Unified  Modeling   Language ), seperti ER -Diagram , Use Case Diagram , Sequence  Diagram  dan Class Diagram ,  topologi jaringan, arsitektur sistem, desain antarmuka, kebutuhan perangkat keras dan  perangkat lunak. b. Analisis risiko proyek dilakukan untuk mengidentifikasi dan mengelola hambatan potensial. c.",
+      "Merancang sistem yang dirumuskan berdasarkan diskusi tim yang difasilitasi pembimbing. 3. Fase Implementasi Implementation ( Implementation )   Pada fase implementas , mahasiswa melakukan :  a. Pengembangan perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembanga",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr"
+    ],
+    "ground_truth": "Fase desain mencakup perancangan UML, topologi jaringan, arsitektur sistem, antarmuka, dan kebutuhan perangkat keras serta lunak.",
+    "source_question": "Apa yang dilakukan pada fase desain PA?"
+  },
+  {
+    "question": "Apa yang dilakukan pada fase implementasi PA?",
+    "answer": "Pada fase implementasi, mahasiswa mengembangkan perangkat lunak atau perangkat keras sesuai prodi masing-masing.",
+    "contexts": [
+      "Pada fase implementasi, mahasiswa melakukan pengembangan perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing-masing).",
+      "Hasil fase implementasi adalah produk yang mulai diwujudkan dari rancangan yang telah disetujui.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr",
+      "da pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan proses hosting   atau deployment  ke server real sehingga dapat diakses  dengan baik. Pada fase pemeliharaan  dilakukan pengawasan untuk mendeteksi atau melihat masalah awal ( early bugs ) atau feedback  dari pengguna yang dapat digunakan untuk berkontribusi pada penyempurnaan produk.",
+      "1.3.3 Istilah dan Singkatan dalam Pelaksanaan  PA   Berikut merupaka n daftar istilah dan singkatan pada Tabel  1.3.2. Tabel 1.3.2 Daftar Istilah dan Singkatan   No  Istilah dan Singkatan  Keterangan   1. Seminar PA  Ujian PA yang dilakukan oleh tim penguji PA dalam bentuk  ujian lisan. 2. Koordinator PA  Dosen yang ditunjuk oleh Ka.",
+      "Prodi untuk   mengkoordinasikan seluruh kegiatan PA mulai dari pengajuan  topik PA hingga seminar PA. 3. Dosen Penguji PA  Tim dosen yang bertugas dan bertanggung jawab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen pengu"
+    ],
+    "ground_truth": "Fase implementasi adalah tahap pengembangan perangkat lunak atau perangkat keras sesuai program studi.",
+    "source_question": "Apa yang dilakukan pada fase implementasi PA?"
+  },
+  {
+    "question": "Apa yang dilakukan pada fase pengujian PA?",
+    "answer": "Pada fase pengujian, mahasiswa menguji produk yang dikembangkan dan menghasilkan dokumen product testing, misalnya menggunakan blackbox testing.",
+    "contexts": [
+      "Pada fase pengujian, mahasiswa menguji hasil pengembangan produk untuk memastikan memenuhi kebutuhan pengguna.",
+      "Untuk PA-1 D3TI pada fase pengujian akan menghasilkan dokumen product testing yang berisi hasil pengujian menggunakan metode blackbox testing.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr",
+      "da pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan proses hosting   atau deployment  ke server real sehingga dapat diakses  dengan baik. Pada fase pemeliharaan  dilakukan pengawasan untuk mendeteksi atau melihat masalah awal ( early bugs ) atau feedback  dari pengguna yang dapat digunakan untuk berkontribusi pada penyempurnaan produk.",
+      "1.3.3 Istilah dan Singkatan dalam Pelaksanaan  PA   Berikut merupaka n daftar istilah dan singkatan pada Tabel  1.3.2. Tabel 1.3.2 Daftar Istilah dan Singkatan   No  Istilah dan Singkatan  Keterangan   1. Seminar PA  Ujian PA yang dilakukan oleh tim penguji PA dalam bentuk  ujian lisan. 2. Koordinator PA  Dosen yang ditunjuk oleh Ka.",
+      "Prodi untuk   mengkoordinasikan seluruh kegiatan PA mulai dari pengajuan  topik PA hingga seminar PA. 3. Dosen Penguji PA  Tim dosen yang bertugas dan bertanggung jawab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen pengu"
+    ],
+    "ground_truth": "Fase pengujian menghasilkan dokumen product testing dan memverifikasi produk dengan blackbox testing.",
+    "source_question": "Apa yang dilakukan pada fase pengujian PA?"
+  },
+  {
+    "question": "Apa hasil fase rilis dan pemeliharaan PA?",
+    "answer": "Hasil fase rilis dan pemeliharaan adalah dokumen BAB PR atau Product Release.",
+    "contexts": [
+      "VII Rilis dan Pemeliharaan Minggu 14 - 16 Dokumen BAB PR (Product Release).",
+      "Fase release and maintenance menghasilkan dokumen Product Release sebagai keluaran akhir tahap tersebut.",
+      "s sampai taha p  deployment . PEDOMAN PA FAKULTAS VOKASI 2025         11 1.3.2 Fase -Fase Pengembangan  Produk  PA  Fase pengembangan  produk  PA untuk PA -1, PA -2 dan PA -3 wajib mengikuti fase pengembangan  software/ hardware .",
+      "Secara umum, dalam proses/tahapan  pengembangan produk PA akan dimulai dari  fase pengumpulan kebutuhan sistem ( requirement  gathering ), fase desain ( design ), fase implementas i  (implementation ), fase pengujian ( testing ) dan fase rilis dan pemeliharaan ( release  and maintenance ).",
+      "Konten untuk setiap output  fase disesuaikan dengan tingkatan proyek akhir, misalnya untuk PA -1  D3TI pada fase pengujian akan menghasilkan dokumen product  testing  yang berisi hasil pengujian  menggunakan metode blackbox  testing . Masing -masing fase dijelaskan sebagai berikut. 1.",
+      "Fase Pengumpulan Kebutuhan Sistem ( Requirement  Gathering )   Pada fase requirement gathering , mahasiswa melakukan:   a. Melakukan teknik pengumpulan kebutuhan seperti wawancara,",
+      "n perangkat lunak atau perangkat keras (disesuaikan dengan prodi masing - masing). Untuk pengembangan perangkat lunak dilakukan dengan metodologi SDLC yang  diintegrasikan dengan prinsip PbL. b. Setiap anggota tim memiliki tanggung jawab spesifik, dengan pengawasan pembimbing yang  berfungsi sebagai fasilitator pembelajaran. c.",
+      "Melakukan setiap langkah implementasi menggunakan template yang disesuaikan dengan  arahan pembimbing. PEDOMAN PA FAKULTAS VOKASI 2025         12 4. Fase  Pengujian ( Testing )   Pada fase pengujian, mahasiswa melakukan :  a. Uji coba solusi dengan melibatkan klien atau pengguna   b.",
+      "Pengujian yang meliputi unit testing, integrasi dan sistem secara menyeluruh dengan feedback   dari klien sebagai elemen pembelajaran   5. Fase Rilis dan Pemeliharaan ( Release  and Maintenance )   Fase rilis adalah tahap dimana produk baik software  dan hardware  dirilis kepada pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan pr",
+      "da pengguna akhir  setelah melewati proses pengembangan dan pengujian. Pada tahap rilis dilakukan proses hosting   atau deployment  ke server real sehingga dapat diakses  dengan baik. Pada fase pemeliharaan  dilakukan pengawasan untuk mendeteksi atau melihat masalah awal ( early bugs ) atau feedback  dari pengguna yang dapat digunakan untuk berkontribusi pada penyempurnaan produk.",
+      "1.3.3 Istilah dan Singkatan dalam Pelaksanaan  PA   Berikut merupaka n daftar istilah dan singkatan pada Tabel  1.3.2. Tabel 1.3.2 Daftar Istilah dan Singkatan   No  Istilah dan Singkatan  Keterangan   1. Seminar PA  Ujian PA yang dilakukan oleh tim penguji PA dalam bentuk  ujian lisan. 2. Koordinator PA  Dosen yang ditunjuk oleh Ka.",
+      "Prodi untuk   mengkoordinasikan seluruh kegiatan PA mulai dari pengajuan  topik PA hingga seminar PA. 3. Dosen Penguji PA  Tim dosen yang bertugas dan bertanggung jawab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen pengu"
+    ],
+    "ground_truth": "Fase rilis dan pemeliharaan menghasilkan Dokumen BAB PR (Product Release).",
+    "source_question": "Apa hasil fase rilis dan pemeliharaan PA?"
+  },
+  {
+    "question": "Apa saja dokumen yang dikumpulkan saat seminar PA?",
+    "answer": "Saat seminar PA, kelompok harus membawa dokumen pengembangan produk seperti PRS, PP, PD, PI, PT, dan PR, serta slide presentasi dan kartu bimbingan.",
+    "contexts": [
+      "IX Seminar PA Minggu 18 - Dokumen Pengembangan Produk (PRS, PP, PD, PI, PT, dan PR).",
+      "Selain dokumen pengembangan produk, peserta seminar membawa slide presentasi dan kartu bimbingan.",
+      "Kelengkapan artefak PA harus dikirim maksimal 2 hari kerja sebelum seminar PA dilaksanakan.",
+      "ab menguji  mahasiswa peserta  Seminar PA. 4. Tim Dosen Seminar  Dosen pembimbing dan dosen penguji yang ditetapkan oleh  koordinator PA. 5. Dosen Pembimbing  Dosen yang selama 1 semester akan memantau pengerjaan  proyek akhir oleh mahasiswa yang mengambil mata kuliah PA. 6. Narasumber PA  Dosen atau praktisi yang diberi wewenang dan ditetapkan oleh  Ka.",
+      "Prodi sebagai pembimbing mahasiswa dalam  menyelesaikan PA. 7. PRS Product Requirement Specification , Dokumen output yang   menjelaskan spesifikasi sebuah produk  (Software dan  Hardware)   8.",
+      "PP Project Planning , Dokumen output yang menjelaskan  perencanaan untuk penegembangan produk (Software dan  Hardware)     PEDOMAN PA FAKULTAS VOKASI 2025         13     No  Istilah dan Singkatan  Keterangan   9. PD Product Design , Dokumen output yang menjelaskan proses  merancang, mengembangkan dan menyempurnakan sebuah  produk untuk memenuhi kebutuhan pengguna. 10.",
+      "PT  Product Testing , Dokumen output yang menjelaskan proses",
+      "pi serta  dikirim ke dalam sistem informasi yang telah diberikan yakni Ecourse  atau Gitlab maupun tools   lainnya yang mendukung PA mahasiswa tersebut. Aturan untuk sebelum melaksanakan seminar   adalah kelompok PA  harus mencetak  dokumen pengembangan produk untuk  diserahkan H -2 jam  akademik kepada dosen pembimbing dan penguji. b.",
+      "Syarat Kelulusan (Setelah Seminar dan Kelengkapan Administrasi)   Setelah seminar selesai, dosen koordinator PA akan berkoordinasi kembali dengan mahasiswa untuk  menyelesaikan seluruh proses administrasi pada PA, yakni:   1. Melengkapi bukti kelengkapan dokumen pengembangan produk  (ToR, PRS, PP, PD, PI, PT dan  PR). Dokumen akhir ini yang telah direvisi saat bimbingan maupun seminar.",
+      "ToR wajib ada untuk  PA1, PA2 dan PA3,  dengan  dosen pembimbing yang memberikan topik sebagai mitra internal  dan pihak eksternal yang memberikan topik dan menja lin kerjasama sebagai mitra eksternal . 2. Melengkapi bukti Kartu Bimbingan yang dilakukan selama proses",
+      "ikasi tersebut dan pihak pihak mana saja yang membutuhkan aplik asi  tersebut. Dalam hal ini, harus dijelaskan setiap peranan dalam proyek.",
+      "- Siapa Actor   - Siapa owner   Fungsi -fungsi apa saja yang ada dalam produk Proyek ini         PEDOMAN PA FAKULTAS VOKASI 2025         53 Hasil dan Deliverables  (Result ):  Produk yang dihasilkan disertai dengan dokumentasi yang mencakup seluruh proses yang dikerjakan  dalam proyek.",
+      "Pendekatan dalam Melaksanakan Pekerjaan ( Job Approach ):  Seluruh kegiatan yang dilakukan mahasiswa untuk mencapai tujuan proyek akhir, dalam hal ini  produk, yang sesuai dengan topik yang telah ditentukan. Cth:  Mahasiswa akan mengerjakan:   ▪ Pelaksana Kerja melakukan survey atau wawancara dengan pihak -pihak terkait.",
+      "▪ Surfing di Internet untuk memperoleh gambaran pembuatan animasi yang memberikan info  geografis. ▪ Pengumpulan data -data digital untuk membangun animasi. ▪ Analisis terhadap data -data yang diperoleh untuk dilanjutkan dalam pra -de"
+    ],
+    "ground_truth": "Dokumen seminar PA mencakup PRS, PP, PD, PI, PT, PR, slide presentasi, dan kartu bimbingan.",
+    "source_question": "Apa saja dokumen yang dikumpulkan saat seminar PA?"
+  },
+  {
+    "question": "Berapa batas waktu pengiriman kelengkapan artefak PA sebelum seminar?",
+    "answer": "Kelengkapan artefak PA harus dikirim maksimal 2 hari kerja sebelum jadwal seminar PA pada jam kerja.",
+    "contexts": [
+      "Kelompok Seminar PA harus sudah mengirimkan kelengkapan artefak PA maksimal 2 hari kerja dan pada jam kerja sebelum jadwal seminar PA dilaksanakan.",
+      "Kelengkapan yang dimaksud meliputi dokumen pengembangan produk dan perlengkapan seminar lainnya.",
+      "hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa dinyatakan tidak lulus.  Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. 4. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA  yang berkaitan dengan  PA dalam waktu yang ditentukan dalam keputusan seminar PA tersebut. 5.",
+      "Batas waktu revisi dan catatan mengenai hal -hal yang wajib diisi dalam formulir lembar revisi  dan menjadi satu kesatuan berita acara hasil seminar PA. 6. Apabila hasil seminar PA menyataka n bahwa mahasiswa PA tidak lulus, maka mahasiswa diberi  kesempatan untuk mengajukan seminar PA dengan judul yang sama sebanyak 1 kali. 7.",
+      "Apabila mahasiswa dinyatakan tidak lulus kembali maka mahasiswa wajib mengganti judul PA  dan mengulang proses dari awal yaitu penentuan topik PA dan masih dalam jadwal pelaksanaan  PA. 2.8 Penggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CI",
+      "koordinasi dengan Pembimbi ng II terkait progress  pencapaian PA. 5. Memberikan penilaian peserta PA selama proses bimbingan dan seminar. 6. Memeriksa persyaratan administrasi kelengkapan seminar PA. PEDOMAN PA FAKULTAS VOKASI 2025         15 2.1.2.2 Hak Pembimbing PA   Berikut adalah kewajiban yang harus dilakukan pembimbing:   a.",
+      "Mengubah batasan masalah atau ruang lingkup PA dan jika diperlukan akan mengubah judul sesuai  dengan kesepakatan dengan penguji PA dan berkoordinasi dengan Koord. PA. b. Mengusulkan tim penguji kepada koordinator PA dan disetujui oleh Ka. Prodi untuk  diperti mbangkan sebagai penguji pada seminar PA. c.",
+      "Memutuskan kelayakan PA untuk diajukan pada seminar PA melalui formulir kelayakan PA untuk  maju seminar. Jika pembimbing menyatakan mahasiswa belum siap maju seminar, maka  pembimbing PA berhak untuk mengundurkan j adwal seminar PA namun masih dalam lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadw",
+      "ggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CIS dan WA group serta  Ecourse . Dosen koordinator PA menggunakan platform e -course atau  email sebagai media untuk  mengumpulkan artefak Proyek Akhir. Alternatif lainnya dapat menggunakan Gitlab dan tools lainnya  yang mendukung PA mahasiswa tersebut.",
+      "2.9 Artefak PA   Kelengkapan artefak proyek akhir dilakukan oleh mahasiswa untuk memenuhi pras yarat layak maju  untuk seminar dan kelulusan pada mata kuliah proyek ini. Ada dua bagian yang akan dilakukan yakni:   PEDOMAN PA FAKULTAS VOKASI 2025         20 a.",
+      "Syarat Maju Seminar   Dosen koordinator PA akan memberikan pengarahan dan informasi mengenai pengumpulan semua  artefak yang wajib diselesaikan sebelum seminar yakni: Kelengkapan dokumen pengembangan  produk dan catatan bimbingan mahasiswa (minimal 7 kali bimbingan) yang akan dilengkapi serta  dikirim ke dalam sistem informasi yang telah diberikan yakni Ecourse  atau Gitlab maupun t"
+    ],
+    "ground_truth": "Kelengkapan artefak PA dikirim maksimal 2 hari kerja sebelum seminar pada jam kerja.",
+    "source_question": "Berapa batas waktu pengiriman kelengkapan artefak PA sebelum seminar?"
+  },
+  {
+    "question": "Apa syarat seminar PA dinyatakan sah?",
+    "answer": "Seminar PA dinyatakan sah jika dihadiri oleh pembimbing dan dewan penguji.",
+    "contexts": [
+      "Seminar PA dinyatakan sah jika dihadiri oleh Pembimbing dan Dewan Penguji.",
+      "Jika salah satu pembimbing atau penguji terlambat hadir, seminar dapat dilaksanakan sesuai ketentuan yang disetujui.",
+      "hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa dinyatakan tidak lulus.  Mahasiswa dinyatakan lulus tanpa revisi dokumen PA. 4. Mahasiswa dinyatakan lulus dengan syarat wajib melakukan revisi dokumen PA dan produk PA  yang berkaitan dengan  PA dalam waktu yang ditentukan dalam keputusan seminar PA tersebut. 5.",
+      "Batas waktu revisi dan catatan mengenai hal -hal yang wajib diisi dalam formulir lembar revisi  dan menjadi satu kesatuan berita acara hasil seminar PA. 6. Apabila hasil seminar PA menyataka n bahwa mahasiswa PA tidak lulus, maka mahasiswa diberi  kesempatan untuk mengajukan seminar PA dengan judul yang sama sebanyak 1 kali. 7.",
+      "Apabila mahasiswa dinyatakan tidak lulus kembali maka mahasiswa wajib mengganti judul PA  dan mengulang proses dari awal yaitu penentuan topik PA dan masih dalam jadwal pelaksanaan  PA. 2.8 Penggunaan Sistem Informasi   Dosen koordinator PA memberikan informasi seputar PA melalui platform  CI",
+      "koordinasi dengan Pembimbi ng II terkait progress  pencapaian PA. 5. Memberikan penilaian peserta PA selama proses bimbingan dan seminar. 6. Memeriksa persyaratan administrasi kelengkapan seminar PA. PEDOMAN PA FAKULTAS VOKASI 2025         15 2.1.2.2 Hak Pembimbing PA   Berikut adalah kewajiban yang harus dilakukan pembimbing:   a.",
+      "Mengubah batasan masalah atau ruang lingkup PA dan jika diperlukan akan mengubah judul sesuai  dengan kesepakatan dengan penguji PA dan berkoordinasi dengan Koord. PA. b. Mengusulkan tim penguji kepada koordinator PA dan disetujui oleh Ka. Prodi untuk  diperti mbangkan sebagai penguji pada seminar PA. c.",
+      "Memutuskan kelayakan PA untuk diajukan pada seminar PA melalui formulir kelayakan PA untuk  maju seminar. Jika pembimbing menyatakan mahasiswa belum siap maju seminar, maka  pembimbing PA berhak untuk mengundurkan j adwal seminar PA namun masih dalam lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadw",
+      "dikonsultasikan dengan dosen pembimbing. 3.2 Pelaksanaan Seminar PA     a. Kelompok Seminar PA harus sudah mengirimkan kelengkapan artefak PA maksimal 2 hari kerja  dan pada jam kerja sebelum jadwal seminar PA dilaksanakan. b. Seminar PA bersifat terbuka untuk dosen dan mahasiswa IT Del, dan mengenakan seragam sesuai  dengan ketentuan IT Del. c.",
+      "Pelaksanaan seminar PA tidak diperkenankan untuk didokumentasikan melalui kamera video. d. Seminar PA diatur dengan tata cara sebagai berikut:   ● Peserta  seminar PA wajib membawa kartu mahasiswa. ● Peserta seminar PA berpakaian rapi dengan ketentuan sebagai berikut:   i. Mahasiswa: Kemeja polos lengan panjang, celana panjang warna gelap, dan  mengenakan jas almamater IT Del. ii.",
+      "Mahasiswi: Kemeja polos lengan panjang , dan rok di bawah lutut warna gelap, dan  mengenakan jas almamater IT Del. iii. Dosen: Jas IT Del, atau disesuaikan dengan keputusan prodi. ● Hadir selambat -lambatnya 15 menit sebelum seminar dimulai, dan memeri"
+    ],
+    "ground_truth": "Seminar PA sah jika dihadiri pembimbing dan dewan penguji.",
+    "source_question": "Apa syarat seminar PA dinyatakan sah?"
+  },
+  {
+    "question": "Berapa lama maksimal pelaksanaan seminar PA?",
+    "answer": "Seminar PA dilaksanakan dalam waktu maksimum 90 menit, termasuk presentasi, tanya jawab, rapat tim penguji, dan demonstrasi jika diperlukan.",
+    "contexts": [
+      "Seminar PA dilaksanakan dalam waktu maksimum 90 menit, termasuk untuk presentasi, tanya jawab, rapat tim penguji untuk menentukan kelulusan seminar PA serta peragaan (demonstrasi) jika diperlukan.",
+      "Batas waktu ini mencakup seluruh proses seminar dari awal sampai keputusan akhir.",
+      "dikonsultasikan dengan dosen pembimbing. 3.2 Pelaksanaan Seminar PA     a. Kelompok Seminar PA harus sudah mengirimkan kelengkapan artefak PA maksimal 2 hari kerja  dan pada jam kerja sebelum jadwal seminar PA dilaksanakan. b. Seminar PA bersifat terbuka untuk dosen dan mahasiswa IT Del, dan mengenakan seragam sesuai  dengan ketentuan IT Del. c.",
+      "Pelaksanaan seminar PA tidak diperkenankan untuk didokumentasikan melalui kamera video. d. Seminar PA diatur dengan tata cara sebagai berikut:   ● Peserta  seminar PA wajib membawa kartu mahasiswa. ● Peserta seminar PA berpakaian rapi dengan ketentuan sebagai berikut:   i. Mahasiswa: Kemeja polos lengan panjang, celana panjang warna gelap, dan  mengenakan jas almamater IT Del. ii.",
+      "Mahasiswi: Kemeja polos lengan panjang , dan rok di bawah lutut warna gelap, dan  mengenakan jas almamater IT Del. iii. Dosen: Jas IT Del, atau disesuaikan dengan keputusan prodi. ● Hadir selambat -lambatnya 15 menit sebelum seminar dimulai, dan memeri",
+      "am lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadwal seminar di -publish  ke mahasiswa dan  seluruh dosen, minimal seminggu sebelum jadwal seminar PA. e. Mendapatkan hak cipta bersama dengan mahasiswa dan institusi. f. Sebagai ketua dalam pelaksanaan seminar PA.",
+      "2.1.3 Dosen Penguji PA    Koordinator PA menyusun tim dosen penguji yang terdiri dari: Penguji yang bertugas memeriksa  dokumen PA dan produk PA, berkoordinasi dengan Ketua  Program Studi. 2.1.3.1 Kewajiban Tim Penguji PA   Kewajiban umum Dosen Penguji PA adalah:   a. Hadir 5 menit sebelum pelaksanaan seminar. b. Menguji mahasiswa peserta seminar. c. Memverifikasi hasil pelaksanaan PA. d.",
+      "Memberikan nilai pelaksanaan PA berdasarkan hasil se minar PA   2.1.3.2 Hak Penguji PA    Hak penguji adalah sebagai berikut:   a. Memberikan penilaian terhadap hasil seminar mahasiswa tanpa dipengaruhi oleh pihak lain   b. Meminta perbaikan dokumen dan produk akhir jika terdapat",
+      "hentian proses pembimbingan PA:   PEDOMAN PA FAKULTAS VOKASI 2025         19 Pembimbing berhak untuk menolak melanjutkan pembimbingan PA d an mencari mahasiswa lain  dengan judul yang sama jika mahasiswa yang bersangkutan tidak mengikuti kesepakatan dengan  dosen pembimbing dan masih memenuhi jadwal pelaksanaan PA.",
+      "2.7 Proses Penilaian Seminar PA   Penilaian seminar PA dilaksanakan oleh seluruh  tim dosen penguji dan pembimbing. 1. Hasil keputusan seminar PA dituliskan dalam formulir berita acara dan penilaian hasil seminar PA. 2. Penilaian hasil seminar PA adalah hak dari setiap dosen pembimbing dan penguji.",
+      "Jika mahasiswa  melakukan seminar ulang, m aka penilaian untuk kelompok tersebut harus sesuai dengan batasan  nilai dari kesepakatan dosen pembimbing dan dosen penguji/nilai maksimum seminar ulang ada  pada ketentuan Penilaian PA. 3. Mahasiswa wajib mematuhi semua keputusan hasil seminar PA. Hasil Kepu tusan seminar PA  memberikan beberapa kemungkinan yaitu:    Mahasiswa"
+    ],
+    "ground_truth": "Maksimal durasi seminar PA adalah 90 menit.",
+    "source_question": "Berapa lama maksimal pelaksanaan seminar PA?"
+  },
+  {
+    "question": "Apa kewajiban umum dosen penguji PA?",
+    "answer": "Kewajiban umum dosen penguji PA adalah hadir 5 menit sebelum seminar, menguji mahasiswa, memverifikasi hasil pelaksanaan PA, dan memberikan nilai pelaksanaan PA.",
+    "contexts": [
+      "Kewajiban umum Dosen Penguji PA adalah hadir 5 menit sebelum pelaksanaan seminar.",
+      "Dosen penguji menguji mahasiswa peserta seminar dan memverifikasi hasil pelaksanaan PA.",
+      "Dosen penguji memberikan nilai pelaksanaan PA berdasarkan hasil seminar PA.",
+      "in ator PA dan seluruh dosen prodi berdiskusi untuk menentukan dosen penguji  bagi setiap kelompok,   ● Dosen koordinator mendiskusikan jadwal seminar kepada seluruh dosen prodi,   d.",
+      "Kondisi Akhir:   ● Bukti bimbingan juga sudah ada, yang dilakukan setiap minggunya,   ● Dokumen pendukung sudah ada di sistem informasi yang disubmit oleh  mahasiswa,   ● Dosen penguji sudah ada,   ● Jadwal seminar sudah ada,   3.1.8 Seminar PA    a. Peserta:   ● Dosen Koordinator PA,   ● Dosen pembimbing PA,   ● Dosen penguji,   ● Mahasiswa,     PEDOMAN PA FAKULTAS VOKASI 2025         29 b.",
+      "Kondisi Awal:   ● Dosen penguji sudah ditentukan,   ● Jadwal presentasi (seminar) sudah ditentukan,   ● PA sudah dikerjakan sesuai target,   ● Komponen penilaian sudah ada,   c.",
+      "Prosedur:   ● Dosen pembimbing dan kelompok mahasiswa beserta dosen penguji melaksanakan presentasi  pada rentang waktu yan g disediakan oleh coordinator,   ● Presentasi dilakukan sesuai prosedur presentasi dan penilaian, mengikuti jadwal yang",
+      "a melakukan pameran   a. Kondisi Akhir:   ● Rencana pelaksanaan dituliskan dan disetujui oleh Kaprodi dan seluruh dosen prodi. ● Jumlah kelompok PA, anggota kelompok, dan Judul PA   3.1.2 Penentuan Dosen Pembimbing   a. Peserta:   ● Dosen Koordinator PA   PEDOMAN PA FAKULTAS VOKASI 2025         24 ● Dosen Pembimbing   ● Mahasiswa   b.",
+      "Kondisi Awal:  Pengusulan semua dosen prodi sebagai calon dosen pembimbing mahasiswa. c. Prosedur:   ● Dosen koordinator PA melakukan diskusi dengan Ka.Prodi dan seluruh dosen prodi untuk  pembagian kelompok proyek akhir. ● Dosen koordinator PA menuliskan dosen pembimbing mahasiswa berdasarkan hasil diskusi.",
+      "● Dosen koordinator memberikan briefing kepada dosen pembimbing tentang pembimbingan  dan pelaksanaan PA ( mengirimkan jadwal timeline) yang dilakukan dengan diskusi. d. Kondisi Akhir:   ● Dosen pembimbing PA sudah mengetahui berapa jumlah kelompok PA yang akan  dibimbing. ● Setiap kelompok mahasiswa sudah mendapatkan dosen pembimbing PA.",
+      "am lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadwal seminar di -publish  ke mahasiswa dan  seluruh dosen, minimal seminggu sebelum jadwal seminar PA. e. Mendapatkan hak cipta bersama dengan mahasiswa dan institusi. f. Sebagai ketua dalam pelaksanaan seminar PA.",
+      "2.1.3 Dosen Penguji PA    Koordinator PA menyusun tim dosen penguji yang terdiri dari: Penguji yang bertugas memeriksa  dokumen PA dan produk PA, berkoordinasi dengan Ketua  Program Studi. 2.1.3.1 Kewajiban Tim Penguji PA   Kewajiban umum Dosen Penguji PA adalah:   a. Hadir 5 menit sebelum pelaksanaan seminar. b. Menguji mahasiswa peserta seminar. c. Memverifikasi hasil pelaksanaan PA. d.",
+      "Memberikan nilai pelaksanaan PA berdasarkan hasil se minar PA   2.1.3.2 Hak Penguji PA    Hak penguji adalah sebagai berikut:   a. Memberikan penilaian terhadap hasil seminar mahasiswa tanpa dipengaruhi oleh pihak lain   b. Meminta perbaikan dokumen dan produk akhir jika terdapat"
+    ],
+    "ground_truth": "Dosen penguji wajib hadir sebelum seminar, menguji mahasiswa, memverifikasi hasil, dan memberi nilai.",
+    "source_question": "Apa kewajiban umum dosen penguji PA?"
+  },
+  {
+    "question": "Apa hak dosen penguji PA?",
+    "answer": "Hak dosen penguji PA adalah memberikan penilaian tanpa dipengaruhi pihak lain dan meminta perbaikan dokumen maupun produk akhir jika terdapat kekurangan.",
+    "contexts": [
+      "Hak penguji adalah sebagai berikut: memberikan penilaian terhadap hasil seminar mahasiswa tanpa dipengaruhi oleh pihak lain.",
+      "Penguji dapat meminta perbaikan dokumen dan produk akhir jika terdapat kekurangan.",
+      "in ator PA dan seluruh dosen prodi berdiskusi untuk menentukan dosen penguji  bagi setiap kelompok,   ● Dosen koordinator mendiskusikan jadwal seminar kepada seluruh dosen prodi,   d.",
+      "Kondisi Akhir:   ● Bukti bimbingan juga sudah ada, yang dilakukan setiap minggunya,   ● Dokumen pendukung sudah ada di sistem informasi yang disubmit oleh  mahasiswa,   ● Dosen penguji sudah ada,   ● Jadwal seminar sudah ada,   3.1.8 Seminar PA    a. Peserta:   ● Dosen Koordinator PA,   ● Dosen pembimbing PA,   ● Dosen penguji,   ● Mahasiswa,     PEDOMAN PA FAKULTAS VOKASI 2025         29 b.",
+      "Kondisi Awal:   ● Dosen penguji sudah ditentukan,   ● Jadwal presentasi (seminar) sudah ditentukan,   ● PA sudah dikerjakan sesuai target,   ● Komponen penilaian sudah ada,   c.",
+      "Prosedur:   ● Dosen pembimbing dan kelompok mahasiswa beserta dosen penguji melaksanakan presentasi  pada rentang waktu yan g disediakan oleh coordinator,   ● Presentasi dilakukan sesuai prosedur presentasi dan penilaian, mengikuti jadwal yang",
+      "a melakukan pameran   a. Kondisi Akhir:   ● Rencana pelaksanaan dituliskan dan disetujui oleh Kaprodi dan seluruh dosen prodi. ● Jumlah kelompok PA, anggota kelompok, dan Judul PA   3.1.2 Penentuan Dosen Pembimbing   a. Peserta:   ● Dosen Koordinator PA   PEDOMAN PA FAKULTAS VOKASI 2025         24 ● Dosen Pembimbing   ● Mahasiswa   b.",
+      "Kondisi Awal:  Pengusulan semua dosen prodi sebagai calon dosen pembimbing mahasiswa. c. Prosedur:   ● Dosen koordinator PA melakukan diskusi dengan Ka.Prodi dan seluruh dosen prodi untuk  pembagian kelompok proyek akhir. ● Dosen koordinator PA menuliskan dosen pembimbing mahasiswa berdasarkan hasil diskusi.",
+      "● Dosen koordinator memberikan briefing kepada dosen pembimbing tentang pembimbingan  dan pelaksanaan PA ( mengirimkan jadwal timeline) yang dilakukan dengan diskusi. d. Kondisi Akhir:   ● Dosen pembimbing PA sudah mengetahui berapa jumlah kelompok PA yang akan  dibimbing. ● Setiap kelompok mahasiswa sudah mendapatkan dosen pembimbing PA.",
+      "am lingkup  jadwal pelaksanaan seminar PA. d. Mengusulkan perubahan jadwal seminar PA sebelum jadwal seminar di -publish  ke mahasiswa dan  seluruh dosen, minimal seminggu sebelum jadwal seminar PA. e. Mendapatkan hak cipta bersama dengan mahasiswa dan institusi. f. Sebagai ketua dalam pelaksanaan seminar PA.",
+      "2.1.3 Dosen Penguji PA    Koordinator PA menyusun tim dosen penguji yang terdiri dari: Penguji yang bertugas memeriksa  dokumen PA dan produk PA, berkoordinasi dengan Ketua  Program Studi. 2.1.3.1 Kewajiban Tim Penguji PA   Kewajiban umum Dosen Penguji PA adalah:   a. Hadir 5 menit sebelum pelaksanaan seminar. b. Menguji mahasiswa peserta seminar. c. Memverifikasi hasil pelaksanaan PA. d.",
+      "Memberikan nilai pelaksanaan PA berdasarkan hasil se minar PA   2.1.3.2 Hak Penguji PA    Hak penguji adalah sebagai berikut:   a. Memberikan penilaian terhadap hasil seminar mahasiswa tanpa dipengaruhi oleh pihak lain   b. Meminta perbaikan dokumen dan produk akhir jika terdapat"
+    ],
+    "ground_truth": "Penguji berhak memberi penilaian independen dan meminta perbaikan dokumen serta produk akhir.",
+    "source_question": "Apa hak dosen penguji PA?"
+  }
+]
